@@ -1,6 +1,6 @@
 #include "input_engine.h"
 #include <base/window.h>
-#include <rendering/camera_controller.h>
+#include <render/camera_controller.h>
 namespace gleam {
 	void InputEngine::Suspend()
 	{
