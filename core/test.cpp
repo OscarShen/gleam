@@ -2,8 +2,8 @@
 
 #include <base/window.h>
 #include <input/input_engine.h>
-#include <rendering/camera.h>
-#include <rendering/camera_controller.h>
+#include <render/camera.h>
+#include <render/camera_controller.h>
 using namespace gleam;
 int main() {
 	InputEngine ie;

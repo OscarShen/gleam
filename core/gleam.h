@@ -27,10 +27,22 @@ namespace gleam {
 	class Timer;
 	class CameraController;
 	typedef std::shared_ptr<CameraController> CameraControllerPtr;
+	class Camera;
+	typedef std::shared_ptr<Camera> CameraPtr;
 	class Window;
 	typedef std::shared_ptr<Window> WindowPtr;
 	template <typename T>
 	class Color_T;
 	typedef Color_T<float> Color;
+	class FrameBuffer;
+	typedef std::shared_ptr<FrameBuffer> FrameBufferPtr;
+	class RenderView;
+	typedef std::shared_ptr<RenderView> RenderViewPtr;
+	class UnorderedAccessView;
+	typedef std::shared_ptr<UnorderedAccessView> UnorderedAccessViewPtr;
+	struct Viewport;
+	typedef std::shared_ptr<Viewport> ViewportPtr;
+
+
 }
 #endif // !GLEAM_CORE_GLEAM_H_

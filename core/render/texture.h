@@ -54,7 +54,7 @@ namespace gleam
 
 		virtual uint32_t Width(uint32_t level) const = 0;
 		virtual uint32_t Height(uint32_t level) const = 0;
-		virtual uint32_t Depth(uint32_t level) const = 0; // for 3D texture
+		virtual uint32_t Depth(uint32_t level) const = 0;
 
 		virtual void CopyToTexture(Texture &target) = 0;
 		virtual void CopyToSubTexture1D(Texture &target,
