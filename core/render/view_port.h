@@ -14,9 +14,9 @@ namespace gleam
 	struct Viewport
 	{
 		Viewport();
-		Viewport(int left, int top, int width, int height);
+		Viewport(int width, int height);
 
-		int left, top, width, height;
+		int width, height;
 		CameraPtr camera;
 	};
 }
