@@ -97,8 +97,6 @@ namespace gleam {
 	}
 	void * OGLGraphicsBuffer::Map(BufferAccess ba)
 	{
-		OGLRenderEngine &re = *checked_cast<OGLRenderEngine*>(&Context::Instance().RenderEngineInstance());
-
 		void *p;
 		if ((ba == BA_Write_Only) && (BU_Dynamic == usage_))
 		{
