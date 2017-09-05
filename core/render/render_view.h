@@ -73,10 +73,10 @@ namespace gleam
 	};
 	typedef std::shared_ptr<OGLRenderView> OGLRenderViewPtr;
 
-	class OGLColorRenderView : public OGLRenderView
+	class OGLDefaultColorRenderView : public OGLRenderView
 	{
 	public:
-		OGLColorRenderView(uint32_t width, uint32_t height, ElementFormat format);
+		OGLDefaultColorRenderView(uint32_t width, uint32_t height, ElementFormat format);
 
 		void ClearColor(const Color &color) override;
 		void ClearDepth(float depth) override;
@@ -87,12 +87,12 @@ namespace gleam
 		void OnAttached(FrameBuffer& fb, uint32_t att) override;
 		void OnDetached(FrameBuffer& fb, uint32_t att) override;
 	};
-	typedef std::shared_ptr<OGLColorRenderView> OGLColorRenderViewPtr;
+	typedef std::shared_ptr<OGLDefaultColorRenderView> OGLDefaultColorRenderViewPtr;
 
-	class OGLDepthStencilRenderView : public OGLRenderView
+	class OGLDefaultDepthStencilRenderView : public OGLRenderView
 	{
 	public:
-		OGLDepthStencilRenderView(uint32_t width, uint32_t height, ElementFormat format);
+		OGLDefaultDepthStencilRenderView(uint32_t width, uint32_t height, ElementFormat format);
 
 		void ClearColor(const Color &color) override;
 
@@ -100,7 +100,7 @@ namespace gleam
 		void OnAttached(FrameBuffer& fb, uint32_t att) override;
 		void OnDetached(FrameBuffer& fb, uint32_t att) override;
 	};
-	typedef std::shared_ptr<OGLDepthStencilRenderView> OGLDepthStencilRenderViewPtr;
+	typedef std::shared_ptr<OGLDefaultDepthStencilRenderView> OGLDefaultDepthStencilRenderViewPtr;
 
 	class OGLTexture1DRenderView : public OGLRenderView
 	{
@@ -184,6 +184,72 @@ namespace gleam
 		CubeFaces face_;
 		int level_;
 	};
+	typedef std::shared_ptr<OGLTextureCubeRenderView> OGLTextureCubeRenderViewPtr;
+
+	class OGLGraphicsBufferRenderView : public OGLRenderView
+	{
+	public:
+		OGLGraphicsBufferRenderView(GraphicsBuffer &gbuffer, uint32_t width, uint32_t height, ElementFormat format);
+		~OGLGraphicsBufferRenderView();
+
+		void ClearColor(const Color &color) override;
+
+		void Discard() override;
+
+		void OnAttached(FrameBuffer &fb, uint32_t att) override;
+		void OnDetached(FrameBuffer &fb, uint32_t att) override;
+
+		void OnUnbind(FrameBuffer &fb, uint32_t att) override;
+
+	private:
+		void CopyToGB(uint32_t att);
+	private:
+		GraphicsBuffer &gbuffer_;
+	};
+	typedef std::shared_ptr<OGLGraphicsBufferRenderView> OGLGraphicsBufferRenderViewPtr;
+
+	class OGLDepthStencilRenderView : public OGLRenderView
+	{
+	public:
+		OGLDepthStencilRenderView(uint32_t width, uint32_t height, ElementFormat format, uint32_t sample_count, uint32_t sample_quality);
+		OGLDepthStencilRenderView(Texture &texture, int array_index, int array_size, int level);
+		~OGLDepthStencilRenderView();
+
+		void ClearColor(const Color &color) override;
+
+		void Discard() override;
+
+		void OnAttached(FrameBuffer &fb, uint32_t att) override;
+		void OnDetached(FrameBuffer &fb, uint32_t att) override;  
+
+	private:
+		GLenum target_type_;
+		int array_index_;
+		int array_size_;
+		int level_;
+		uint32_t sample_count_, sample_quality_;
+		GLuint rbo_;
+	};
+	typedef std::shared_ptr<OGLDepthStencilRenderView> OGLDepthStencilRenderViewPtr;
+
+	class OGLTextureCubeDepthStencilRenderView : public OGLRenderView
+	{
+	public:
+		OGLTextureCubeDepthStencilRenderView(Texture &texture_cube, int array_index, CubeFaces face, int level);
+
+		void ClearColor(const Color &color) override;
+
+		void Discard() override;
+
+		void OnAttached(FrameBuffer &fb, uint32_t att) override;
+		void OnDetached(FrameBuffer &fb, uint32_t att) override;
+
+	private:
+		OGLTextureCube &texture_cube_;
+		CubeFaces face_;
+		int level_;
+	};
+	typedef std::shared_ptr<OGLTextureCubeDepthStencilRenderView> OGLTextureCubeDepthStencilRenderViewPtr;
 }
 
 #endif // !GLEAM_CORE_RENDER_VIEW_H_
