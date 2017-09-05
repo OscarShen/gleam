@@ -2,9 +2,253 @@
 
 namespace gleam
 {
+	void OGLMapping::Mapping(GLfloat * color4, const Color & color)
+	{
+		color4[0] = color.r;
+		color4[1] = color.g;
+		color4[2] = color.b;
+		color4[3] = color.a;
+	}
+	GLenum OGLMapping::Mapping(CompareFunction func)
+	{
+		switch (func)
+		{
+		case gleam::CF_AlwaysFail:
+			return GL_NEVER;
+
+		case gleam::CF_AlwaysPass:
+			return GL_ALWAYS;
+
+		case gleam::CF_Less:
+			return GL_LESS;
+
+		case gleam::CF_LessEqual:
+			return GL_LEQUAL;
+
+		case gleam::CF_Equal:
+			return GL_EQUAL;
+
+		case gleam::CF_NotEqual:
+			return GL_NOTEQUAL;
+
+		case gleam::CF_GreaterEqual:
+			return GL_GEQUAL;
+
+		case gleam::CF_Greater:
+			return GL_GREATER;
+
+		default:
+			CHECK_INFO(false, "Invalid compare function...");
+		}
+	}
+	GLenum OGLMapping::Mapping(AlphaBlendFactor factor)
+	{
+		switch (factor)
+		{
+		case gleam::ABF_Zero:
+			return GL_ZERO;
+
+		case gleam::ABF_One:
+			return GL_ONE;
+
+		case gleam::ABF_Src_Alpha:
+			return GL_SRC_ALPHA;
+
+		case gleam::ABF_Dst_Alpha:
+			return GL_DST_ALPHA;
+
+		case gleam::ABF_Inv_Src_Alpha:
+			return GL_ONE_MINUS_SRC_ALPHA;
+
+		case gleam::ABF_Inv_Dst_Alpha:
+			return GL_ONE_MINUS_DST_ALPHA;
+
+		case gleam::ABF_Src_Color:
+			return GL_SRC_COLOR;
+
+		case gleam::ABF_Dst_Color:
+			return GL_DST_COLOR;
+
+		case gleam::ABF_Inv_Src_Color:
+			return GL_ONE_MINUS_SRC_COLOR;
+
+		case gleam::ABF_Inv_Dst_Color:
+			return GL_ONE_MINUS_DST_COLOR;
+
+		case gleam::ABF_Src_Alpha_Sat:
+			return GL_SRC_ALPHA_SATURATE;
+
+		case gleam::ABF_Blend_Factor:
+			return GL_CONSTANT_COLOR;
+
+		case gleam::ABF_Inv_Blend_Factor:
+			return GL_ONE_MINUS_CONSTANT_COLOR;
+
+		case gleam::ABF_Src1_Alpha:
+			return GL_SRC1_ALPHA;
+
+		case gleam::ABF_Inv_Src1_Alpha:
+			return GL_ONE_MINUS_SRC1_ALPHA;
+
+		case gleam::ABF_Src1_Color:
+			return GL_SRC1_COLOR;
+
+		case gleam::ABF_Inv_Src1_Color:
+			return GL_ONE_MINUS_SRC1_COLOR;
+
+		default:
+			CHECK_INFO(false, "Invalid alpha blend factor...");
+		}
+	}
+	GLenum OGLMapping::Mapping(StencilOperation op)
+	{
+		switch (op)
+		{
+		case gleam::SOP_Keep:
+			return GL_KEEP;
+
+		case gleam::SOP_Zero:
+			return GL_ZERO;
+
+		case gleam::SOP_Replace:
+			return GL_REPLACE;
+
+		case gleam::SOP_Incr:
+			return GL_INCR;
+
+		case gleam::SOP_Decr:
+			return GL_DECR;
+
+		case gleam::SOP_Invert:
+			return GL_INVERT;
+
+		case gleam::SOP_Incr_Wrap:
+			return GL_INCR_WRAP;
+
+		case gleam::SOP_Decr_Wrap:
+			return GL_DECR_WRAP;
+
+		default:
+			CHECK_INFO(false, "Invalid stencil operation...");
+		}
+	}
+	GLenum OGLMapping::Mapping(BlendOperation op)
+	{
+		switch (op)
+		{
+		case gleam::BOP_Add:
+			return GL_FUNC_ADD;
+
+		case gleam::BOP_Sub:
+			return GL_FUNC_SUBTRACT;
+
+		case gleam::BOP_Rev_Sub:
+			return GL_FUNC_REVERSE_SUBTRACT;
+
+		case gleam::BOP_Min:
+			return GL_MIN;
+
+		case gleam::BOP_Max:
+			return GL_MAX;
+
+		default:
+			CHECK_INFO(false, "Invalid blend operation...");
+		}
+	}
+	GLint OGLMapping::Mapping(TexAddressingMode mode)
+	{
+		switch (mode)
+		{
+		case gleam::TAM_Wrap:
+			return GL_REPEAT;
+
+		case gleam::TAM_Mirror:
+			return GL_MIRRORED_REPEAT;
+
+		case gleam::TAM_Clamp:
+			return GL_CLAMP_TO_EDGE;
+
+		case gleam::TAM_Border:
+			return GL_CLAMP_TO_BORDER;
+
+		default:
+			CHECK_INFO(false, "Invalid texture addressing mode...");
+		}
+	}
+	GLenum OGLMapping::Mapping(LogicOperation op)
+	{
+		switch (op)
+		{
+		case gleam::LOP_Clear:
+			return GL_CLEAR;
+		case gleam::LOP_Set:
+			return GL_SET;
+		case gleam::LOP_Copy:
+			return GL_COPY;
+		case gleam::LOP_CopyInverted:
+			return GL_COPY_INVERTED;
+		case gleam::LOP_Noop:
+			return GL_NOOP;
+		case gleam::LOP_Invert:
+			return GL_INVERT;
+		case gleam::LOP_And:
+			return GL_AND;
+		case gleam::LOP_NAnd:
+			return GL_NAND;
+		case gleam::LOP_Or:
+			return GL_OR;
+		case gleam::LOP_NOR:
+			return GL_NOR;
+		case gleam::LOP_XOR:
+			return GL_XOR;
+		case gleam::LOP_Equiv:
+			return GL_EQUIV;
+		case gleam::LOP_AndReverse:
+			return GL_AND_REVERSE;
+		case gleam::LOP_AndInverted:
+			return GL_AND_INVERTED;
+		case gleam::LOP_OrReverse:
+			return GL_OR_REVERSE;
+		case gleam::LOP_OrInverted:
+			return GL_OR_INVERTED;
+		default:
+			CHECK_INFO(false, "Invalid logic operation...");
+		}
+	}
+	GLenum OGLMapping::Mapping(PolygonMode mode)
+	{
+		switch (mode)
+		{
+		case gleam::PM_Point:
+			return GL_POINT;
+
+		case gleam::PM_Line:
+			return GL_LINE;
+
+		case gleam::PM_Fill:
+			return GL_FILL;
+
+		default:
+			CHECK_INFO(false, "Invalid polygon mode...");
+		}
+	}
+	GLenum OGLMapping::Mapping(ShadeMode mode)
+	{
+		switch (mode)
+		{
+		case gleam::SM_Flat:
+			return GL_FLAT;
+
+		case gleam::SM_Gouraud:
+			return GL_SMOOTH;
+
+		default:
+			CHECK_INFO(false, "Invalid shade mode...");
+		}
+	}
 	void OGLMapping::MappingFormat(GLint & internalFormat, GLenum & glformat, GLenum & gltype, ElementFormat format)
 	{
-		switch (ef)
+		switch (format)
 		{
 		case EF_A8:
 			internalFormat = GL_ALPHA8;
