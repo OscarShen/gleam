@@ -18,26 +18,14 @@ namespace gleam
 		RenderSettings()
 			:color_format(EF_ARGB8), depth_stencil_format(EF_D16),
 			sample_count(1), sample_quality(0) {}
+		uint32_t height, width;
 		ElementFormat color_format;
 		ElementFormat depth_stencil_format;
 		uint32_t sample_count;
 		uint32_t sample_quality;
 	};
 
-	class RenderEngine
-	{
-	public:
-		RenderEngine();
-
-		virtual ~RenderEngine();
-
-		virtual void DoCreateRenderWindow(const std::string & name, const RenderSettings &settings) = 0;
-
-	private:
-
-	};
-
-	class OGLRenderEngine : public RenderEngine
+	class OGLRenderEngine
 	{
 	public:
 		void ActiveTexture(GLenum tex_unit);
@@ -73,13 +61,14 @@ namespace gleam
 		void Uniform4fv(GLint location, GLsizei count, GLfloat const * value);
 		void UniformMatrix4fv(GLint location, GLsizei count, GLboolean transpose, GLfloat const * value);
 
+		void EnableFramebufferSRGB(bool srgb);
+
 		void BindFrameBuffer(GLuint fbo, bool force = false);
 		GLuint CurrentFrameBuffer() const;
 		void DeleteFrameBuffer(GLsizei n, const GLuint *buffers);
 
 	private:
-		void DoCreateRenderWindow(const std::string & name, const RenderSettings &settings) override;
-
+		void DoCreateRenderWindow(const std::string & name, const RenderSettings &settings);
 
 	private:
 		GLenum active_tex_unit_;
@@ -99,6 +88,8 @@ namespace gleam
 		std::map<GLuint, std::map<GLint, glm::ivec4>> uniformi_cache_;
 		std::map<GLuint, std::map<GLint, glm::vec4>> uniformf_cache_;
 		bool fb_srgb_cache_;
+
+		WindowPtr win;
 	};
 }
 

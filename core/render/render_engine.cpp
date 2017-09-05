@@ -1,5 +1,6 @@
 #include "render_engine.h"
 #include "frame_buffer.h"
+#include <base/window.h>
 namespace gleam {
 	void OGLRenderEngine::ActiveTexture(GLenum tex_unit)
 	{
@@ -604,6 +605,23 @@ namespace gleam {
 		}
 	}
 
+	void OGLRenderEngine::EnableFramebufferSRGB(bool srgb)
+	{
+		if (fb_srgb_cache_ != srgb)
+		{
+			if (srgb)
+			{
+				glEnable(GL_FRAMEBUFFER_SRGB);
+			}
+			else
+			{
+				glDisable(GL_FRAMEBUFFER_SRGB);
+			}
+
+			fb_srgb_cache_ = srgb;
+		}
+	}
+
 	void OGLRenderEngine::BindFrameBuffer(GLuint fbo, bool force)
 	{
 		if (force || (cur_fbo_ != fbo))
@@ -632,7 +650,11 @@ namespace gleam {
 
 	void OGLRenderEngine::DoCreateRenderWindow(const std::string & name, const RenderSettings & settings)
 	{
-		FrameBufferPtr win = std::make_shared<OGLFrameBuffer>();
+		if (NumDepthBits(settings.depth_stencil_format) > 0)
+		{
+
+		}
+		win = std::make_shared<GLFWWnd>(name, settings.width, settings.height);
 	}
 
 }

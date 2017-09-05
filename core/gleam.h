@@ -42,7 +42,8 @@ namespace gleam {
 	typedef std::shared_ptr<UnorderedAccessView> UnorderedAccessViewPtr;
 	struct Viewport;
 	typedef std::shared_ptr<Viewport> ViewportPtr;
-
-
+	class RenderEngine;
+	class GraphicsBuffer;
+	typedef std::shared_ptr<GraphicsBuffer> GraphicsBufferPtr;
 }
 #endif // !GLEAM_CORE_GLEAM_H_

@@ -23,6 +23,7 @@ namespace gleam
 		static std::unique_ptr<Context> instance_;
 
 		RenderEngine &RenderEngineInstance();
+		bool RenderEngineValid() const { return render_engine_ != nullptr; }
 
 	private:
 		std::unique_ptr<RenderEngine> render_engine_;
