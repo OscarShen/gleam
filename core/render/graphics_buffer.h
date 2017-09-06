@@ -56,7 +56,7 @@ namespace gleam
 	public:
 		explicit OGLGraphicsBuffer(BufferUsage usage, uint32_t access_hint, GLenum target,
 			uint32_t size_in_byte, ElementFormat format);
-		~OGLGraphicsBuffer();
+		~OGLGraphicsBuffer() override;
 
 		void CopyToBuffer(GraphicsBuffer& rhs) override;
 

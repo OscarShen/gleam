@@ -3,7 +3,6 @@
 namespace gleam {
 	template Color_T<float>::Color_T(float const * rhs) noexcept;
 	template Color_T<float>::Color_T(Color const & rhs) noexcept;
-	template Color_T<float>::Color_T(Color&& rhs) noexcept;
 	template Color_T<float>::Color_T(float r, float g, float b, float a) noexcept;
 	template Color_T<float>::Color_T(uint32_t dw) noexcept;
 	template void Color_T<float>::RGBA(uint8_t& R, uint8_t& G, uint8_t& B, uint8_t& A) const noexcept;
@@ -19,7 +18,7 @@ namespace gleam {
 	template Color const Color_T<float>::operator+() const noexcept;
 	template Color const Color_T<float>::operator-() const noexcept;
 	template bool Color_T<float>::operator==(Color const & rhs) const noexcept;
-
+	template bool Color_T<float>::operator!=(Color const & rhs) const noexcept;
 
 	template <typename T>
 	Color_T<T>::Color_T(T const * rhs) noexcept
@@ -33,12 +32,6 @@ namespace gleam {
 	template <typename T>
 	Color_T<T>::Color_T(Color_T const & rhs) noexcept
 		: r(rhs.r), g(rhs.g), b(rhs.b), a(rhs.a)
-	{
-	}
-
-	template <typename T>
-	Color_T<T>::Color_T(Color_T&& rhs) noexcept
-		: col_(std::move(rhs.col_))
 	{
 	}
 
@@ -175,5 +168,10 @@ namespace gleam {
 	bool Color_T<T>::operator==(Color_T<T> const & rhs) const noexcept
 	{
 		return (r == rhs.r) && (g == rhs.g) && (b == rhs.b) && (a == rhs.a);
+	}
+	template<typename T>
+	bool Color_T<T>::operator!=(Color_T<T> const & rhs) const noexcept
+	{
+		return (r != rhs.r) || (g != rhs.g) || (b != rhs.b) || (a != rhs.a);
 	}
 }

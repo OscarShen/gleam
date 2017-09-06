@@ -1,6 +1,5 @@
 #include "graphics_buffer.h"
 #include <base/context.h>
-#include <base/util.h>
 #include "mapping.h"
 #include "render_engine.h"
 namespace gleam {
@@ -10,7 +9,6 @@ namespace gleam {
 	}
 	GraphicsBuffer::~GraphicsBuffer()
 	{
-		this->DeleteResource();
 	}
 	OGLGraphicsBuffer::OGLGraphicsBuffer(BufferUsage usage, uint32_t access_hint, GLenum target, uint32_t size_in_byte, ElementFormat format)
 		: GraphicsBuffer(usage, access_hint, size_in_byte), vbo_(0), texture_(0),target_(target), format_(format)

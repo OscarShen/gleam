@@ -1,7 +1,12 @@
 #include "render_engine.h"
 #include "frame_buffer.h"
 #include <base/window.h>
+#include "render_state.h"
 namespace gleam {
+	OGLRenderEngine::OGLRenderEngine()
+	{
+		cur_render_state_ = std::make_shared<OGLRenderStateObject>(RasterizerStateDesc(),DepthStencilStateDesc(),BlendStateDesc());
+	}
 	void OGLRenderEngine::ActiveTexture(GLenum tex_unit)
 	{
 		if (tex_unit != active_tex_unit_)
@@ -631,7 +636,7 @@ namespace gleam {
 		}
 	}
 
-	GLuint OGLRenderEngine::CurrentFrameBuffer() const
+	GLuint OGLRenderEngine::BindFrameBuffer() const
 	{
 		return cur_fbo_;
 	}
@@ -648,13 +653,20 @@ namespace gleam {
 		glDeleteFramebuffers(n, buffers);
 	}
 
-	void OGLRenderEngine::DoCreateRenderWindow(const std::string & name, const RenderSettings & settings)
+	void OGLRenderEngine::SetPolygonMode(GLenum face, GLenum mode)
 	{
-		if (NumDepthBits(settings.depth_stencil_format) > 0)
+		if (polygon_mode_cache_ != mode)
 		{
-
+			glPolygonMode(face, mode);
+			polygon_mode_cache_ = mode;
 		}
-		win = std::make_shared<GLFWWnd>(name, settings.width, settings.height);
 	}
 
+	void OGLRenderEngine::DoCreateRenderWindow(const std::string & name, const RenderSettings & settings)
+	{
+
+	}
+	RenderEngine::RenderEngine()
+	{
+	}
 }

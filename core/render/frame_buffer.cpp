@@ -1,6 +1,5 @@
 #include "frame_buffer.h"
 #include <base/context.h>
-#include <base/util.h>
 #include "view_port.h"
 #include "render_view.h"
 #include "render_engine.h"
@@ -170,5 +169,11 @@ namespace gleam {
 			GLenum targets[] = { GL_BACK_LEFT };
 			glNamedFramebufferDrawBuffers(fbo_, 1, &targets[0]);
 		}
+	}
+	void OGLFrameBuffer::Clear(uint32_t flags, const Color & clr, float depth, int32_t stencil)
+	{
+	}
+	void OGLFrameBuffer::Discard(uint32_t flags)
+	{
 	}
 }

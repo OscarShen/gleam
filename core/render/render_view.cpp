@@ -1,7 +1,6 @@
 #include "render_view.h"
 #include <base/context.h>
 #include "render_engine.h"
-#include <base/util.h>
 #include "frame_buffer.h"
 #include "mapping.h"
 #include "graphics_buffer.h"
@@ -36,7 +35,7 @@ namespace gleam {
 		if (IsDepthFormat(format_))
 			flags |= GL_DEPTH_BUFFER_BIT;
 		if (IsStencilFormat(format_))
-			flags != GL_STENCIL_BUFFER_BIT;
+			flags |= GL_STENCIL_BUFFER_BIT;
 		this->DoClear(flags, Color(), depth, stencil);
 	}
 	GLuint OGLRenderView::GLTexture() const
@@ -45,29 +44,7 @@ namespace gleam {
 	}
 	void OGLRenderView::DoClear(uint32_t flags, const Color & color, float depth, int32_t stencil)
 	{
-		if (flags & GL_COLOR_BUFFER_BIT)
-		{
-			glClearNamedFramebufferfv(fbo_, GL_COLOR, index_, &color[0]);
-		}
-		if ((flags & GL_DEPTH_BUFFER_BIT) && (flags & GL_STENCIL_BUFFER_BIT))
-		{
-			glClearNamedFramebufferfi(fbo_, GL_DEPTH_STENCIL, 0, depth, stencil);
-		}
-		else
-		{
-			if (flags & GL_DEPTH_BUFFER_BIT)
-			{
-				glClearNamedFramebufferfv(fbo_, GL_DEPTH, 0, &depth);
-			}
-			else
-			{
-				if (flags & GL_STENCIL_BUFFER_BIT)
-				{
-					GLint s = stencil;
-					glClearNamedFramebufferiv(fbo_, GL_STENCIL, 0, &s);
-				}
-			}
-		}
+		// TODO
 	}
 	void OGLRenderView::DoDiscardColor()
 	{
@@ -495,7 +472,7 @@ namespace gleam {
 		fbo_ = checked_cast<OGLFrameBuffer*>(&fb)->OGLFbo();
 		if (face_ >= 0)
 		{
-			GLenum face = GL_TEXTURE_CUBE_MAP_POSITIVE_X + face - CF_Positive_X;
+			GLenum face = GL_TEXTURE_CUBE_MAP_POSITIVE_X + face_ - CF_Positive_X;
 			glNamedFramebufferTextureLayer(fbo_,
 				GL_COLOR_ATTACHMENT0 + att - ATT_Color0,
 				texture_, level_, face_);

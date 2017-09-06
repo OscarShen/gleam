@@ -17,17 +17,18 @@ namespace gleam {
 		}
 		explicit Color_T(T const * rhs) noexcept;
 		Color_T(Color_T const & rhs) noexcept;
-		Color_T(Color_T&& rhs) noexcept;
 		Color_T(T r, T g, T b, T a) noexcept;
 		explicit Color_T(uint32_t dw) noexcept;
 
-		const T &operator[](size_t index) noexcept
+		const T &operator[](size_t index) const noexcept
 		{
-			return col_[index];
+			assert((index >= 0) && (index < 4));
+			return index == 0 ? r : (index == 1 ? g : (index == 2 ? b : a));
 		}
-		T &operator[](size_t index) const noexcept
+		T &operator[](size_t index) noexcept
 		{
-			return col_[index];
+			assert((index >= 0) && (index < 4));
+			return index == 0 ? r : (index == 1 ? g : (index == 2 ? b : a));
 		}
 
 		void RGBA(uint8_t& R, uint8_t& G, uint8_t& B, uint8_t& A) const noexcept;
@@ -50,5 +51,6 @@ namespace gleam {
 		Color_T const operator-() const noexcept;
 
 		bool operator==(Color_T<T> const & rhs) const noexcept;
+		bool operator!=(Color_T<T> const & rhs) const noexcept;
 	};
 }

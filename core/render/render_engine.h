@@ -25,9 +25,21 @@ namespace gleam
 		uint32_t sample_quality;
 	};
 
-	class OGLRenderEngine
+	class RenderEngine
 	{
 	public:
+		RenderEngine();
+		virtual ~RenderEngine() { }
+		const RenderStateObjectPtr &CurRenderStateObject() const { return cur_render_state_; }
+
+	protected:
+		RenderStateObjectPtr cur_render_state_;
+	};
+
+	class OGLRenderEngine : public RenderEngine
+	{
+	public:
+		OGLRenderEngine();
 		void ActiveTexture(GLenum tex_unit);
 		void BindTexture(GLuint index, GLuint target, GLuint texture, bool force = false);
 		void BindTexture(GLuint first, GLsizei count, const GLuint *targets, const GLuint *textures, bool force = false);
@@ -64,8 +76,10 @@ namespace gleam
 		void EnableFramebufferSRGB(bool srgb);
 
 		void BindFrameBuffer(GLuint fbo, bool force = false);
-		GLuint CurrentFrameBuffer() const;
+		GLuint BindFrameBuffer() const;
 		void DeleteFrameBuffer(GLsizei n, const GLuint *buffers);
+
+		void SetPolygonMode(GLenum face, GLenum mode);
 
 	private:
 		void DoCreateRenderWindow(const std::string & name, const RenderSettings &settings);
@@ -88,6 +102,8 @@ namespace gleam
 		std::map<GLuint, std::map<GLint, glm::ivec4>> uniformi_cache_;
 		std::map<GLuint, std::map<GLint, glm::vec4>> uniformf_cache_;
 		bool fb_srgb_cache_;
+
+		GLenum polygon_mode_cache_;
 
 		WindowPtr win;
 	};

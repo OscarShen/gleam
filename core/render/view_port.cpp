@@ -1,5 +1,5 @@
 #include "view_port.h"
-
+#include "camera.h"
 namespace gleam {
 	Viewport::Viewport()
 		: camera(std::make_shared<Camera>())

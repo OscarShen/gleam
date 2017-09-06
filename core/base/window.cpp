@@ -1,3 +1,4 @@
+#include <GL/glew.h>
 #include "window.h"
 #include <GLFW/glfw3.h>
 #include <input/input_record.h>
@@ -69,6 +70,7 @@ namespace gleam {
 		glfwSetCursorPosCallback(wnd_, cursor_position_callback);
 		glfwSetScrollCallback(wnd_, scroll_callback);
 		glfwSwapInterval(0);
+		glewInit();
 		return true;
 	}
 

@@ -45,5 +45,14 @@ namespace gleam {
 	class RenderEngine;
 	class GraphicsBuffer;
 	typedef std::shared_ptr<GraphicsBuffer> GraphicsBufferPtr;
+	class RenderStateObject;
+	typedef std::shared_ptr<RenderStateObject> RenderStateObjectPtr;
+
+	template <typename To, typename From>
+	inline To checked_cast(From p) noexcept
+	{
+		assert(dynamic_cast<To>(p) == static_cast<To>(p));
+		return static_cast<To>(p);
+	}
 }
 #endif // !GLEAM_CORE_GLEAM_H_

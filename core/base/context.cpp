@@ -1,6 +1,6 @@
 #include "context.h"
 #include <mutex>
-
+#include <render/render_engine.h>
 namespace
 {
 	std::mutex singleton_mutex;
@@ -16,7 +16,7 @@ namespace gleam {
 			std::lock_guard<std::mutex> lock(singleton_mutex);
 			if (!instance_)
 			{
-				instance_ = std::make_unique<Context>();
+				instance_.reset(new Context());
 			}
 		}
 		return *instance_;
@@ -35,6 +35,11 @@ namespace gleam {
 	RenderEngine & Context::RenderEngineInstance()
 	{
 		return *render_engine_;
+	}
+
+	Context::Context()
+	{
+		render_engine_ = std::make_unique<OGLRenderEngine>();
 	}
 
 }

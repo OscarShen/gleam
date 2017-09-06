@@ -1,5 +1,4 @@
 #include "texture.h"
-#include <base/util.h>
 namespace gleam {
 	Texture::Texture(TextureType type, uint32_t sample_count, uint32_t sample_quality, uint32_t access_hint)
 		: type_(type), sample_count_(sample_count), sample_quality_(sample_quality), access_hint_(access_hint)

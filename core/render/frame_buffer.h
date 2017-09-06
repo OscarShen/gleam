@@ -82,6 +82,9 @@ namespace gleam
 
 		void OnBind() override;
 
+		void Clear(uint32_t flags, const Color & clr, float depth, int32_t stencil) override;
+		void Discard(uint32_t flags) override;
+
 	private:
 		GLuint fbo_;
 	};

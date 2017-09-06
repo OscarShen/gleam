@@ -20,12 +20,13 @@ namespace gleam
 
 		void DestroyAll() { }
 
-		static std::unique_ptr<Context> instance_;
 
 		RenderEngine &RenderEngineInstance();
 		bool RenderEngineValid() const { return render_engine_ != nullptr; }
 
 	private:
+		Context();
+		static std::unique_ptr<Context> instance_;
 		std::unique_ptr<RenderEngine> render_engine_;
 	};
 }
