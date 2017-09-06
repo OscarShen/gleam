@@ -6,18 +6,15 @@
  * Copyright @ OscarShen 2017. All rights reserved. 
 ************************************************************************/  
 #pragma once
-#ifndef GLEAM_CORE_BASE_UTIL_H_
-#define GLEAM_CORE_BASE_UTIL_H_
-
-#include <assert.h>
+#ifndef GLEAM_CORE_RENDER_OGL_UTIL_H_
+#define GLEAM_CORE_RENDER_OGL_UTIL_H_
+#include <GL/glew.h>
 namespace gleam
 {
-	template <typename To, typename From>
-	inline To checked_cast(From p) noexcept
-	{
-		assert(dynamic_cast<To>(p) == static_cast<To>(p));
-		return static_cast<To>(p);
-	}
+	GLenum CheckError(const char *file, int line);
+
+#define glCheckError() gleam::CheckError(__FILE__, __LINE__)
+
 }
 
-#endif // !GLEAM_CORE_BASE_UTIL_H_
+#endif // !GLEAM_CORE_RENDER_OGL_UTIL_H_
