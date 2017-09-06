@@ -298,6 +298,41 @@ namespace gleam
 		DepthStencilStateDesc	depth_stencil_state_;
 		BlendStateDesc			blend_state_;
 	};
+
+	class OGLRenderStateObject : public RenderStateObject
+	{
+	public:
+		OGLRenderStateObject(const RasterizerStateDesc &raster_state,
+			const DepthStencilStateDesc &depth_stencil_state, const BlendStateDesc &blend_state);
+
+		void Active() override;
+		void ActiveDefault();
+
+	public:
+		GLenum		ogl_polygon_mode_;
+		GLenum		ogl_shade_mode_;
+		GLenum		ogl_front_face_;
+
+		GLboolean	ogl_depth_write_mask_;
+		GLenum		ogl_depth_func_;
+		GLenum		ogl_front_stencil_func_;
+		GLenum		ogl_front_stencil_fail_;
+		GLenum		ogl_front_stencil_depth_fail_;
+		GLenum		ogl_front_stencil_pass_;
+		GLenum		ogl_back_stencil_func_;
+		GLenum		ogl_back_stencil_fail_;
+		GLenum		ogl_back_stencil_depth_fail_;
+		GLenum		ogl_back_stencil_pass_;
+
+		GLenum		ogl_blend_op_;
+		GLenum		ogl_blend_op_alpha_;
+		GLenum		ogl_src_blend_;
+		GLenum		ogl_dest_blend_;
+		GLenum		ogl_src_blend_alpha_;
+		GLenum		ogl_dest_blend_alpha_;
+		GLenum		ogl_logic_op_;
+	};
+
 }
 
 
