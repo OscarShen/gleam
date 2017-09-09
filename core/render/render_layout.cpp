@@ -176,7 +176,7 @@ namespace gleam {
 	}
 	void RenderLayout::StartInstanceLocation(uint32_t location)
 	{
-		start_index_location_ = location;
+		start_instance_location_ = location;
 		streams_dirty_ = true;
 	}
 	void RenderLayout::BindIndirectArgs(const GraphicsBufferPtr & args_buff)
