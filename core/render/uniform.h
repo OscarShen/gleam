@@ -12,7 +12,7 @@
 #include <gleam.h>
 namespace gleam {
 
-	enum OGLUniformType
+	enum UniformType
 	{
 		UT_Bool,
 		UT_Float,
@@ -21,13 +21,9 @@ namespace gleam {
 		UT_Vector4f,
 		UT_Sampler,
 		UT_Matrix4f,
-		UT_Texture1D,
-		UT_Texture2D,
-		UT_Texture3D,
-		UT_Texture2DArray,
-		UT_TextureCubeMap,
-		UT_UniformBlock
 	};
+
+	void UniformTypeFromString(UniformType &type, const std::string &name);
 
 	class OGLUniform
 	{
@@ -43,7 +39,7 @@ namespace gleam {
 		std::string name_;
 		GLuint program_;
 		GLint location_;
-		OGLUniformType type_;
+		UniformType type_;
 	};
 
 	typedef std::shared_ptr<OGLUniform> OGLUniformPtr;
@@ -54,6 +50,7 @@ namespace gleam {
 	{
 	public:
 		OGLUniformTemplate(const std::string &name) : OGLUniform(name), used_(false) { }
+		void SetInitValue(T value) { data_ = value; }
 
 	protected:
 		T data_;
@@ -109,11 +106,11 @@ namespace gleam {
 		void Load(const glm::mat4 &value);
 	};
 
-	class OGLUniformBlock
+	class OGLUniformBuffer
 	{
 	public:
-		OGLUniformBlock(const std::string &name);
-		virtual ~OGLUniformBlock() { }
+		OGLUniformBuffer(const std::string &name);
+		virtual ~OGLUniformBuffer() { }
 		void StoreUniformBlockIndex(GLuint program);
 		const std::string &Name() const { return name_; }
 		GLint Index() const { return index_; }
@@ -131,8 +128,9 @@ namespace gleam {
 		GLint index_;
 		std::string name_;
 		GraphicsBufferPtr data_;
+		size_t size_;
 		bool dirty_;
 	};
-	typedef std::shared_ptr<OGLUniformBlock> OGLUniformBlockPtr;
+	typedef std::shared_ptr<OGLUniformBuffer> OGLUniformBufferPtr;
 }
 #endif // !GLEAM_CORE_UNIFORM_H_
