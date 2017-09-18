@@ -34,18 +34,22 @@ namespace gleam
 		return fi.f;
 	}
 
+	void BoolFromString(bool &b, const std::string &name);
+
 	enum PolygonMode
 	{
 		PM_Point,
 		PM_Line,
 		PM_Fill
 	};
+	void PolygonModeFromString(PolygonMode &polygon_mode, const std::string &name);
 
 	enum ShadeMode
 	{
 		SM_Flat,
 		SM_Gouraud
 	};
+	void ShadeModeFromString(ShadeMode &shade_mode, const std::string &name);
 
 	enum CullMode
 	{
@@ -53,6 +57,8 @@ namespace gleam
 		CM_Front,
 		CM_Back
 	};
+	void CullModeFromString(CullMode &cull_mode, const std::string &name);
+
 
 	enum BlendOperation
 	{
@@ -62,6 +68,7 @@ namespace gleam
 		BOP_Min = 4,
 		BOP_Max = 5,
 	};
+	void BlendOperationFromString(BlendOperation &blend_op, const std::string &name);
 
 	enum AlphaBlendFactor
 	{
@@ -83,6 +90,7 @@ namespace gleam
 		ABF_Src1_Color,
 		ABF_Inv_Src1_Color
 	};
+	void AlphaBlendFactorFromString(AlphaBlendFactor &alpha_blend_factor, const std::string &name);
 
 	enum CompareFunction
 	{
@@ -95,6 +103,7 @@ namespace gleam
 		CF_GreaterEqual,
 		CF_Greater
 	};
+	void CompareFunctionFromString(CompareFunction &func, const std::string &name);
 
 	// Enum describing the various actions which can be taken onthe stencil buffer
 	enum StencilOperation
@@ -116,6 +125,7 @@ namespace gleam
 		// Decrease the stencil value by 1, wrap the result if necessary
 		SOP_Decr_Wrap
 	};
+	void StencilOperationFromString(StencilOperation &stencil_op, const std::string &name);
 
 	enum ColorMask
 	{
@@ -192,6 +202,7 @@ namespace gleam
 		LOP_OrReverse,
 		LOP_OrInverted
 	};
+	void LogicOperationFromString(LogicOperation &logic_op, const std::string &name);
 
 #pragma pack(push, 1)
 
@@ -333,6 +344,32 @@ namespace gleam
 		GLenum		ogl_logic_op_;
 	};
 
+
+	class SamplerStateObject : noncopyable
+	{
+	public:
+		explicit SamplerStateObject(const SamplerStateDesc &sampler_state)
+			: sampler_state_(sampler_state) { }
+
+		virtual ~SamplerStateObject() { }
+
+		const SamplerStateDesc &GetDesc() const { return sampler_state_; }
+
+	protected:
+		SamplerStateDesc sampler_state_;
+	};
+
+	class OGLSamplerStateObject : public SamplerStateObject
+	{
+	public:
+		explicit OGLSamplerStateObject(const SamplerStateDesc &sampler_state);
+		virtual ~OGLSamplerStateObject();
+
+		GLuint GLSampler() const { return sampler_; }
+
+	private:
+		GLuint sampler_;
+	};
 }
 
 

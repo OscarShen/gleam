@@ -39,9 +39,6 @@ namespace gleam
 		virtual void Bind() = 0;
 		virtual void Unbind() = 0;
 
-		bool ShaderValidate(ShaderType type) const { return is_shader_validate_[type]; }
-		bool Validate() const { return is_validate_; }
-		bool HasDiscard() const { return has_discard_; }
 		bool HasTessellation() const { return has_tessellation; }
 
 	protected:
@@ -49,10 +46,6 @@ namespace gleam
 		std::vector<OGLUniformBufferPtr> uniform_blocks_;
 		std::vector<TextureBind> textures_;
 
-		std::array<bool, ST_ComputeShader> is_shader_validate_;
-
-		bool is_validate_;
-		bool has_discard_;
 		bool has_tessellation;
 	};
 

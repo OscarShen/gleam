@@ -16,11 +16,11 @@
 #include <array>
 #include <functional>
 #include <map>
+#include <unordered_map>
 #include <glm/glm.hpp>
 
 namespace gleam {
 #define CHECK_INFO(x, str) if(!(x)) { std::cout << str << "\n\t|file: "<< __FILE__<<",line: " << __LINE__<<std::endl;}
-
 
 	class InputRecord;
 	class InputEngine;
@@ -34,6 +34,8 @@ namespace gleam {
 	template <typename T>
 	class Color_T;
 	typedef Color_T<float> Color;
+	class Texture;
+	typedef std::shared_ptr<Texture> TexturePtr;
 	class FrameBuffer;
 	typedef std::shared_ptr<FrameBuffer> FrameBufferPtr;
 	class RenderView;
@@ -47,6 +49,12 @@ namespace gleam {
 	typedef std::shared_ptr<GraphicsBuffer> GraphicsBufferPtr;
 	class RenderStateObject;
 	typedef std::shared_ptr<RenderStateObject> RenderStateObjectPtr;
+	class SamplerStateObject;
+	typedef std::shared_ptr<SamplerStateObject> SamplerStateObjectPtr;
+	class ShaderObject;
+	typedef std::shared_ptr<ShaderObject> ShaderObjectPtr;
+	class RenderTechnique;
+	typedef std::shared_ptr<RenderTechnique> RenderTechniquePtr;
 
 	template <typename To, typename From>
 	inline To checked_cast(From p) noexcept

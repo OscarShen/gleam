@@ -215,6 +215,26 @@ namespace gleam
 			CHECK_INFO(false, "Invalid logic operation...");
 		}
 	}
+	GLenum OGLMapping::Mapping(ShaderType type)
+	{
+		switch (type)
+		{
+		case gleam::ST_VertexShader:
+			return GL_VERTEX_SHADER;
+		case gleam::ST_FragmentShader:
+			return GL_FRAGMENT_SHADER;
+		case gleam::ST_GeometryShader:
+			return GL_GEOMETRY_SHADER;
+		case gleam::ST_ComputeShader:
+			return GL_COMPUTE_SHADER;
+		case gleam::ST_TessControlShader:
+			return GL_TESS_CONTROL_SHADER;
+		case gleam::ST_TessEvalShader:
+			return GL_TESS_EVALUATION_SHADER;
+		default:
+			CHECK_INFO(false, "Invalid shader type...");
+		}
+	}
 	GLenum OGLMapping::Mapping(PolygonMode mode)
 	{
 		switch (mode)

@@ -5,7 +5,6 @@ namespace gleam {
 	ShaderObject::ShaderObject()
 		: has_discard_(false), has_tessellation(false)
 	{
-		is_shader_validate_.fill(true);
 	}
 	OGLShaderObject::OGLShaderObject()
 	{
@@ -19,15 +18,12 @@ namespace gleam {
 	{
 		GLenum gl_shader_type = OGLMapping::Mapping(type);
 		GLuint gl_shader = glCreateShader(gl_shader_type);
-
-		if (0 == gl_shader)
-			is_shader_validate_[type] = false;
+		CHECK_INFO(gl_shader != 0, "Could not create shaders...");
 
 		const char *glsl = shader_code.c_str();
 		glShaderSource(gl_shader, 1, &glsl, nullptr);
 
 		glCompileShader(gl_shader);
-
 
 		GLint compiled = false;
 		glGetShaderiv(gl_shader, GL_COMPILE_STATUS, &compiled);
@@ -45,21 +41,16 @@ namespace gleam {
 			}
 		}
 
-		is_shader_validate_[type] &= compiled ? true : false;
-
 		glAttachShader(glsl_program_, gl_shader);
 		glDeleteShader(gl_shader);
 	}
 	void OGLShaderObject::LinkShaders()
 	{
-		is_validate_ = true;
-
 		glLinkProgram(glsl_program_);
 
 		GLint linked = false;
 		glGetProgramiv(glsl_program_, GL_LINK_STATUS, &linked);
 		CHECK_INFO(linked, "program linked failed...");
-		is_validate_ &= linked ? true : false;
 	}
 	void ShaderTypeFromString(ShaderType & type, const std::string & name)
 	{
@@ -71,35 +62,18 @@ namespace gleam {
 		//	ST_TessEvalShader,
 
 		if (name == "vertex" || name == "vertex_shader")
-		{
 			type = ST_VertexShader;
-			return;
-		}
-		if (name == "fragment" || name == "fragment_shader")
-		{
+		else if (name == "fragment" || name == "fragment_shader")
 			type = ST_FragmentShader;
-			return;
-		}
-		if (name == "geometry" || name == "geometry_shader")
-		{
+		else if (name == "geometry" || name == "geometry_shader")
 			type = ST_GeometryShader;
-			return;
-		}
-		if (name == "compute" || name == "compute_shader")
-		{
+		else if (name == "compute" || name == "compute_shader")
 			type = ST_ComputeShader;
-			return;
-		}
-		if (name == "tess_control" || name == "tess_control_shader")
-		{
+		else if (name == "tess_control" || name == "tess_control_shader")
 			type = ST_TessControlShader;
-			return;
-		}
-		if (name == "tess_evaluation" || name == "tess_evaluation_shader")
-		{
+		else if (name == "tess_evaluation" || name == "tess_evaluation_shader")
 			type = ST_TessEvalShader;
-			return;
-		}
-		assert(false);
+		else
+			CHECK_INFO(false, "Invalid shader type : " << name);
 	}
 }

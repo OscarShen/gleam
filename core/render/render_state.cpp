@@ -483,4 +483,310 @@ namespace gleam {
 
 		glBlendColor(1, 1, 1, 1);
 	}
+	OGLSamplerStateObject::OGLSamplerStateObject(const SamplerStateDesc & sampler_state)
+		: SamplerStateObject(sampler_state)
+	{
+		GLenum ogl_min_filter, ogl_mag_filter;
+		if (sampler_state_.filter & TFOE_Min_Linear)
+		{
+			if (sampler_state_.filter & TFOE_Mip_Linear)
+			{
+				ogl_min_filter = GL_LINEAR_MIPMAP_LINEAR;
+			}
+			else
+			{
+				ogl_min_filter = GL_LINEAR_MIPMAP_NEAREST;
+			}
+		}
+		else // TFOE_Min_Nearest
+		{
+			if (sampler_state_.filter & TFOE_Mip_Linear)
+			{
+				ogl_min_filter = GL_NEAREST_MIPMAP_LINEAR;
+			}
+			else
+			{
+				ogl_min_filter = GL_NEAREST_MIPMAP_NEAREST;
+			}
+		}
+
+		if (sampler_state_.filter & TFOE_Mag_Linear)
+		{
+			ogl_mag_filter = GL_LINEAR;
+		}
+		else
+		{
+			ogl_mag_filter = GL_NEAREST;
+		}
+		if (sampler_state_.filter & TFOE_Anisotropic)
+		{
+			ogl_mag_filter = GL_LINEAR;
+			ogl_min_filter = GL_LINEAR_MIPMAP_LINEAR;
+		}
+
+		glGenSamplers(1, &sampler_);
+
+		glSamplerParameteri(sampler_, GL_TEXTURE_WRAP_S, OGLMapping::Mapping(sampler_state_.addr_mode_u));
+		glSamplerParameteri(sampler_, GL_TEXTURE_WRAP_T, OGLMapping::Mapping(sampler_state_.addr_mode_v));
+		glSamplerParameteri(sampler_, GL_TEXTURE_WRAP_R, OGLMapping::Mapping(sampler_state_.addr_mode_w));
+
+		glSamplerParameterfv(sampler_, GL_TEXTURE_BORDER_COLOR, &sampler_state_.border_color.r);
+
+		glSamplerParameteri(sampler_, GL_TEXTURE_MIN_FILTER, ogl_min_filter);
+		glSamplerParameteri(sampler_, GL_TEXTURE_MAG_FILTER, ogl_mag_filter);
+
+		if (glewIsSupported("GL_EXT_texture_filter_anisotropic"))
+		{
+			glSamplerParameteri(sampler_, GL_TEXTURE_MAX_ANISOTROPY_EXT, (sampler_state_.filter & TFOE_Anisotropic) ? sampler_state_.max_anisotropy : 1);
+		}
+		glSamplerParameterf(sampler_, GL_TEXTURE_MIN_LOD, sampler_state_.min_lod);
+		glSamplerParameterf(sampler_, GL_TEXTURE_MAX_LOD, sampler_state_.max_lod);
+		glSamplerParameteri(sampler_, GL_TEXTURE_COMPARE_MODE, (sampler_state_.cmp_func != CF_AlwaysFail) ? GL_COMPARE_REF_TO_TEXTURE : GL_NONE);
+		glSamplerParameteri(sampler_, GL_TEXTURE_COMPARE_FUNC, OGLMapping::Mapping(sampler_state_.cmp_func));
+
+		glSamplerParameterf(sampler_, GL_TEXTURE_LOD_BIAS, sampler_state_.mip_map_lod_bias);
+	}
+	OGLSamplerStateObject::~OGLSamplerStateObject()
+	{
+		glDeleteSamplers(1, &sampler_);
+	}
+	void BoolFromString(bool & b, const std::string & name)
+	{
+		if ("true" == name || "1" == name)
+		{
+			b = true;
+		}
+		else if ("false" == name || "0" == name)
+		{
+			b = false;
+		}
+		else
+			CHECK_INFO(false, "Invalid bool value : " << name);
+	}
+	void PolygonModeFromString(PolygonMode & polygon_mode, const std::string & name)
+	{
+		//PM_Point,
+		//	PM_Line,
+		//	PM_Fill
+		if (name == "point")
+			polygon_mode = PM_Point;
+		else if (name == "line")
+			polygon_mode = PM_Line;
+		else if (name == "fill")
+			polygon_mode = PM_Fill;
+		else
+			CHECK_INFO(false, "Invalid polygon mode : " << name);
+	}
+	void ShadeModeFromString(ShadeMode & shade_mode, const std::string & name)
+	{
+		//SM_Flat,
+		//	SM_Gouraud
+		if (name == "flat")
+			shade_mode == SM_Flat;
+		else if (name == "gouraud")
+			shade_mode = SM_Gouraud;
+		else
+			CHECK_INFO(false, "Invalid shade mode : " << name);
+	}
+	void CullModeFromString(CullMode & cull_mode, const std::string & name)
+	{
+		//CM_None,
+		//	CM_Front,
+		//	CM_Back
+		if (name == "none")
+			cull_mode = CM_None;
+		else if (name == "front")
+			cull_mode = CM_Front;
+		else if (name == "back")
+			cull_mode = CM_Back;
+		else
+			CHECK_INFO(false, "Invalid cull mode : " << name);
+	}
+	void BlendOperationFromString(BlendOperation & blend_op, const std::string & name)
+	{
+		//BOP_Add = 1,
+		//	BOP_Sub = 2,
+		//	BOP_Rev_Sub = 3,
+		//	BOP_Min = 4,
+		//	BOP_Max = 5,
+		if (name == "add")
+			blend_op = BOP_Add;
+		else if (name == "sub")
+			blend_op = BOP_Sub;
+		else if (name == "rev_sub")
+			blend_op = BOP_Rev_Sub;
+		else if (name == "min")
+			blend_op = BOP_Min;
+		else if (name == "max")
+			blend_op = BOP_Max;
+		else
+			CHECK_INFO(false, "Invalid blend operation : " << name);
+	}
+	void AlphaBlendFactorFromString(AlphaBlendFactor & alpha_blend_factor, const std::string & name)
+	{
+		//ABF_Zero,
+		//	ABF_One,
+		//	ABF_Src_Alpha,
+		//	ABF_Dst_Alpha,
+		//	ABF_Inv_Src_Alpha,
+		//	ABF_Inv_Dst_Alpha,
+		//	ABF_Src_Color,
+		//	ABF_Dst_Color,
+		//	ABF_Inv_Src_Color,
+		//	ABF_Inv_Dst_Color,
+		//	ABF_Src_Alpha_Sat,
+		//	ABF_Blend_Factor,
+		//	ABF_Inv_Blend_Factor,
+		//	ABF_Src1_Alpha,
+		//	ABF_Inv_Src1_Alpha,
+		//	ABF_Src1_Color,
+		//	ABF_Inv_Src1_Color
+		if (name == "zero")
+			alpha_blend_factor = ABF_Zero;
+		else if (name == "one")
+			alpha_blend_factor = ABF_One;
+		else if (name == "src_alpha")
+			alpha_blend_factor = ABF_Src_Alpha;
+		else if (name == "dst_alpha")
+			alpha_blend_factor = ABF_Dst_Alpha;
+		else if (name == "inv_src_alpha")
+			alpha_blend_factor = ABF_Inv_Src_Alpha;
+		else if (name == "inv_dst_alpha")
+			alpha_blend_factor = ABF_Inv_Dst_Alpha;
+		else if (name == "src_color")
+			alpha_blend_factor = ABF_Src_Color;
+		else if (name == "dst_color")
+			alpha_blend_factor = ABF_Dst_Color;
+		else if (name == "inv_src_color")
+			alpha_blend_factor = ABF_Inv_Src_Color;
+		else if (name == "inv_dst_color")
+			alpha_blend_factor = ABF_Inv_Dst_Color;
+		else if (name == "src_alpha_sat")
+			alpha_blend_factor = ABF_Src_Alpha_Sat;
+		else if (name == "blend_factor")
+			alpha_blend_factor = ABF_Blend_Factor;
+		else if (name == "inv_blend_factor")
+			alpha_blend_factor = ABF_Inv_Blend_Factor;
+		else if (name == "src1_alpha")
+			alpha_blend_factor = ABF_Src1_Alpha;
+		else if (name == "inv_src1_alpha")
+			alpha_blend_factor = ABF_Inv_Src1_Alpha;
+		else if (name == "src1_color")
+			alpha_blend_factor = ABF_Src1_Color;
+		else if (name == "inv_src1_color")
+			alpha_blend_factor = ABF_Inv_Src1_Color;
+		else
+			CHECK_INFO(false, "Invalid alpha blend factor : " << name);
+	}
+	void CompareFunctionFromString(CompareFunction & func, const std::string & name)
+	{
+		//CF_AlwaysFail,
+		//	CF_AlwaysPass,
+		//	CF_Less,
+		//	CF_LessEqual,
+		//	CF_Equal,
+		//	CF_NotEqual,
+		//	CF_GreaterEqual,
+		//	CF_Greater
+		if (name == "always_fail")
+			func = CF_AlwaysFail;
+		else if (name == "always_pass")
+			func = CF_AlwaysPass;
+		else if (name == "less")
+			func = CF_Less;
+		else if (name == "less_equal")
+			func = CF_LessEqual;
+		else if (name == "equal")
+			func = CF_Equal;
+		else if (name == "not_equal")
+			func = CF_NotEqual;
+		else if (name == "greater_equal")
+			func = CF_GreaterEqual;
+		else if (name == "greater")
+			func = CF_Greater;
+		else
+			CHECK_INFO(false, "Invalid compare function : " << name);
+	}
+	void StencilOperationFromString(StencilOperation & stencil_op, const std::string & name)
+	{
+		//SOP_Keep,
+		//	SOP_Zero,
+		//	SOP_Replace,
+		//	SOP_Incr,
+		//	SOP_Decr,
+		//	SOP_Invert,
+		//	SOP_Incr_Wrap,
+		//	SOP_Decr_Wrap
+		if (name == "keep")
+			stencil_op = SOP_Keep;
+		else if (name == "zero")
+			stencil_op = SOP_Zero;
+		else if (name == "replace")
+			stencil_op = SOP_Replace;
+		else if (name == "incr")
+			stencil_op = SOP_Incr;
+		else if (name == "decr")
+			stencil_op = SOP_Decr;
+		else if (name == "invert")
+			stencil_op = SOP_Invert;
+		else if (name == "incr_wrap")
+			stencil_op = SOP_Incr_Wrap;
+		else if (name == "decr_wrap")
+			stencil_op = SOP_Decr_Wrap;
+		else
+			CHECK_INFO(false, "Invalid stencil operation : " << name);
+	}
+	void LogicOperationFromString(LogicOperation & logic_op, const std::string & name)
+	{
+		//LOP_Clear,
+		//	LOP_Set,
+		//	LOP_Copy,
+		//	LOP_CopyInverted,
+		//	LOP_Noop,
+		//	LOP_Invert,
+		//	LOP_And,
+		//	LOP_NAnd,
+		//	LOP_Or,
+		//	LOP_NOR,
+		//	LOP_XOR,
+		//	LOP_Equiv,
+		//	LOP_AndReverse,
+		//	LOP_AndInverted,
+		//	LOP_OrReverse,
+		//	LOP_OrInverted
+		if (name == "clear")
+			logic_op = LOP_Clear;
+		else if (name == "set")
+			logic_op = LOP_Set;
+		else if (name == "copy")
+			logic_op = LOP_Copy;
+		else if (name == "copy_inverted")
+			logic_op = LOP_CopyInverted;
+		else if (name == "noop")
+			logic_op = LOP_Noop;
+		else if (name == "invert")
+			logic_op = LOP_Invert;
+		else if (name == "and")
+			logic_op = LOP_And;
+		else if (name == "nand")
+			logic_op = LOP_NAnd;
+		else if (name == "or")
+			logic_op = LOP_Or;
+		else if (name == "nor")
+			logic_op = LOP_NOR;
+		else if (name == "xor")
+			logic_op = LOP_XOR;
+		else if (name == "equiv")
+			logic_op = LOP_Equiv;
+		else if (name == "and_reverse")
+			logic_op = LOP_AndReverse;
+		else if (name == "and_inverted")
+			logic_op = LOP_AndInverted;
+		else if (name == "or_reverse")
+			logic_op = LOP_OrReverse;
+		else if (name == "or_inverted")
+			logic_op = LOP_OrInverted;
+		else
+			CHECK_INFO(false, "Invalid logic operation : " << name);
+	}
 }

@@ -11,6 +11,7 @@
 #include <GL/glew.h>
 #include "element_format.h"
 #include "render_state.h"
+#include "shader_object.h"
 namespace gleam
 {
 	class OGLMapping
@@ -26,6 +27,7 @@ namespace gleam
 		static GLenum	Mapping(BlendOperation op);
 		static GLint	Mapping(TexAddressingMode mode);
 		static GLenum	Mapping(LogicOperation op);
+		static GLenum   Mapping(ShaderType type);
 
 		static void		MappingFormat(GLint &internalFormat, GLenum &glformat, GLenum &gltype, ElementFormat format);
 	};

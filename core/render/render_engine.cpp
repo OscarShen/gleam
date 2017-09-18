@@ -2,6 +2,7 @@
 #include "frame_buffer.h"
 #include <base/window.h>
 #include "render_state.h"
+#include <util/hash.h>
 namespace gleam {
 	OGLRenderEngine::OGLRenderEngine()
 	{
@@ -662,11 +663,47 @@ namespace gleam {
 		}
 	}
 
+	ShaderObjectPtr OGLRenderEngine::MakeShaderObject()
+	{
+		return std::make_shared<ShaderObject>();
+	}
+
 	void OGLRenderEngine::DoCreateRenderWindow(const std::string & name, const RenderSettings & settings)
 	{
 
 	}
+	RenderStateObjectPtr OGLRenderEngine::DoMakeRenderStateObject(const RasterizerStateDesc & raster_state, const DepthStencilStateDesc & depth_stencil_state, const BlendStateDesc & blend_state)
+	{
+		return std::make_shared<OGLRenderStateObject>(raster_state, depth_stencil_state, blend_state);
+	}
 	RenderEngine::RenderEngine()
 	{
+	}
+	RenderStateObjectPtr RenderEngine::MakeRenderStateObject(const RasterizerStateDesc & raster_state, const DepthStencilStateDesc & depth_stencil_state, const BlendStateDesc & blend_state)
+	{
+		RenderStateObjectPtr render_state;
+
+		char const * raster_state_begin = reinterpret_cast<char const *>(&raster_state);
+		char const * raster_state_end = raster_state_begin + sizeof(raster_state);
+		char const * depth_stencil_state_begin = reinterpret_cast<char const *>(&depth_stencil_state);
+		char const * depth_stencil_state_end = depth_stencil_state_begin + sizeof(depth_stencil_state);
+		char const * blend_state_begin = reinterpret_cast<char const *>(&blend_state);
+		char const * blend_state_end = blend_state_begin + sizeof(blend_state);
+
+		size_t seed = HashRange(raster_state_begin, raster_state_end);
+		HashRange(seed, depth_stencil_state_begin, depth_stencil_state_end);
+		HashRange(seed, blend_state_begin, blend_state_end);
+
+		auto iter = render_state_pool.find(seed);
+		if (iter == render_state_pool.end())
+		{
+			render_state = this->DoMakeRenderStateObject(raster_state, depth_stencil_state, blend_state);
+			render_state_pool.emplace(seed, render_state);
+		}
+		else
+		{
+			render_state = iter->second;
+		}
+		return render_state;
 	}
 }

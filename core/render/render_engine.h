@@ -11,6 +11,7 @@
 #include <GL/glew.h>
 #include <gleam.h>
 #include "element_format.h"
+#include "render_state.h"
 namespace gleam
 {
 	struct RenderSettings
@@ -32,8 +33,17 @@ namespace gleam
 		virtual ~RenderEngine() { }
 		const RenderStateObjectPtr &CurRenderStateObject() const { return cur_render_state_; }
 
+		RenderStateObjectPtr MakeRenderStateObject(const RasterizerStateDesc &raster_state,
+			const DepthStencilStateDesc &depth_stencil_state, const BlendStateDesc &blend_state);
+		virtual ShaderObjectPtr MakeShaderObject() = 0;
+
+	private:
+		virtual RenderStateObjectPtr DoMakeRenderStateObject(const RasterizerStateDesc &raster_state,
+			const DepthStencilStateDesc &depth_stencil_state, const BlendStateDesc &blend_state) = 0;
+
 	protected:
 		RenderStateObjectPtr cur_render_state_;
+		std::unordered_map<size_t, RenderStateObjectPtr> render_state_pool;
 	};
 
 	class OGLRenderEngine : public RenderEngine
@@ -81,8 +91,13 @@ namespace gleam
 
 		void SetPolygonMode(GLenum face, GLenum mode);
 
+		ShaderObjectPtr MakeShaderObject() override;
+
+
 	private:
 		void DoCreateRenderWindow(const std::string & name, const RenderSettings &settings);
+		RenderStateObjectPtr DoMakeRenderStateObject(const RasterizerStateDesc &raster_state,
+			const DepthStencilStateDesc &depth_stencil_state, const BlendStateDesc &blend_state) override;
 
 	private:
 		GLenum active_tex_unit_;
