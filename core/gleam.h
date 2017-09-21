@@ -17,11 +17,15 @@
 #include <functional>
 #include <map>
 #include <unordered_map>
+#include <mutex>
 #include <glm/glm.hpp>
 
 namespace gleam {
 #define CHECK_INFO(x, str) if(!(x)) { std::cout << str << "\n\t|file: "<< __FILE__<<",line: " << __LINE__<<std::endl;}
+#define WARNING(x, str) if(!(x)) { std::cout << "warning : " << str << "\n\t|file: "<< __FILE__<<",line: " << __LINE__<<std::endl;}
 
+
+#define GLEAM_IN_WINDOWS 1
 	class InputRecord;
 	class InputEngine;
 	class Timer;
@@ -53,6 +57,8 @@ namespace gleam {
 	typedef std::shared_ptr<SamplerStateObject> SamplerStateObjectPtr;
 	class ShaderObject;
 	typedef std::shared_ptr<ShaderObject> ShaderObjectPtr;
+	class RenderEffect;
+	typedef std::shared_ptr<RenderEffect> RenderEffectPtr;
 	class RenderTechnique;
 	typedef std::shared_ptr<RenderTechnique> RenderTechniquePtr;
 

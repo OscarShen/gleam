@@ -3,7 +3,7 @@
 #include "mapping.h"
 namespace gleam {
 	ShaderObject::ShaderObject()
-		: has_discard_(false), has_tessellation(false)
+		: has_tessellation(false)
 	{
 	}
 	OGLShaderObject::OGLShaderObject()

@@ -3,6 +3,7 @@
 #include <base/window.h>
 #include "render_state.h"
 #include <util/hash.h>
+#include <render/shader_object.h>
 namespace gleam {
 	OGLRenderEngine::OGLRenderEngine()
 	{
@@ -665,7 +666,7 @@ namespace gleam {
 
 	ShaderObjectPtr OGLRenderEngine::MakeShaderObject()
 	{
-		return std::make_shared<ShaderObject>();
+		return std::make_shared<OGLShaderObject>();
 	}
 
 	void OGLRenderEngine::DoCreateRenderWindow(const std::string & name, const RenderSettings & settings)

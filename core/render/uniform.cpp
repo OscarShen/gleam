@@ -107,9 +107,9 @@ namespace gleam {
 			type = UT_Bool;
 		else if (name == "float")
 			type = UT_Float;
-		else if (name == "vector2f")
+		else if (name == "vec2")
 			type = UT_Vector2f;
-		else if (name == "vector3f")
+		else if (name == "vec3")
 			type = UT_Vector3f;
 		else if (name == "sampler" || name == "sampler1d" || name == "sampler2d" ||
 			name == "sampler3d")

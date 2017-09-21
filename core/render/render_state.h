@@ -10,6 +10,7 @@
 #define GLEAM_CORE_RENDER_STATE_H_
 #include <GL/glew.h>
 #include <base/color.hpp>
+#include <boost/noncopyable.hpp>
 namespace gleam
 {
 	inline uint32_t floatToUint32(float f)
@@ -344,8 +345,7 @@ namespace gleam
 		GLenum		ogl_logic_op_;
 	};
 
-
-	class SamplerStateObject : noncopyable
+	class SamplerStateObject : boost::noncopyable
 	{
 	public:
 		explicit SamplerStateObject(const SamplerStateDesc &sampler_state)

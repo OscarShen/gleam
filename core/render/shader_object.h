@@ -42,10 +42,6 @@ namespace gleam
 		bool HasTessellation() const { return has_tessellation; }
 
 	protected:
-		std::vector<OGLUniformPtr> uniforms_;
-		std::vector<OGLUniformBufferPtr> uniform_blocks_;
-		std::vector<TextureBind> textures_;
-
 		bool has_tessellation;
 	};
 
@@ -65,7 +61,12 @@ namespace gleam
 		void AttachShader(ShaderType type, const std::string &shader_code) override;
 		void LinkShaders();
 
+		void Bind() { }
+		void Unbind() { }
 	protected:
+		std::vector<OGLUniformPtr> uniforms_;
+		std::vector<OGLUniformBufferPtr> uniform_blocks_;
+		std::vector<TextureBind> textures_;
 		GLuint glsl_program_;
 	};
 }

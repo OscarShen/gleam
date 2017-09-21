@@ -1,0 +1,66 @@
+<?xml version='1.0'?>
+
+<effect>
+
+	<shader type="vertex_shader" name="NoTessellationVS">
+	  <uniform type="vec2" name="tess_factors"/>
+    <code>
+      <![CDATA[
+      void NoTessellationVS(float4 pos		: POSITION,
+      
+      
+      out float4 oPos		: SV_Position)
+      {
+      oPos = pos;
+      }
+
+      float4 ShadePS() : SV_Target
+      {
+      return float4(1, 1, 0, 1);
+      }
+      ]]>
+    </code>
+  </shader>
+	
+	<shader type="fragment_shader" name="NoTessellationVS">
+    <uniform type="vec2" name="tess_factors"/>
+    <code>
+		<![CDATA[
+HS_CONSTANT_DATA_OUTPUT TessellationConstantsHS(InputPatch<VS_CONTROL_POINT_OUTPUT, 3> ip)
+{
+	HS_CONSTANT_DATA_OUTPUT output;
+
+	// Edge 0
+	output.edges[0] = tess_factors.x;
+	// Edge 1
+	output.edges[1] = tess_factors.y;
+	// Edge 2
+	output.edges[2] = tess_factors.z;
+	// Inside
+	output.inside = tess_factors.w;
+
+	return output;
+}
+		]]>
+    </code>
+	</shader>
+
+	<technique name="NoTessellation">
+		<state name="polygon_mode" value="line"/>
+
+		<state name="vertex_shader" value="NoTessellationVS"/>
+		<state name="fragment_shader" value="NoTessellationVS"/>
+	</technique>
+
+	<technique name="Tessellation">
+		<pass name="p0">
+			<state name="polygon_mode" value="line"/>
+			
+			<state name="vertex_shader" value="NoTessellationVS"/>
+			<state name="hull_shader" value="NoTessellationVS"/>
+			<state name="domain_shader" value="NoTessellationVS"/>
+			<state name="fragment_shader" value="NoTessellationVS"/>
+		</pass>
+	</technique>
+</effect>
+

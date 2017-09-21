@@ -582,7 +582,7 @@ namespace gleam {
 		//SM_Flat,
 		//	SM_Gouraud
 		if (name == "flat")
-			shade_mode == SM_Flat;
+			shade_mode = SM_Flat;
 		else if (name == "gouraud")
 			shade_mode = SM_Gouraud;
 		else

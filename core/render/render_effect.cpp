@@ -5,6 +5,7 @@
 #include <boost/lexical_cast.hpp>
 #include <base/context.h>
 #include "render_engine.h"
+#include <base/resource_loader.h>
 namespace gleam
 {
 	uint32_t RenderEffect::AddShaderObject()
@@ -39,7 +40,9 @@ namespace gleam
 	}
 	void RenderEffect::Load(const std::string & name)
 	{
-		std::unique_ptr<TiXmlDocument> doc = std::make_unique<TiXmlDocument>(name.c_str());
+		std::string real_path = ResLoader::Instance().Locate(name);
+		CHECK_INFO(!real_path.empty(), "name of render effect file is null...");
+		std::unique_ptr<TiXmlDocument> doc = std::make_unique<TiXmlDocument>(real_path.c_str());
 		doc->LoadFile();
 		CHECK_INFO(!doc->Error(), doc->ErrorDesc());
 		TiXmlElement *root = doc->RootElement();
@@ -66,6 +69,7 @@ namespace gleam
 		{
 			std::string include_name = node->Attribute("name");
 			assert(!include_name.empty());
+			include_name = ResLoader::Instance().Locate(include_name);
 
 			std::shared_ptr<TiXmlDocument> doc = std::make_shared<TiXmlDocument>(include_name.c_str());
 			doc->LoadFile();
@@ -101,6 +105,13 @@ namespace gleam
 			std::string name = shader_node->Attribute("name");
 			assert(!name.empty());
 
+			TiXmlElement *code_node = shader_node->FirstChildElement("code");
+			const char *code_char = code_node->GetText();
+			assert(code_char);
+			auto iter = shader_codes_[shader_type].find(name);
+
+			WARNING(iter == shader_codes_[shader_type].end(), "already have the same code : " << name);
+			shader_codes_[shader_type].emplace(std::make_pair(name, code_char));
 
 			for (TiXmlElement *uniform_node = shader_node->FirstChildElement("uniform");
 				uniform_node; uniform_node = uniform_node->NextSiblingElement("uniform"))
@@ -154,16 +165,20 @@ namespace gleam
 
 				shader_uniform_buffer_[shader_type][name].push_back(ubo);
 			}
-
-			for (TiXmlElement *technique_node = shader_node->FirstChildElement("technique");
-				technique_node; technique_node = technique_node->NextSiblingElement("technique"))
-			{
-				RenderTechniquePtr technique = std::make_shared<RenderTechnique>();
-
-				techniques_.push_back(technique);
-				techniques_.back()->Load(*this, technique_node);
-			}
 		}
+		for (TiXmlElement *technique_node = root->FirstChildElement("technique");
+			technique_node; technique_node = technique_node->NextSiblingElement("technique"))
+		{
+			RenderTechniquePtr technique = std::make_shared<RenderTechnique>();
+
+			techniques_.push_back(technique);
+			techniques_.back()->Load(*this, technique_node);
+		}
+	}
+	void RenderTechnique::Name(const std::string & name)
+	{
+		name_ = name;
+		name_hash_ = HashRange(name_.begin(), name_.end());
 	}
 	void RenderTechnique::Load(RenderEffect & effect, TiXmlElement * node)
 	{
@@ -338,17 +353,17 @@ namespace gleam
 				{
 					blend_state.blend_factor.r = boost::lexical_cast<float>(attr);
 				}
-				const char *attr = state_node->Attribute("g");
+				attr = state_node->Attribute("g");
 				if (attr)
 				{
 					blend_state.blend_factor.g = boost::lexical_cast<float>(attr);
 				}
-				const char *attr = state_node->Attribute("b");
+				attr = state_node->Attribute("b");
 				if (attr)
 				{
 					blend_state.blend_factor.g = boost::lexical_cast<float>(attr);
 				}
-				const char *attr = state_node->Attribute("a");
+				attr = state_node->Attribute("a");
 				if (attr)
 				{
 					blend_state.blend_factor.g = boost::lexical_cast<float>(attr);
