@@ -8,6 +8,7 @@
 #pragma once
 #ifndef GLEAM_CORE_RENDER_LAYOUT_H_
 #define GLEAM_CORE_RENDER_LAYOUT_H_
+#include <GL/glew.h>
 #include "element_format.h"
 #include <map>
 #include <util/array_ref.hpp>
@@ -172,6 +173,22 @@ namespace gleam
 		mutable bool			streams_dirty_;
 	};
 
+
+	class OGLRenderLayout : public RenderLayout
+	{
+	public:
+		OGLRenderLayout() { }
+		~OGLRenderLayout();
+
+		void Active(const ShaderObjectPtr &shader) const;
+
+	private:
+		void BindVertexStreams(const ShaderObjectPtr &shader, GLuint vao) const;
+		void UnbindVertexStreams(const ShaderObjectPtr &shader, GLuint vao) const;
+
+	private:
+		mutable std::map<ShaderObjectPtr, GLuint> vaos_;
+	};
 }
 
 #endif // !GLEAM_CORE_RENDER_LAYOUT_H_

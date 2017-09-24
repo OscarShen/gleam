@@ -11,6 +11,7 @@
 #include <array>
 #include <util/noncopyable.hpp>
 #include "uniform.h"
+#include "render_layout.h"
 namespace gleam
 {
 	enum ShaderType
@@ -63,12 +64,18 @@ namespace gleam
 
 		void Bind() { }
 		void Unbind() { }
+
+		GLint GetAttribLocation(VertexElementUsage usage, uint8_t usage_index);
 	protected:
 		std::vector<OGLUniformPtr> uniforms_;
 		std::vector<OGLUniformBufferPtr> uniform_blocks_;
 		std::vector<TextureBind> textures_;
 		GLuint glsl_program_;
+
+		std::map<std::pair<VertexElementUsage, uint8_t>, GLint> attrib_locations_;
 	};
+
+	typedef std::shared_ptr<OGLShaderObject> OGLShaderObjectPtr;
 }
 
 #endif // !GLEAM_CORE_SHADER_OBJECT_H_

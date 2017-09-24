@@ -52,6 +52,18 @@ namespace gleam {
 		glGetProgramiv(glsl_program_, GL_LINK_STATUS, &linked);
 		CHECK_INFO(linked, "program linked failed...");
 	}
+	GLint OGLShaderObject::GetAttribLocation(VertexElementUsage usage, uint8_t usage_index)
+	{
+		auto iter = attrib_locations_.find(std::make_pair(usage, usage_index));
+		if (iter != attrib_locations_.end())
+		{
+			return iter->second;
+		}
+		else
+		{
+			return -1;
+		}
+	}
 	void ShaderTypeFromString(ShaderType & type, const std::string & name)
 	{
 		//ST_VertexShader = 0,

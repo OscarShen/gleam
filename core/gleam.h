@@ -68,5 +68,13 @@ namespace gleam {
 		assert(dynamic_cast<To>(p) == static_cast<To>(p));
 		return static_cast<To>(p);
 	}
+
+	template <typename To, typename From>
+	inline std::shared_ptr<To>
+		checked_pointer_cast(const std::shared_ptr<From> & p) noexcept
+	{
+		assert(std::dynamic_pointer_cast<To>(p) == std::static_pointer_cast<To>(p));
+		return std::static_pointer_cast<To>(p);
+	}
 }
 #endif // !GLEAM_CORE_GLEAM_H_

@@ -1,5 +1,8 @@
 #include "render_layout.h"
 #include "graphics_buffer.h"
+#include "shader_object.h"
+#include <base/context.h>
+#include "mapping.h"
 namespace gleam {
 	RenderLayout::RenderLayout()
 		: topo_type_(TT_PointList),
@@ -14,6 +17,11 @@ namespace gleam {
 		streams_dirty_(true)
 	{
 		vertex_streams_.reserve(4);
+	}
+
+	RenderLayout::~RenderLayout()
+	{
+
 	}
 
 	void RenderLayout::NumVertices(uint32_t n)
@@ -188,5 +196,153 @@ namespace gleam {
 	{
 		indirect_args_offset = offset;
 		streams_dirty_ = true;
+	}
+	OGLRenderLayout::~OGLRenderLayout()
+	{
+		for (const auto &vao : vaos_)
+		{
+			glDeleteVertexArrays(1, &vao.second);
+		}
+	}
+	void OGLRenderLayout::Active(const ShaderObjectPtr & shader) const
+	{
+		GLuint vao;
+		auto iter = vaos_.find(shader);
+		if (iter == vaos_.end())
+		{
+			glCreateVertexArrays(1, &vao);
+			glBindVertexArray(vao);
+			
+			vaos_.emplace(shader, vao);
+			this->BindVertexStreams(shader, vao);
+		}
+		else
+		{
+			vao = iter->second;
+			glBindVertexArray(vao);
+			if (streams_dirty_)
+			{
+				this->BindVertexStreams(shader, vao);
+				streams_dirty_ = false;
+			}
+		}
+	}
+	void OGLRenderLayout::BindVertexStreams(const ShaderObjectPtr & shader, GLuint vao) const
+	{
+		const auto &gl_shader = checked_pointer_cast<OGLShaderObject>(shader);
+
+		uint32_t max_vertex_streams = 16; // 16 is supported in almost all gpu support OpenGL 4.5
+		std::vector<char> used_streams(max_vertex_streams, 0);
+		for (uint32_t i = 0; i < this->NumVertexStreams(); ++i)
+		{
+			OGLGraphicsBuffer &stream = *checked_pointer_cast<OGLGraphicsBuffer>(this->GetVertexStream(i));
+			const uint32_t size = this->VertexSize(i);
+			const auto & vertex_stream_format = this->VertexStreamFormat(i);
+
+			glVertexArrayVertexBuffer(vao, i, stream.GLvbo(), this->StartVertexLocation() * size, size);
+
+			uint32_t elem_offset = 0;
+			for (const auto &vs_elem : vertex_stream_format)
+			{
+				GLint attr = gl_shader->GetAttribLocation(vs_elem.usage, vs_elem.usage_index);
+				if (attr != -1)
+				{
+					GLintptr offset = elem_offset + this->StartVertexLocation() * size;
+					const GLint num_components = static_cast<GLint>(NumComponents(vs_elem.format));
+					GLenum type;
+					GLboolean normalized;
+					OGLMapping::MappingVertexFormat(type, normalized, vs_elem.format);
+					normalized = (((VEU_Diffuse == vs_elem.usage) || (VEU_Specular == vs_elem.usage)) && !IsFloatFormat(vs_elem.format)) ? GL_TRUE : normalized;
+
+					assert(GL_ARRAY_BUFFER == stream.GLType());
+					stream.Active(true);
+
+					glVertexArrayAttribFormat(vao, attr, num_components, type, normalized, elem_offset);
+					glVertexArrayAttribBinding(vao, attr, i);
+					glEnableVertexArrayAttrib(vao, attr);
+
+					used_streams[attr] = 1;
+				}
+
+				elem_offset += vs_elem.NumFormatBytes();
+			}
+		}
+
+		if (this->InstanceStream())
+		{
+			OGLGraphicsBuffer &stream = *checked_pointer_cast<OGLGraphicsBuffer>(this->InstanceStream());
+			const uint32_t instance_size = this->InstanceSize();
+			assert(this->NumInstances() * instance_size <= stream.Size());
+			
+			glVertexArrayVertexBuffer(vao, this->NumVertexStreams(), stream.GLvbo(),
+				this->StartInstanceLocation() * instance_size, instance_size);
+			glVertexArrayBindingDivisor(vao, this->NumVertexStreams(), 1);
+
+			const size_t inst_format_size = this->InstanceStreamFormat().size();
+			uint32_t elem_offset = 0;
+			for (size_t i = 0; i < inst_format_size; ++i)
+			{
+				const VertexElement &vs_elem = this->InstanceStreamFormat()[i];
+
+				GLint attr = gl_shader->GetAttribLocation(vs_elem.usage, vs_elem.usage_index);
+				if (attr != -1)
+				{
+					const GLint num_component = static_cast<GLint>(NumComponents(vs_elem.format));
+					GLenum type;
+					GLboolean normalized;
+					OGLMapping::MappingVertexFormat(type, normalized, vs_elem.format);
+					normalized = (((VEU_Diffuse == vs_elem.usage) || (VEU_Specular == vs_elem.usage)) && !IsFloatFormat(vs_elem.format)) ? GL_TRUE : normalized;
+					GLintptr offset = elem_offset + this->StartInstanceLocation() * instance_size;
+					assert(GL_ARRAY_BUFFER == stream.GLType());
+					stream.Active(true);
+
+					glVertexArrayAttribFormat(vao, attr, num_component, type, normalized, elem_offset);
+					glVertexArrayAttribBinding(vao, attr, this->NumVertexStreams());
+					glEnableVertexArrayAttrib(vao, attr);
+
+					used_streams[attr] = 1;
+				}
+				elem_offset += vs_elem.NumFormatBytes();
+			}
+		}
+
+		for (GLuint i = 0; i < max_vertex_streams; ++i)
+		{
+			if (!used_streams[i])
+			{
+				glDisableVertexArrayAttrib(vao, i);
+			}
+		}
+	}
+	void OGLRenderLayout::UnbindVertexStreams(const ShaderObjectPtr & shader, GLuint vao) const
+	{
+		const OGLShaderObjectPtr &gl_shader = checked_pointer_cast<OGLShaderObject>(shader);
+		for (uint32_t i = 0; i < this->NumVertexStreams(); ++i)
+		{
+			const auto & vertex_stream_format = this->VertexStreamFormat(i);
+			for (const auto &vs_elem : vertex_stream_format)
+			{
+				GLint attr = gl_shader->GetAttribLocation(vs_elem.usage, vs_elem.usage_index);
+				if (attr != -1)
+				{
+					glDisableVertexArrayAttrib(vao, attr);
+				}
+			}
+		}
+		if (this->InstanceStream())
+		{
+			glVertexArrayBindingDivisor(vao, this->NumVertexStreams(), 0);
+
+			const size_t inst_format_size = this->InstanceStreamFormat().size();
+			for (size_t i = 0; i < inst_format_size; ++i)
+			{
+				const VertexElement &vs_elem = this->InstanceStreamFormat()[i];
+				GLint attr = gl_shader->GetAttribLocation(vs_elem.usage, vs_elem.usage_index);
+				if (attr != -1)
+				{
+					glDisableVertexArrayAttrib(vao, attr);
+				}
+			}
+		}
 	}
 }
