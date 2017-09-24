@@ -30,6 +30,7 @@ namespace gleam
 		static GLenum   Mapping(ShaderType type);
 
 		static void		MappingFormat(GLint &internalFormat, GLenum &glformat, GLenum &gltype, ElementFormat format);
+		static void		MappingVertexFormat(GLenum &gltype, GLboolean &normalized, ElementFormat format);
 	};
 }
 #endif // !GLEAM_CORE_RENDER_MAPPING_H_
