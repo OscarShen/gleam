@@ -494,4 +494,19 @@ namespace gleam
 		}
 		shader_obj->LinkShaders();
 	}
+	const ShaderObjectPtr & RenderTechnique::GetShaderObject(const RenderEffect & effect) const
+	{
+		effect.GetShaderObjectByIndex(shader_index_);
+	}
+	void RenderTechnique::Bind(const RenderEffect & effect) const
+	{
+		RenderEngine &re = Context::Instance().RenderEngineInstance();
+		re.SetStateObject(render_state_);
+
+		this->GetShaderObject(effect)->Bind();
+	}
+	void RenderTechnique::Unbind(const RenderEffect & effect) const
+	{
+		this->GetShaderObject(effect)->Unbind();
+	}
 }

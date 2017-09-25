@@ -29,6 +29,11 @@ namespace gleam
 
 		void Load(RenderEffect &effect, TiXmlElement *node);
 
+		const ShaderObjectPtr &GetShaderObject(const RenderEffect &effect) const;
+
+		void Bind(const RenderEffect &effect) const;
+		void Unbind(const RenderEffect &effect) const;
+
 	private:
 		std::string name_;
 		size_t name_hash_;
