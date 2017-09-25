@@ -37,13 +37,31 @@ namespace gleam
 			const DepthStencilStateDesc &depth_stencil_state, const BlendStateDesc &blend_state);
 		virtual ShaderObjectPtr MakeShaderObject() = 0;
 
+		virtual void BeginFrame();
+		virtual void EndFrame();
+
+		void SetStateObject(const RenderStateObjectPtr &render_state);
+
+		void BindFrameBuffer(const FrameBufferPtr &fb);
+
+		const FrameBufferPtr & DefaultFrameBuffer() const;
+
 	private:
 		virtual RenderStateObjectPtr DoMakeRenderStateObject(const RasterizerStateDesc &raster_state,
 			const DepthStencilStateDesc &depth_stencil_state, const BlendStateDesc &blend_state) = 0;
+		virtual void DoBindFrameBuffer(const FrameBufferPtr & fb) = 0;
+		virtual void DoRender(const RenderEffect &effect, const RenderTechnique &tech, const RenderLayout &layout) = 0;
 
 	protected:
 		RenderStateObjectPtr cur_render_state_;
+		RenderStateObjectPtr cur_line_render_state_;
 		std::unordered_map<size_t, RenderStateObjectPtr> render_state_pool;
+
+		FrameBufferPtr current_frame_buffer_;
+		FrameBufferPtr default_frame_buffers_[4];
+
+		int fb_stage_;
+		bool force_line_mode;
 	};
 
 	class OGLRenderEngine : public RenderEngine
@@ -99,6 +117,10 @@ namespace gleam
 		RenderStateObjectPtr DoMakeRenderStateObject(const RasterizerStateDesc &raster_state,
 			const DepthStencilStateDesc &depth_stencil_state, const BlendStateDesc &blend_state) override;
 
+		void DoBindFrameBuffer(const FrameBufferPtr & fb) override;
+
+		void DoRender(const RenderEffect &effect, const RenderTechnique &tech, const RenderLayout &layout) override;
+
 	private:
 		GLenum active_tex_unit_;
 		std::vector<GLuint> binded_targets_;
@@ -106,6 +128,10 @@ namespace gleam
 		std::vector<GLuint> binded_samplers_;
 		std::map<GLenum, GLuint> binded_buffers_;
 		std::map<GLenum, std::vector<GLuint>> binded_buffers_with_binding_points_;
+
+		GLuint restart_index_;
+
+		GLsizei vp_width_, vp_height_;
 
 		std::array<GLfloat, 4> clear_clr_;
 		GLfloat clear_depth_;
@@ -119,6 +145,10 @@ namespace gleam
 		bool fb_srgb_cache_;
 
 		GLenum polygon_mode_cache_;
+
+		uint32_t num_primitives_just_rendered_;
+		uint32_t num_vertices_just_rendered_;
+		uint32_t num_draws_just_called_;
 
 		WindowPtr win;
 	};

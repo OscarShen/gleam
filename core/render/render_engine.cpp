@@ -4,6 +4,12 @@
 #include "render_state.h"
 #include <util/hash.h>
 #include <render/shader_object.h>
+#include "view_port.h"
+#include "render_effect.h"
+#include "render_layout.h"
+#include "mapping.h"
+#include "graphics_buffer.h"
+#include <base/context.h>
 namespace gleam {
 	OGLRenderEngine::OGLRenderEngine()
 	{
@@ -677,6 +683,99 @@ namespace gleam {
 	{
 		return std::make_shared<OGLRenderStateObject>(raster_state, depth_stencil_state, blend_state);
 	}
+	void OGLRenderEngine::DoBindFrameBuffer(const FrameBufferPtr & fb)
+	{
+		assert(fb);
+		const Viewport &vp = *fb->GetViewport();
+		
+		if (vp.height != vp_height_ || vp.width != vp_width_)
+		{
+			glViewport(0, 0, vp.width, vp.height);
+
+			vp_width_ = vp.width;
+			vp_height_ = vp.height;
+		}
+	}
+	void OGLRenderEngine::DoRender(const RenderEffect & effect, const RenderTechnique & tech, const RenderLayout & layout)
+	{
+		const uint32_t num_instances = layout.NumInstances();
+		assert(num_instances != 0);
+		OGLShaderObjectPtr current_shader = checked_pointer_cast<OGLShaderObject>(tech.GetShaderObject(effect));
+		checked_cast<const OGLRenderLayout *>(&layout)->Active(current_shader);
+
+		const uint32_t vertex_count = layout.UseIndices() ? layout.NumIndices() : layout.NumVertices();
+		GLenum mode;
+		uint32_t prim_count;
+		OGLMapping::Mapping(mode, prim_count, layout);
+
+		num_primitives_just_rendered_ += num_instances * prim_count;
+		num_vertices_just_rendered_ += num_instances * vertex_count;
+
+		GLenum index_type = GL_UNSIGNED_SHORT;
+		uint8_t *index_offset = nullptr;
+		if (layout.UseIndices())
+		{
+			if (EF_R16UI == layout.IndexStreamFormat())
+			{
+				index_type = GL_UNSIGNED_SHORT;
+				index_offset += layout.StartIndexLocation() * 2; // Ö¸ÕëÆ«ÒÆ 2 * location ¸ö×Ö½Ú
+				
+				if (restart_index_ != 0xFFFF)
+				{
+					glPrimitiveRestartIndex(0xFFFF);
+					restart_index_ = 0xFFFF;
+				}
+			}
+			else
+			{
+				index_type = GL_UNSIGNED_INT;
+				index_offset += layout.StartIndexLocation() * 4;
+
+				if (restart_index_ != 0xFFFFFFFF)
+				{
+					glPrimitiveRestartIndex(0xFFFFFFFF);
+					restart_index_ = 0xFFFFFFFF;
+				}
+			}
+		}
+
+
+		const GraphicsBufferPtr &buff_args = layout.GetIndirectArgs();
+		if (buff_args)
+		{
+			this->BindBuffer(GL_DRAW_INDIRECT_BUFFER, checked_pointer_cast<OGLGraphicsBuffer>(buff_args)->GLvbo());
+			GLvoid *args_offset = reinterpret_cast<GLvoid*>(static_cast<GLintptr>(layout.IndirectArgsOffset()));
+			if (layout.UseIndices())
+			{
+				tech.Bind(effect);
+				glDrawArraysIndirect(mode, args_offset);
+				tech.Unbind(effect);
+			}
+			else
+			{
+				tech.Bind(effect);
+				glDrawArraysIndirect(mode, args_offset);
+				tech.Unbind(effect);
+			}
+			++num_draws_just_called_;
+		}
+		else
+		{
+			if (layout.UseIndices())
+			{
+				tech.Bind(effect);
+				glDrawElementsInstanced(mode, static_cast<GLsizei>(layout.NumIndices()), index_type, index_offset, num_instances);
+				tech.Unbind(effect);
+			}
+			else
+			{
+				tech.Bind(effect);
+				glDrawArraysInstanced(mode, layout.StartVertexLocation(), static_cast<GLsizei>(layout.NumVertices()), num_instances);
+				tech.Unbind(effect);
+			}
+			++num_draws_just_called_;
+		}
+	}
 	RenderEngine::RenderEngine()
 	{
 	}
@@ -706,5 +805,60 @@ namespace gleam {
 			render_state = iter->second;
 		}
 		return render_state;
+	}
+	void RenderEngine::BeginFrame()
+	{
+	}
+	void RenderEngine::EndFrame()
+	{
+	}
+	void RenderEngine::SetStateObject(const RenderStateObjectPtr & render_state)
+	{
+		if (cur_render_state_ != render_state)
+		{
+			if (force_line_mode)
+			{
+				auto raster_state = render_state->GetRasterizerStateDesc();
+				const auto &depth_stencil_state = render_state->GetDepthStencilStateDesc();
+				const auto &blend_state = render_state->GetBlendStateDesc();
+				raster_state.polygon_mode = PM_Line;
+				cur_line_render_state_ = Context::Instance().RenderEngineInstance().MakeRenderStateObject(raster_state, depth_stencil_state, blend_state);
+				cur_line_render_state_->Active();
+			}
+			else
+			{
+				render_state->Active();
+			}
+			cur_render_state_ = render_state;
+		}
+	}
+	void RenderEngine::BindFrameBuffer(const FrameBufferPtr & fb)
+	{
+		FrameBufferPtr new_fb;
+		if (fb)
+		{
+			new_fb = fb;
+		}
+		else
+		{
+			new_fb = this->DefaultFrameBuffer();
+		}
+
+		if ((fb != new_fb) || (fb && fb->Dirty()))
+		{
+			if (current_frame_buffer_)
+			{
+				current_frame_buffer_->OnUnbind();
+			}
+
+			current_frame_buffer_ = new_fb;
+			current_frame_buffer_->OnBind();
+
+			this->DoBindFrameBuffer(current_frame_buffer_);
+		}
+	}
+	const FrameBufferPtr & RenderEngine::DefaultFrameBuffer() const
+	{
+		return default_frame_buffers_[fb_stage_];
 	}
 }

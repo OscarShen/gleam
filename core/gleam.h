@@ -61,6 +61,8 @@ namespace gleam {
 	typedef std::shared_ptr<RenderEffect> RenderEffectPtr;
 	class RenderTechnique;
 	typedef std::shared_ptr<RenderTechnique> RenderTechniquePtr;
+	class RenderLayout;
+	typedef std::shared_ptr<RenderLayout> RenderLayoutPtr;
 
 	template <typename To, typename From>
 	inline To checked_cast(From p) noexcept
