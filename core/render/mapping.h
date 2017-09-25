@@ -28,6 +28,7 @@ namespace gleam
 		static GLint	Mapping(TexAddressingMode mode);
 		static GLenum	Mapping(LogicOperation op);
 		static GLenum   Mapping(ShaderType type);
+		static void		Mapping(GLenum &primType, uint32_t &primCount, const RenderLayout &layout);
 
 		static void		MappingFormat(GLint &internalFormat, GLenum &glformat, GLenum &gltype, ElementFormat format);
 		static void		MappingVertexFormat(GLenum &gltype, GLboolean &normalized, ElementFormat format);

@@ -235,6 +235,43 @@ namespace gleam
 			CHECK_INFO(false, "Invalid shader type...");
 		}
 	}
+	void OGLMapping::Mapping(GLenum & primType, uint32_t & primCount, const RenderLayout & layout)
+	{
+		const uint32_t vertex_count = static_cast<uint32_t>(layout.UseIndices() ? layout.NumIndices() : layout.NumVertices());
+		primType = GL_POINTS;
+		primCount = vertex_count;
+		switch (layout.TopologyType())
+		{
+		case TT_PointList:
+			primType = GL_POINTS;
+			primCount = vertex_count;
+			break;
+			
+		case TT_LineList:
+			primType = GL_LINES;
+			primCount = vertex_count / 2;
+			break;
+
+		case TT_LineStrip:
+			primType = GL_LINE_STRIP;
+			primCount = vertex_count - 1;
+			break;
+
+		case TT_TriangleList:
+			primType = GL_TRIANGLES;
+			primCount = vertex_count / 3;
+			break;
+
+		case TT_TriangleStrip:
+			primType = GL_TRIANGLE_STRIP;
+			primCount = vertex_count - 2;
+			break;
+
+		default:
+			CHECK_INFO(false, "Invalid topology type...");
+			break;
+		}
+	}
 	GLenum OGLMapping::Mapping(PolygonMode mode)
 	{
 		switch (mode)
