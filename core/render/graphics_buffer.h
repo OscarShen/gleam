@@ -29,6 +29,30 @@ namespace gleam
 	class GraphicsBuffer
 	{
 	public:
+		class Mapper : boost::noncopyable
+		{
+			friend class GraphicsBuffer;
+
+		public:
+			Mapper(GraphicsBuffer &buffer, BufferAccess ba)
+				:buffer_(buffer)
+			{
+				data_ = buffer_.Map(ba);
+			}
+			~Mapper()
+			{
+				buffer_.Unmap();
+			}
+
+			template <typename T>
+			const T* Pointer() const { return static_cast<T*>(data_); }
+			template <typename T>
+			T *Pointer() { return static_cast<T*>(data_); }
+		private:
+			GraphicsBuffer& buffer_;
+			void *data_;
+		};
+
 		GraphicsBuffer(BufferUsage usage, uint32_t access_hint, uint32_t size_in_byte);
 		virtual ~GraphicsBuffer();
 
