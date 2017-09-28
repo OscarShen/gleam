@@ -44,6 +44,14 @@ namespace gleam
 
 		virtual void OnAttachRenderable(bool add_to_scene);
 
+		virtual void AddToSceneManager();
+		virtual void AddToSceneManagerLocked();
+		virtual void DelFromSceneManager();
+		virtual void DelFromSceneManagerLocked();
+
+		const std::vector<VertexElement> &InstanceFormat() const;
+		const void *InstanceData() const { return nullptr; }
+
 	protected:
 		uint32_t attrib_;
 
