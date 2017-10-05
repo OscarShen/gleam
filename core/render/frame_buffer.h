@@ -63,13 +63,15 @@ namespace gleam
 		{
 			return views_dirty_;
 		}
+		uint32_t Width() const { return width_; }
+		uint32_t Height() const { return height_; }
 
 	protected:
 		uint32_t width_, height_;
 		ViewportPtr viewport_;
 
 		std::vector<RenderViewPtr> color_views_;
-		RenderViewPtr depth_view_;
+		RenderViewPtr depth_stencil_view_;
 		bool views_dirty_;
 	};
 

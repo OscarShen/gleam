@@ -16,9 +16,9 @@ namespace gleam {
 		switch (att)
 		{
 		case gleam::ATT_DepthStencil:
-			if (depth_view_)
+			if (depth_stencil_view_)
 				this->Detach(att);
-			depth_view_ = view;
+			depth_stencil_view_ = view;
 			break;
 
 		default:
@@ -39,14 +39,14 @@ namespace gleam {
 				{
 					min_color_index = i;
 				}
-				if (min_color_index == color_id)
-				{
-					width_ = view->Width();
-					height_ = view->Height();
+			}
+			if (min_color_index == color_id)
+			{
+				width_ = view->Width();
+				height_ = view->Height();
 
-					viewport_->width = width_;
-					viewport_->height = height_;
-				}
+				viewport_->width = width_;
+				viewport_->height = height_;
 			}
 			break;
 		}
@@ -60,7 +60,7 @@ namespace gleam {
 		switch (att)
 		{
 		case gleam::ATT_DepthStencil:
-			depth_view_.reset();
+			depth_stencil_view_.reset();
 			break;
 		default:
 
@@ -79,7 +79,7 @@ namespace gleam {
 		switch (att)
 		{
 		case ATT_DepthStencil:
-			return depth_view_;
+			return depth_stencil_view_;
 			break;
 
 		default:
@@ -96,8 +96,8 @@ namespace gleam {
 		for (uint32_t i = 0; i < color_views_.size(); ++i)
 			if (color_views_[i])
 				color_views_[i]->OnBind(*this, ATT_Color0 + i);
-		if (depth_view_)
-			depth_view_->OnBind(*this, ATT_DepthStencil);
+		if (depth_stencil_view_)
+			depth_stencil_view_->OnBind(*this, ATT_DepthStencil);
 		views_dirty_ = false;
 	}
 	void FrameBuffer::OnUnbind()
@@ -109,9 +109,9 @@ namespace gleam {
 				color_views_[i]->OnUnbind(*this, ATT_Color0 + i);
 			}
 		}
-		if (depth_view_)
+		if (depth_stencil_view_)
 		{
-			depth_view_->OnUnbind(*this, ATT_DepthStencil);
+			depth_stencil_view_->OnUnbind(*this, ATT_DepthStencil);
 		}
 	}
 	OGLFrameBuffer::OGLFrameBuffer(bool offScreen)
@@ -172,8 +172,163 @@ namespace gleam {
 	}
 	void OGLFrameBuffer::Clear(uint32_t flags, const Color & clr, float depth, int32_t stencil)
 	{
+		OGLRenderEngine &re = *checked_cast<OGLRenderEngine*>(&Context::Instance().RenderEngineInstance());
+		GLuint old_fbo = re.BindFrameBuffer();
+		re.BindFrameBuffer(fbo_);
+		const DepthStencilStateDesc &depth_stencil_state = re.CurRenderStateObject()->GetDepthStencilStateDesc();
+		const BlendStateDesc &blend_state = re.CurRenderStateObject()->GetBlendStateDesc();
+
+		if (flags & CBM_Color)
+		{
+			for (int i = 0; i < 8; ++i)
+			{
+				if (blend_state.color_write_mask[i] != CMASK_All)
+				{
+					glColorMaski(i, GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+				}
+			}
+		}
+
+		if (flags & CBM_Depth)
+		{
+			if (!depth_stencil_state.depth_write_mask)
+			{
+				glDepthMask(true);
+			}
+		}
+
+		if (flags & CBM_Stencil)
+		{
+			if (depth_stencil_state.front_stencil_write_mask != 0xFF)
+			{
+				glStencilMaskSeparate(GL_FRONT, 0xFF);
+			}
+			if (depth_stencil_state.back_stencil_write_mask != 0xFF)
+			{
+				glStencilMaskSeparate(GL_BACK, 0xFF);
+			}
+		}
+
+		if (flags & CBM_Color)
+		{
+			if (fbo_ != 0)
+			{
+				for (size_t i = 0; i < color_views_.size(); ++i)
+				{
+					if (color_views_[i])
+					{
+						glClearBufferfv(GL_COLOR, static_cast<GLint>(i), &clr[0]);
+					}
+				}
+			}
+			else
+			{
+				glClearBufferfv(GL_COLOR, 0, &clr[0]);
+			}
+		}
+
+		if ((flags & CBM_Depth) && (flags & CBM_Stencil))
+		{
+			glClearBufferfi(GL_DEPTH_STENCIL, 0, depth, stencil);
+		}
+		else
+		{
+			if (flags & CBM_Depth)
+			{
+				glClearBufferfv(GL_DEPTH, 0, &depth);
+			}
+			else
+			{
+				if (flags & CBM_Stencil)
+				{
+					GLint s = stencil;
+					glClearBufferiv(GL_STENCIL, 0, &s);
+				}
+			}
+		}
+
+		if (flags & CBM_Color)
+		{
+			for (int i = 0; i < 8; ++i)
+			{
+				if (blend_state.color_write_mask[i] != CMASK_All)
+				{
+					glColorMaski(i, (blend_state.color_write_mask[i] & CMASK_Red) != 0,
+						(blend_state.color_write_mask[i] & CMASK_Green) != 0,
+						(blend_state.color_write_mask[i] & CMASK_Blue) != 0,
+						(blend_state.color_write_mask[i] & CMASK_Alpha) != 0);
+				}
+			}
+		}
+
+		if (flags & CBM_Depth)
+		{
+			if (!depth_stencil_state.depth_write_mask)
+			{
+				glDepthMask(GL_FALSE);
+			}
+		}
+
+		if (flags & CBM_Stencil)
+		{
+			if (depth_stencil_state.front_stencil_write_mask != 0xFF)
+			{
+				glStencilMaskSeparate(GL_FRONT, depth_stencil_state.front_stencil_write_mask);
+			}
+			if (depth_stencil_state.back_stencil_write_mask != 0xFF)
+			{
+				glStencilMaskSeparate(GL_BACK, depth_stencil_state.back_stencil_write_mask);
+			}
+		}
+
+		re.BindFrameBuffer(old_fbo);
 	}
 	void OGLFrameBuffer::Discard(uint32_t flags)
 	{
+		std::vector<GLenum> attachments;
+		if (fbo_ != 0)
+		{
+			if (flags & CBM_Color)
+			{
+				for (size_t i = 0; i < color_views_.size(); ++i)
+				{
+					if (color_views_[i])
+					{
+						attachments.push_back(static_cast<GLenum>(GL_COLOR_ATTACHMENT0 + i));
+					}
+				}
+			}
+			if (flags & CBM_Depth)
+			{
+				if (depth_stencil_view_)
+				{
+					attachments.push_back(GL_DEPTH_ATTACHMENT);
+				}
+			}
+			if (flags & CBM_Stencil)
+			{
+				if (depth_stencil_view_)
+				{
+					attachments.push_back(GL_STENCIL_ATTACHMENT);
+				}
+			}
+		}
+		else
+		{
+			if (flags & CBM_Color)
+			{
+				attachments.push_back(GL_COLOR);
+			}
+			if (flags & CBM_Depth)
+			{
+				attachments.push_back(GL_DEPTH);
+			}
+			if (flags & CBM_Stencil)
+			{
+				attachments.push_back(GL_STENCIL);
+			}
+		}
+
+		glInvalidateNamedFramebufferData(fbo_, static_cast<GLsizei>(attachments.size()), &attachments[0]);
 	}
 }
