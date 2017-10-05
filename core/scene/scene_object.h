@@ -27,6 +27,8 @@ namespace gleam
 	class SceneObject : boost::noncopyable, public std::enable_shared_from_this<SceneObject>
 	{
 	public:
+		SceneObject(uint32_t attrib);
+		virtual ~SceneObject() {}
 		uint32_t Attrib() const;
 
 		SceneObject *Parent() const;
@@ -64,6 +66,15 @@ namespace gleam
 
 		glm::mat4 model_;
 		glm::mat4 abs_model_;
+	};
+
+	class SceneObjectHelper : public SceneObject
+	{
+	public:
+		explicit SceneObjectHelper(uint32_t attrib);
+		SceneObjectHelper(const RenderablePtr &renderable, uint32_t attrib);
+
+		virtual void OnAttachRenderable(bool add_to_scene) override;
 	};
 }
 

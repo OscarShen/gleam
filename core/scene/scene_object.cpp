@@ -3,6 +3,11 @@
 #include <base/context.h>
 #include <scene/scene_manager.h>
 namespace gleam {
+	SceneObject::SceneObject(uint32_t attrib)
+		: attrib_(attrib), parent_(nullptr), renderable_resource_ready_(false),
+			model_(glm::mat4()), abs_model_(glm::mat4())
+	{
+	}
 	uint32_t SceneObject::Attrib() const
 	{
 		return attrib_;
@@ -98,5 +103,34 @@ namespace gleam {
 	const std::vector<VertexElement>& SceneObject::InstanceFormat() const
 	{
 		return instance_format_;
+	}
+	SceneObjectHelper::SceneObjectHelper(uint32_t attrib)
+		: SceneObject(attrib)
+	{
+	}
+	SceneObjectHelper::SceneObjectHelper(const RenderablePtr & renderable, uint32_t attrib)
+		: SceneObject(attrib)
+	{
+		renderable_ = renderable;
+		renderable_resource_ready_ = renderable_->ResourceReady();
+		this->OnAttachRenderable(false);
+	}
+	void SceneObjectHelper::OnAttachRenderable(bool add_to_scene)
+	{
+		if (renderable_ && (renderable_->NumSubrenderables() > 0))
+		{
+			children_.resize(renderable_->NumSubrenderables());
+			for (uint32_t i = 0; i < renderable_->NumSubrenderables();)
+			{
+				SceneObjectHelperPtr child = std::make_shared<SceneObjectHelper>(renderable_->Subrenderable(i), attrib_);
+				child->Parent(this);
+				children_[i] = child;
+
+				if (add_to_scene)
+				{
+					child->AddToSceneManagerLocked();
+				}
+			}
+		}
 	}
 }
