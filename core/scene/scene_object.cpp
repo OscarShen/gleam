@@ -65,7 +65,7 @@ namespace gleam {
 	{
 		if (add_to_scene)
 		{
-			this->AddToSceneManagerLocked();
+			this->AddToSceneManager();
 		}
 	}
 	void SceneObject::AddToSceneManager()
@@ -76,14 +76,6 @@ namespace gleam {
 			child->AddToSceneManager();
 		}
 	}
-	void SceneObject::AddToSceneManagerLocked()
-	{
-		Context::Instance().SceneManagerInstance().AddSceneObjectLocked(this->shared_from_this());
-		for (const auto &child : children_)
-		{
-			child->AddToSceneManagerLocked();
-		}
-	}
 	void SceneObject::DelFromSceneManager()
 	{
 		for (const auto &child : children_)
@@ -91,14 +83,6 @@ namespace gleam {
 			child->DelFromSceneManager();
 		}
 		Context::Instance().SceneManagerInstance().DelSceneObject(this->shared_from_this());
-	}
-	void SceneObject::DelFromSceneManagerLocked()
-	{
-		for (const auto &child : children_)
-		{
-			child->DelFromSceneManagerLocked();
-		}
-		Context::Instance().SceneManagerInstance().DelSceneObjectLocked(this->shared_from_this());
 	}
 	const std::vector<VertexElement>& SceneObject::InstanceFormat() const
 	{
@@ -128,7 +112,7 @@ namespace gleam {
 
 				if (add_to_scene)
 				{
-					child->AddToSceneManagerLocked();
+					child->AddToSceneManager();
 				}
 			}
 		}

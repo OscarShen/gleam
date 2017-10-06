@@ -15,6 +15,9 @@ namespace gleam
 	class SceneManager : boost::noncopyable
 	{
 	public:
+		SceneManager();
+		virtual ~SceneManager();
+
 		void SmallObjectThreshold(float area);
 		void SceneUpdateElapse(float elapse);
 
@@ -31,9 +34,7 @@ namespace gleam
 		const LightPtr &GetLight(uint32_t index) const;
 
 		void AddSceneObject(const SceneObjectPtr &object);
-		void AddSceneObjectLocked(const SceneObjectPtr &object);
 		void DelSceneObject(SceneObjectPtr const & obj);
-		void DelSceneObjectLocked(SceneObjectPtr const & obj);
 		uint32_t NumSceneObjects() const;
 		SceneObjectPtr &GetSceneObject(uint32_t index);
 		const SceneObjectPtr &GetSceneObject(uint32_t index) const;
@@ -47,10 +48,9 @@ namespace gleam
 		void Update();
 
 	protected:
-
+		void Flush();
 
 		std::vector<SceneObjectPtr>::iterator DelSceneObject(std::vector<SceneObjectPtr>::iterator iter);
-		std::vector<SceneObjectPtr>::iterator DelSceneObjectLocked(std::vector<SceneObjectPtr>::iterator iter);
 
 		virtual void OnAddSceneObject(const SceneObjectPtr &object) = 0;
 		virtual void OnDelSceneObject(std::vector<SceneObjectPtr>::iterator iter) = 0;
@@ -65,9 +65,10 @@ namespace gleam
 		float update_elapsed_;
 
 	private:
-		std::vector<std::pair<RenderTechnique const *, std::vector<Renderable*>>> render_queue_;
+		void FlushScene();
 
-		std::mutex update_mutex_;
+	private:
+		std::vector<std::pair<RenderTechnique const *, std::vector<Renderable*>>> render_queue_;
 	};
 }
 

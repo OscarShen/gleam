@@ -3,7 +3,20 @@
 #include <render/renderable.h>
 #include <base/context.h>
 #include <render/render_engine.h>
+#include <base/framework.h>
+#include <util/hash.h>
+#include <render/camera.h>
 namespace gleam {
+	SceneManager::SceneManager()
+		: small_obj_threshold_(0),update_elapsed_(0)
+	{
+	}
+	SceneManager::~SceneManager()
+	{
+		this->ClearLight();
+		this->ClearCamera();
+		this->ClearObject();
+	}
 	void SceneManager::SmallObjectThreshold(float area)
 	{
 		small_obj_threshold_ = area;
@@ -60,12 +73,6 @@ namespace gleam {
 
 	void SceneManager::AddSceneObject(const SceneObjectPtr & object)
 	{
-		std::lock_guard<std::mutex> lock(update_mutex_);
-		this->AddSceneObjectLocked(object);
-	}
-
-	void SceneManager::AddSceneObjectLocked(const SceneObjectPtr & object)
-	{
 		const uint32_t attr = object->Attrib();
 		if (attr & SOA_Overlay)
 		{
@@ -82,23 +89,19 @@ namespace gleam {
 			this->OnAddSceneObject(object);
 		}
 	}
-	void SceneManager::DelSceneObject(SceneObjectPtr const & obj)
-	{
-		std::lock_guard<std::mutex> lock(update_mutex_);
-		this->DelSceneObjectLocked(obj);
-	}
 
-	void SceneManager::DelSceneObjectLocked(SceneObjectPtr const & obj)
+	void SceneManager::DelSceneObject(SceneObjectPtr const & obj)
 	{
 		for (auto iter = scene_objs_.begin(); iter != scene_objs_.end(); ++iter)
 		{
 			if (*iter == obj)
 			{
-				this->DelSceneObjectLocked(iter);
+				this->DelSceneObject(iter);
 				break;
 			}
 		}
 	}
+
 	void SceneManager::AddRenderable(Renderable * renderable)
 	{
 		if (renderable->ResourceReady())
@@ -131,7 +134,6 @@ namespace gleam {
 	}
 	void SceneManager::ClearObject()
 	{
-		std::lock_guard<std::mutex> lock(update_mutex_);
 		scene_objs_.resize(0);
 		overlay_scene_objs_.resize(0);
 	}
@@ -140,6 +142,9 @@ namespace gleam {
 		RenderEngine &re = Context::Instance().RenderEngineInstance();
 		re.BeginFrame();
 
+		this->FlushScene();
+
+		
 	}
 	uint32_t SceneManager::NumSceneObjects() const
 	{
@@ -153,14 +158,83 @@ namespace gleam {
 	{
 		return scene_objs_[index];
 	}
-	std::vector<SceneObjectPtr>::iterator SceneManager::DelSceneObject(std::vector<SceneObjectPtr>::iterator iter)
+	void SceneManager::Flush()
 	{
-		std::lock_guard<std::mutex> lock(update_mutex_);
-		return this->DelSceneObjectLocked(iter);
+		RenderEngine &re = Context::Instance().RenderEngineInstance();
+		Framework3D &app = Context::Instance().FrameworkInstance();
+		const float app_time = app.AppTime();
+		const float frame_time = app.FrameTime();
+
+		Camera &camera = app.ActiveCamera();
+		const auto &scene_objs = scene_objs_;
+
+		for (const auto &obj : scene_objs)
+		{
+			auto so = obj.get();
+			if (0 == so->NumChildren())
+			{
+				auto renderable = so->GetRenderable().get();
+				if (renderable)
+				{
+					renderable->ClearInstance();
+				}
+			}
+		}
+
+		for (const auto &obj : scene_objs)
+		{
+			auto so = obj.get();
+			if (0 == so->NumChildren())
+			{
+				auto renderable = so->GetRenderable().get();
+				if (renderable)
+				{
+					renderable->AddToRenderQueue();
+				}
+				renderable->AddInstance(so);
+			}
+		}
+
+		std::sort(render_queue_.begin(), render_queue_.end(),
+			[](const std::pair<const RenderTechnique *, std::vector<Renderable*>> &lhs,
+				const std::pair<const RenderTechnique *, std::vector<Renderable*>> &rhs)
+		{
+			assert(lhs.first);
+			assert(rhs.first);
+			return lhs.first->Weight() < rhs.first->Weight();
+		});
+
+		for (const auto &items : render_queue_)
+		{
+			for (const auto &item : items.second)
+			{
+				item->Render();
+			}
+		}
+		render_queue_.resize(0);
 	}
-	std::vector<SceneObjectPtr>::iterator SceneManager::DelSceneObjectLocked(std::vector<SceneObjectPtr>::iterator iter)
+	std::vector<SceneObjectPtr>::iterator SceneManager::DelSceneObject(std::vector<SceneObjectPtr>::iterator iter)
 	{
 		this->OnDelSceneObject(iter);
 		return scene_objs_.erase(iter);
+	}
+	void SceneManager::FlushScene()
+	{
+		RenderEngine &re = Context::Instance().RenderEngineInstance();
+
+		uint32_t update_result;
+		Framework3D &app = Context::Instance().FrameworkInstance();
+		for (uint32_t render_index = 0;; ++render_index)
+		{
+			update_result = app.Update(render_index);
+			if (update_result & UR_NeedFlush)
+			{
+				this->Flush();
+			}
+			if (update_result & UR_Finished)
+			{
+				break;
+			}
+		}
 	}
 }
