@@ -14,6 +14,7 @@
 #include <unordered_map>
 #include <tinyXML/tinyxml.h>
 #include <boost/noncopyable.hpp>
+#include <base/resource_loader.h>
 namespace gleam
 {
 	class RenderTechnique : boost::noncopyable
@@ -58,6 +59,8 @@ namespace gleam
 
 		const std::string & GetShaderCodeByName(uint32_t type, const std::string &func_name);
 
+		const std::vector<OGLAttribPtr> &GetShaderAttribsByName(const std::string &func_name);
+
 		void Load(const std::string &name);
 
 	private:
@@ -68,10 +71,38 @@ namespace gleam
 		std::array<std::unordered_map<std::string, std::string>, ST_NumShaderTypes> shader_codes_;
 		std::array<std::unordered_map<std::string, std::vector<OGLUniformPtr>>, ST_NumShaderTypes> shader_uniforms_;
 		std::array<std::unordered_map<std::string, std::vector<OGLUniformBufferPtr>>, ST_NumShaderTypes> shader_uniform_buffer_;
+		std::unordered_map<std::string, std::vector<OGLAttribPtr>> shader_attribs_;
 
 		std::vector<RenderTechniquePtr> techniques_;
 		std::vector<ShaderObjectPtr> shaders_;
 	};
+
+	class EffectLoadingDesc : public ResLoadingDesc
+	{
+	private:
+		struct EffectDesc
+		{
+			std::string res_name;
+
+			RenderEffectPtr effect;
+		};
+
+	public:
+		explicit EffectLoadingDesc(std::string const & name);
+
+		uint64_t Type() const override;
+
+		void Load() override;
+
+		bool Match(const ResLoadingDesc &rhs) const override;
+
+		std::shared_ptr<void> Resource() const override;
+
+	private:
+		EffectDesc effect_desc_;
+	};
+
+	RenderEffectPtr LoadRenderEffect(const std::string & effect_name);
 }
 
 

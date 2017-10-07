@@ -38,6 +38,12 @@ namespace gleam
 		assert(iter != shader_codes_[type].end());
 		return iter->second;
 	}
+	const std::vector<OGLAttribPtr>& RenderEffect::GetShaderAttribsByName(const std::string & func_name)
+	{
+		auto iter = shader_attribs_.find(func_name);
+		assert(iter != shader_attribs_.end());
+		return iter->second;
+	}
 	void RenderEffect::Load(const std::string & name)
 	{
 		std::string real_path = ResLoader::Instance().Locate(name);
@@ -164,6 +170,30 @@ namespace gleam
 				OGLUniformBufferPtr ubo = std::make_shared<OGLUniformBuffer>(uniform_buffer_name);
 
 				shader_uniform_buffer_[shader_type][name].push_back(ubo);
+			}
+
+			for (TiXmlElement *attrib_node = shader_node->FirstChildElement("attrib");
+				attrib_node; attrib_node = attrib_node->NextSiblingElement("attrib"))
+			{
+				assert(shader_type == ST_VertexShader);
+
+				std::string attrib_name = attrib_node->Attribute("name");
+
+				std::string attrib_usage_str = attrib_node->Attribute("usage");
+				VertexElementUsage usage;
+				VertexElementUsageFromString(usage, attrib_usage_str);
+
+				uint8_t usage_index = 0;
+				const char * attrib_index_c = attrib_node->Attribute("index");
+				if (attrib_index_c)
+				{
+					usage_index = boost::lexical_cast<uint8_t>(attrib_index_c);
+				}
+				
+				OGLAttribPtr attrib = std::make_shared<OGLAttrib>(attrib_name);
+				attrib->VertexElementType(VertexElement(usage, usage_index, EF_Unknown)); // 绑定资源时才能知道 element format 的格式
+
+				shader_attribs_[name].push_back(attrib);
 			}
 		}
 		for (TiXmlElement *technique_node = root->FirstChildElement("technique");
@@ -490,13 +520,23 @@ namespace gleam
 			{
 				const std::string &code = effect.GetShaderCodeByName(type, name);
 				shader_obj->AttachShader(static_cast<ShaderType>(type), code);
+
+				if (type == ST_VertexShader)
+				{
+					const auto &attribs = effect.GetShaderAttribsByName(name);
+					for (const auto &attrib : attribs)
+					{
+						const auto &type = attrib->VertexElementType();
+						shader_obj->SetAttrib(type.usage, type.usage_index, attrib);
+					}
+				}
 			}
 		}
 		shader_obj->LinkShaders();
 	}
 	const ShaderObjectPtr & RenderTechnique::GetShaderObject(const RenderEffect & effect) const
 	{
-		effect.GetShaderObjectByIndex(shader_index_);
+		return effect.GetShaderObjectByIndex(shader_index_);
 	}
 	void RenderTechnique::Bind(const RenderEffect & effect) const
 	{
@@ -508,5 +548,36 @@ namespace gleam
 	void RenderTechnique::Unbind(const RenderEffect & effect) const
 	{
 		this->GetShaderObject(effect)->Unbind();
+	}
+	RenderEffectPtr LoadRenderEffect(const std::string & effect_name)
+	{
+		return ResLoader::Instance().QueryT<RenderEffect>(std::make_shared<EffectLoadingDesc>(effect_name));
+	}
+	EffectLoadingDesc::EffectLoadingDesc(std::string const & name)
+	{
+		effect_desc_.res_name = name;
+	}
+	uint64_t EffectLoadingDesc::Type() const
+	{
+		static const uint64_t type = CT_HASH("EffectLoadingDesc");
+		return type;
+	}
+	void EffectLoadingDesc::Load()
+	{
+		effect_desc_.effect = std::make_shared<RenderEffect>();
+		effect_desc_.effect->Load(effect_desc_.res_name);
+	}
+	bool EffectLoadingDesc::Match(const ResLoadingDesc & rhs) const
+	{
+		if (this->Type() == rhs.Type())
+		{
+			const EffectLoadingDesc &r = static_cast<const EffectLoadingDesc&>(rhs);
+			return effect_desc_.res_name == r.effect_desc_.res_name;
+		}
+		return false;
+	}
+	std::shared_ptr<void> EffectLoadingDesc::Resource() const
+	{
+		return effect_desc_.effect;
 	}
 }
