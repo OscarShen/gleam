@@ -345,4 +345,43 @@ namespace gleam {
 			}
 		}
 	}
+	void VertexElementUsageFromString(VertexElementUsage & usage, const std::string & name)
+	{
+		//// vertex positions
+		//VEU_Position = 0,
+		//	// vertex normals included (for lighting)
+		//	VEU_Normal,
+		//	// Vertex colors - diffuse
+		//	VEU_Diffuse,
+		//	// Vertex colors - specular
+		//	VEU_Specular,
+		//	// Vertex blend weights
+		//	VEU_BlendWeight,
+		//	// Vertex blend indices
+		//	VEU_BlendIndex,
+		//	// at least one set of texture coords (exact number specified in class)
+		//	VEU_TextureCoord,
+		//	// Vertex tangent
+		//	VEU_Tangent,
+		//	// Vertex binormal
+		//	VEU_Binormal
+		if (name == "position")
+			usage = VEU_Position;
+		else if (name == "normal")
+			usage = VEU_Normal;
+		else if (name == "diffuse")
+			usage = VEU_Diffuse;
+		else if (name == "specular")
+			usage = VEU_Specular;
+		else if (name == "blend_weight")
+			usage = VEU_BlendWeight;
+		else if (name == "texture_coord")
+			usage = VEU_TextureCoord;
+		else if (name == "tangent")
+			usage = VEU_Tangent;
+		else if (name == "binormal")
+			usage = VEU_Binormal;
+		else
+			CHECK_INFO(false, "Invalid vertex element usage : " << name);
+	}
 }

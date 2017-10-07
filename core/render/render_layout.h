@@ -35,6 +35,7 @@ namespace gleam
 		// Vertex binormal
 		VEU_Binormal
 	};
+	void VertexElementUsageFromString(VertexElementUsage &usage, const std::string &name);
 
 	enum TopologyType
 	{
@@ -103,7 +104,7 @@ namespace gleam
 
 
 
-		bool UseIndices() const { this->NumIndices(); }
+		bool UseIndices() const { return this->NumIndices() != 0; }
 		void NumIndices(uint32_t n);
 		uint32_t NumIndices() const;
 
