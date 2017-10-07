@@ -108,6 +108,24 @@ namespace gleam
 		}
 		return std::string();
 	}
+	std::shared_ptr<void> ResLoader::Query(const ResLoadingDescPtr & res_desc)
+	{
+		this->RemoveUnrefResource();
+
+		std::shared_ptr<void> res;
+		std::shared_ptr<void> loaded_res = this->FindMatchResource(res_desc);
+		if (loaded_res)
+		{
+			return loaded_res;
+		}
+		else
+		{
+			res_desc->Load();
+			res = res_desc->Resource();
+			this->AddLoadedResource(res_desc, res);
+		}
+		return res;
+	}
 	std::string ResLoader::RealPath(const std::string & path)
 	{
 		std::string abs_path = this->AbsPath(path);
@@ -116,5 +134,49 @@ namespace gleam
 			abs_path.push_back('/');
 		}
 		return abs_path;
+	}
+	void ResLoader::RemoveUnrefResource()
+	{
+		for (auto iter = loaded_res_.begin(); iter != loaded_res_.end();)
+		{
+			if (iter->second.lock())
+			{
+				++iter;
+			}
+			else
+			{
+				iter = loaded_res_.erase(iter);
+			}
+		}
+	}
+	std::shared_ptr<void> ResLoader::FindMatchResource(const ResLoadingDescPtr & res_desc)
+	{
+		std::shared_ptr<void> loaded_res;
+		for (const auto &res : loaded_res_)
+		{
+			if (res.first->Match(*res_desc))
+			{
+				loaded_res = res.second.lock();
+				break;
+			}
+		}
+		return loaded_res;
+	}
+	void ResLoader::AddLoadedResource(const ResLoadingDescPtr & res_desc, const std::shared_ptr<void>& res)
+	{
+		bool found = false;
+		for (auto& c_desc : loaded_res_)
+		{
+			if (c_desc.first == res_desc)
+			{
+				c_desc.second = std::weak_ptr<void>(res);
+				found = true;
+				break;
+			}
+		}
+		if (!found)
+		{
+			loaded_res_.emplace_back(res_desc, std::weak_ptr<void>(res));
+		}
 	}
 }
