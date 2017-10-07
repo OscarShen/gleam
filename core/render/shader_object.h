@@ -40,6 +40,9 @@ namespace gleam
 		virtual void Bind() = 0;
 		virtual void Unbind() = 0;
 
+		// TODO: use AttribPtr replace OGLAttribPtr
+		virtual void SetAttrib(VertexElementUsage usage, uint8_t usage_index, const OGLAttribPtr &attrib) = 0;
+
 		bool HasTessellation() const { return has_tessellation; }
 
 	protected:
@@ -60,19 +63,20 @@ namespace gleam
 		~OGLShaderObject();
 
 		void AttachShader(ShaderType type, const std::string &shader_code) override;
-		void LinkShaders();
+		void LinkShaders() override;
 
-		void Bind() { }
+		void Bind();
 		void Unbind() { }
 
 		GLint GetAttribLocation(VertexElementUsage usage, uint8_t usage_index);
+		void SetAttrib(VertexElementUsage usage, uint8_t usage_index, const OGLAttribPtr &attrib) override;
 	protected:
 		std::vector<OGLUniformPtr> uniforms_;
 		std::vector<OGLUniformBufferPtr> uniform_blocks_;
 		std::vector<TextureBind> textures_;
 		GLuint glsl_program_;
 
-		std::map<std::pair<VertexElementUsage, uint8_t>, GLint> attrib_locations_;
+		std::map<std::pair<VertexElementUsage, uint8_t>, OGLAttribPtr> attribs_;
 	};
 
 	typedef std::shared_ptr<OGLShaderObject> OGLShaderObjectPtr;

@@ -1,6 +1,10 @@
 #include <GL/glew.h>
 #include "shader_object.h"
 #include "mapping.h"
+#include "render_effect.h"
+#include <render/ogl_util.h>
+#include "render_engine.h"
+#include <base/context.h>
 namespace gleam {
 	ShaderObject::ShaderObject()
 		: has_tessellation(false)
@@ -25,6 +29,9 @@ namespace gleam {
 
 		glCompileShader(gl_shader);
 
+		char * c = new char[512];
+		glGetShaderSource(gl_shader, 512, 0, c);
+
 		GLint compiled = false;
 		glGetShaderiv(gl_shader, GL_COMPILE_STATUS, &compiled);
 		if (!compiled)
@@ -43,6 +50,7 @@ namespace gleam {
 
 		glAttachShader(glsl_program_, gl_shader);
 		glDeleteShader(gl_shader);
+		glCheckError();
 	}
 	void OGLShaderObject::LinkShaders()
 	{
@@ -51,18 +59,65 @@ namespace gleam {
 		GLint linked = false;
 		glGetProgramiv(glsl_program_, GL_LINK_STATUS, &linked);
 		CHECK_INFO(linked, "program linked failed...");
+
+		// get all locations & indices
+		for (const auto &u : uniforms_)
+		{
+			u->StoreUniformLocation(glsl_program_);
+		}
+		for (const auto &ub : uniform_blocks_)
+		{
+			ub->StoreUniformBlockIndex(glsl_program_);
+		}
+		for (const auto &item : attribs_)
+		{
+			const auto &attrib = item.second;
+			attrib->StoreAttribLocation(glsl_program_);
+		}
+	}
+	void OGLShaderObject::Bind()
+	{
+		OGLRenderEngine &re = *checked_cast<OGLRenderEngine *>(&Context::Instance().RenderEngineInstance());
+		re.UseProgram(glsl_program_);
+
+		// TODO:update all unifrom & ubo & texture ...
+
+		// ...
+
+		glValidateProgram(glsl_program_);
+		GLint validated = false;
+		glGetProgramiv(glsl_program_, GL_VALIDATE_STATUS, &validated);
+		if (!validated)
+		{
+			GLint len = 0;
+			glGetProgramiv(glsl_program_, GL_INFO_LOG_LENGTH, &len);
+			if (len > 0)
+			{
+				std::vector<char> info(len + 1, 0);
+				glGetProgramInfoLog(glsl_program_, len, &len, &info[0]);
+				std::cout << info.data() << std::endl;
+			}
+		}
+
 	}
 	GLint OGLShaderObject::GetAttribLocation(VertexElementUsage usage, uint8_t usage_index)
 	{
-		auto iter = attrib_locations_.find(std::make_pair(usage, usage_index));
-		if (iter != attrib_locations_.end())
+		auto iter = attribs_.find(std::make_pair(usage, usage_index));
+		if (iter != attribs_.end())
 		{
-			return iter->second;
+			return iter->second->Location();
 		}
 		else
 		{
 			return -1;
 		}
+	}
+	void OGLShaderObject::SetAttrib(VertexElementUsage usage, uint8_t usage_index, const OGLAttribPtr & attrib)
+	{
+		auto key = std::make_pair(usage, usage_index);
+		auto iter = attribs_.find(key);
+		CHECK_INFO(iter == attribs_.end(), "already have the same attrib : " << attrib->Name());
+		attribs_[key] = attrib;
 	}
 	void ShaderTypeFromString(ShaderType & type, const std::string & name)
 	{

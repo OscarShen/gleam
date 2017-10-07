@@ -10,6 +10,7 @@
 #define GLEAM_CORE_UNIFORM_H_
 #include <GL/glew.h>
 #include <gleam.h>
+#include "render_layout.h"
 namespace gleam {
 
 	enum UniformType
@@ -132,5 +133,24 @@ namespace gleam {
 		bool dirty_;
 	};
 	typedef std::shared_ptr<OGLUniformBuffer> OGLUniformBufferPtr;
+
+	class OGLAttrib
+	{
+	public:
+		OGLAttrib(const std::string &name);
+		void StoreAttribLocation(GLuint program);
+		const std::string &Name() const { return name_; }
+		GLint Location() const { return location_; }
+		GLuint Program() const { return program_; }
+		const VertexElement &VertexElementType() const { return element_; }
+		void VertexElementType(const VertexElement &element) { element_ = element; }
+
+	protected:
+		GLuint program_;
+		GLint location_;
+		std::string name_;
+		VertexElement element_;
+	};
+	typedef std::shared_ptr<OGLAttrib> OGLAttribPtr;
 }
 #endif // !GLEAM_CORE_UNIFORM_H_

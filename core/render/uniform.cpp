@@ -115,4 +115,14 @@ namespace gleam {
 			name == "sampler3d")
 			type = UT_Sampler;
 	}
+	OGLAttrib::OGLAttrib(const std::string & name)
+		: name_(name)
+	{
+	}
+	void OGLAttrib::StoreAttribLocation(GLuint program)
+	{
+		location_ = glGetAttribLocation(program, name_.c_str());
+		program_ = program;
+		CHECK_INFO(-1 != location_, "Counldn't find attrib : " << name_);
+	}
 }
