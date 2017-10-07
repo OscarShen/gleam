@@ -63,6 +63,19 @@ namespace gleam {
 	typedef std::shared_ptr<RenderTechnique> RenderTechniquePtr;
 	class RenderLayout;
 	typedef std::shared_ptr<RenderLayout> RenderLayoutPtr;
+	class SceneObject;
+	typedef std::shared_ptr<SceneObject> SceneObjectPtr;
+	class SceneObjectHelper;
+	typedef std::shared_ptr<SceneObjectHelper> SceneObjectHelperPtr;
+	class Renderable;
+	typedef std::shared_ptr<Renderable> RenderablePtr;
+	class Light;
+	typedef std::shared_ptr<Light> LightPtr;
+	class SceneManager;
+	class ResLoadingDesc;
+	typedef std::shared_ptr<ResLoadingDesc> ResLoadingDescPtr;
+	struct RenderSettings;
+	class Framework3D;
 
 	template <typename To, typename From>
 	inline To checked_cast(From p) noexcept

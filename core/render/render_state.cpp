@@ -98,7 +98,7 @@ namespace gleam {
 	void OGLRenderStateObject::Active()
 	{
 		OGLRenderEngine &re = *checked_cast<OGLRenderEngine*>(&Context::Instance().RenderEngineInstance());
-		const RenderStateObjectPtr &cur_render_state = re.CurRenderStateObject();
+		const RenderStateObjectPtr &cur_render_state = re.CurrentRenderStateObject();
 		const RasterizerStateDesc &cur_raster_state = cur_render_state->GetRasterizerStateDesc();
 		const DepthStencilStateDesc & cur_depth_stencil_state = cur_render_state->GetDepthStencilStateDesc();
 		const BlendStateDesc & cur_blend_state = cur_render_state->GetBlendStateDesc();

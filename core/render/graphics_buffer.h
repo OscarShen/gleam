@@ -11,6 +11,7 @@
 #include <GL/glew.h>
 #include <gleam.h>
 #include "element_format.h"
+#include <boost/noncopyable.hpp>
 namespace gleam
 {
 	enum BufferUsage

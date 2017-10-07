@@ -132,15 +132,8 @@ namespace gleam {
 	{
 		if (fbo_ != 0)
 		{
-			if (Context::Instance().RenderEngineValid())
-			{
-				OGLRenderEngine &re = *checked_cast<OGLRenderEngine*>(&Context::Instance().RenderEngineInstance());
-				re.DeleteFrameBuffer(1, &fbo_);
-			}
-			else
-			{
-				glDeleteFramebuffers(1, &fbo_);
-			}
+			OGLRenderEngine &re = *checked_cast<OGLRenderEngine*>(&Context::Instance().RenderEngineInstance());
+			re.DeleteFrameBuffer(1, &fbo_);
 		}
 	}
 	GLuint OGLFrameBuffer::OGLFbo() const
@@ -175,8 +168,8 @@ namespace gleam {
 		OGLRenderEngine &re = *checked_cast<OGLRenderEngine*>(&Context::Instance().RenderEngineInstance());
 		GLuint old_fbo = re.BindFrameBuffer();
 		re.BindFrameBuffer(fbo_);
-		const DepthStencilStateDesc &depth_stencil_state = re.CurRenderStateObject()->GetDepthStencilStateDesc();
-		const BlendStateDesc &blend_state = re.CurRenderStateObject()->GetBlendStateDesc();
+		const DepthStencilStateDesc &depth_stencil_state = re.CurrentRenderStateObject()->GetDepthStencilStateDesc();
+		const BlendStateDesc &blend_state = re.CurrentRenderStateObject()->GetBlendStateDesc();
 
 		if (flags & CBM_Color)
 		{

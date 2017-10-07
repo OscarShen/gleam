@@ -12,13 +12,14 @@
 #include <gleam.h>
 #include "element_format.h"
 #include "render_state.h"
+#include "graphics_buffer.h"
 namespace gleam
 {
 	struct RenderSettings
 	{
 		RenderSettings()
 			:color_format(EF_ARGB8), depth_stencil_format(EF_D16),
-			sample_count(1), sample_quality(0) {}
+			sample_count(1), sample_quality(0), width(1600), height(900) {}
 		uint32_t height, width;
 		ElementFormat color_format;
 		ElementFormat depth_stencil_format;
@@ -31,11 +32,22 @@ namespace gleam
 	public:
 		RenderEngine();
 		virtual ~RenderEngine() { }
-		const RenderStateObjectPtr &CurRenderStateObject() const { return cur_render_state_; }
+
+		void CreateRenderWindow(const std::string &name, RenderSettings &settings);
+
+		void Render(const RenderEffect &effect, const RenderTechnique &tech, const RenderLayout &layout);
+
+		const RenderStateObjectPtr &CurrentRenderStateObject() const { return current_render_state_; }
+		const FrameBufferPtr &CurrentFrameBuffer() const { return current_frame_buffer_; }
 
 		RenderStateObjectPtr MakeRenderStateObject(const RasterizerStateDesc &raster_state,
 			const DepthStencilStateDesc &depth_stencil_state, const BlendStateDesc &blend_state);
 		virtual ShaderObjectPtr MakeShaderObject() = 0;
+
+		GraphicsBufferPtr MakeVertexBuffer(BufferUsage usage, uint32_t access_hint, uint32_t size_in_byte, void const *init_data, ElementFormat format = EF_Unknown);
+		virtual GraphicsBufferPtr MakeVertexBufferHandler(BufferUsage usage, uint32_t access_hint, uint32_t size_in_byte, ElementFormat format = EF_Unknown) = 0;
+
+		virtual RenderLayoutPtr MakeRenderLayout() = 0;
 
 		virtual void BeginFrame();
 		virtual void EndFrame();
@@ -45,23 +57,32 @@ namespace gleam
 		void BindFrameBuffer(const FrameBufferPtr &fb);
 
 		const FrameBufferPtr & DefaultFrameBuffer() const;
+		float DefaultFOV() const { return fov_; }
+
+		bool Quit();
+
+		void SwapBuffer();
 
 	private:
+		virtual void DoCreateRenderWindow(const std::string & name, const RenderSettings &settings) = 0;
 		virtual RenderStateObjectPtr DoMakeRenderStateObject(const RasterizerStateDesc &raster_state,
 			const DepthStencilStateDesc &depth_stencil_state, const BlendStateDesc &blend_state) = 0;
 		virtual void DoBindFrameBuffer(const FrameBufferPtr & fb) = 0;
 		virtual void DoRender(const RenderEffect &effect, const RenderTechnique &tech, const RenderLayout &layout) = 0;
 
 	protected:
-		RenderStateObjectPtr cur_render_state_;
+		RenderStateObjectPtr current_render_state_;
 		RenderStateObjectPtr cur_line_render_state_;
 		std::unordered_map<size_t, RenderStateObjectPtr> render_state_pool;
 
 		FrameBufferPtr current_frame_buffer_;
-		FrameBufferPtr default_frame_buffers_[4];
+		FrameBufferPtr screen_frame_buffer_;
+
+		float fov_;
 
 		int fb_stage_;
 		bool force_line_mode;
+		WindowPtr win;
 	};
 
 	class OGLRenderEngine : public RenderEngine
@@ -110,7 +131,11 @@ namespace gleam
 		void SetPolygonMode(GLenum face, GLenum mode);
 
 		ShaderObjectPtr MakeShaderObject() override;
-
+		RenderLayoutPtr MakeRenderLayout() override;
+		GraphicsBufferPtr MakeVertexBufferHandler(BufferUsage usage, uint32_t access_hint, uint32_t size_in_byte, ElementFormat format = EF_Unknown) override
+		{
+			return std::make_shared<OGLGraphicsBuffer>(usage, access_hint, GL_ARRAY_BUFFER, size_in_byte, format);
+		}
 
 	private:
 		void DoCreateRenderWindow(const std::string & name, const RenderSettings &settings);
@@ -149,8 +174,6 @@ namespace gleam
 		uint32_t num_primitives_just_rendered_;
 		uint32_t num_vertices_just_rendered_;
 		uint32_t num_draws_just_called_;
-
-		WindowPtr win;
 	};
 }
 

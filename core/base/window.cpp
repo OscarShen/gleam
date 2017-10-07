@@ -53,12 +53,20 @@ namespace gleam {
 		glfwSwapBuffers(wnd_);
 	}
 
+	void GLFWWnd::SwapBuffers()
+	{
+		glfwSwapBuffers(wnd_);
+	}
+
 	bool GLFWWnd::init()
 	{
 		if (!glfwInit()) {
 			std::cout << "Failed to initialize GLFW!" << std::endl;
 			return false;
 		}
+		glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+		glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5);
+		glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 		wnd_ = glfwCreateWindow(width_, height_, title_.c_str(), nullptr, nullptr);
 		if (!wnd_) {
 			std::cout << "Failed to create GLFW window!" << std::endl;
@@ -70,6 +78,7 @@ namespace gleam {
 		glfwSetCursorPosCallback(wnd_, cursor_position_callback);
 		glfwSetScrollCallback(wnd_, scroll_callback);
 		glfwSwapInterval(0);
+		glewExperimental = GL_TRUE;
 		glewInit();
 		return true;
 	}

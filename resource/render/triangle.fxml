@@ -1,0 +1,43 @@
+<?xml version='1.0'?>
+
+<effect>
+
+	<shader type="vertex_shader" name="TriangleVS">
+    <attrib name="pos" usage="position"/>
+    <code>
+      <![CDATA[
+#version 450 core
+      
+in vec4 pos;
+      
+void main()
+{
+  gl_Position = pos;
+}
+      ]]>
+    </code>
+  </shader>
+	
+	<shader type="fragment_shader" name="TriangleFS">
+    <code>
+		<![CDATA[
+#version 450 core
+
+out vec4 outcolor;
+
+void main()
+{
+  outcolor = vec4(1,1,0,1);
+}
+		]]>
+    </code>
+	</shader>
+
+	<technique name="Triangle">
+		<state name="polygon_mode" value="line"/>
+
+		<state name="vertex_shader" value="TriangleVS"/>
+		<state name="fragment_shader" value="TriangleFS"/>
+	</technique>
+</effect>
+

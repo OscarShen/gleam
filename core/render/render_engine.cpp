@@ -10,10 +10,12 @@
 #include "mapping.h"
 #include "graphics_buffer.h"
 #include <base/context.h>
+#include "render_view.h"
+#include <GLFW/glfw3.h>
 namespace gleam {
 	OGLRenderEngine::OGLRenderEngine()
 	{
-		cur_render_state_ = std::make_shared<OGLRenderStateObject>(RasterizerStateDesc(),DepthStencilStateDesc(),BlendStateDesc());
+		current_render_state_ = std::make_shared<OGLRenderStateObject>(RasterizerStateDesc(),DepthStencilStateDesc(),BlendStateDesc());
 	}
 	void OGLRenderEngine::ActiveTexture(GLenum tex_unit)
 	{
@@ -675,9 +677,20 @@ namespace gleam {
 		return std::make_shared<OGLShaderObject>();
 	}
 
+	RenderLayoutPtr OGLRenderEngine::MakeRenderLayout()
+	{
+		return std::make_shared<OGLRenderLayout>();
+	}
+
 	void OGLRenderEngine::DoCreateRenderWindow(const std::string & name, const RenderSettings & settings)
 	{
+		win = std::make_shared<GLFWWnd>(name, settings.width, settings.height);
 
+		FrameBufferPtr win_fb = std::make_shared<OGLFrameBuffer>(false);
+		win_fb->Attach(ATT_Color0, std::make_shared<OGLDefaultColorRenderView>(win->Width(), win->Height(), settings.color_format));
+		win_fb->Attach(ATT_DepthStencil, std::make_shared<OGLDefaultColorRenderView>(win->Width(), win->Height(), settings.depth_stencil_format));
+
+		RenderEngine::BindFrameBuffer(win_fb);
 	}
 	RenderStateObjectPtr OGLRenderEngine::DoMakeRenderStateObject(const RasterizerStateDesc & raster_state, const DepthStencilStateDesc & depth_stencil_state, const BlendStateDesc & blend_state)
 	{
@@ -779,6 +792,15 @@ namespace gleam {
 	RenderEngine::RenderEngine()
 	{
 	}
+	void RenderEngine::CreateRenderWindow(const std::string & name, RenderSettings & settings)
+	{
+		this->DoCreateRenderWindow(name, settings);
+		screen_frame_buffer_ = current_frame_buffer_;
+	}
+	void RenderEngine::Render(const RenderEffect & effect, const RenderTechnique & tech, const RenderLayout & layout)
+	{
+		this->DoRender(effect, tech, layout);
+	}
 	RenderStateObjectPtr RenderEngine::MakeRenderStateObject(const RasterizerStateDesc & raster_state, const DepthStencilStateDesc & depth_stencil_state, const BlendStateDesc & blend_state)
 	{
 		RenderStateObjectPtr render_state;
@@ -806,15 +828,22 @@ namespace gleam {
 		}
 		return render_state;
 	}
+	GraphicsBufferPtr RenderEngine::MakeVertexBuffer(BufferUsage usage, uint32_t access_hint, uint32_t size_in_byte, const void *init_data, ElementFormat format)
+	{
+		GraphicsBufferPtr buffer = this->MakeVertexBufferHandler(usage, access_hint, size_in_byte, format);
+		buffer->CreateResource(init_data);
+		return buffer;
+	}
 	void RenderEngine::BeginFrame()
 	{
+		this->BindFrameBuffer(screen_frame_buffer_);
 	}
 	void RenderEngine::EndFrame()
 	{
 	}
 	void RenderEngine::SetStateObject(const RenderStateObjectPtr & render_state)
 	{
-		if (cur_render_state_ != render_state)
+		if (current_render_state_ != render_state)
 		{
 			if (force_line_mode)
 			{
@@ -829,7 +858,7 @@ namespace gleam {
 			{
 				render_state->Active();
 			}
-			cur_render_state_ = render_state;
+			current_render_state_ = render_state;
 		}
 	}
 	void RenderEngine::BindFrameBuffer(const FrameBufferPtr & fb)
@@ -859,6 +888,15 @@ namespace gleam {
 	}
 	const FrameBufferPtr & RenderEngine::DefaultFrameBuffer() const
 	{
-		return default_frame_buffers_[fb_stage_];
+		return current_frame_buffer_;
+	}
+	bool RenderEngine::Quit()
+	{
+		return !win->Running();
+	}
+	void RenderEngine::SwapBuffer()
+	{
+		win->SwapBuffers();
+		static int i = 0;
 	}
 }

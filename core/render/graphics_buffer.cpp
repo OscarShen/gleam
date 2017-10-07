@@ -76,15 +76,8 @@ namespace gleam {
 
 		if (vbo_ != 0)
 		{
-			if (Context::Instance().RenderEngineValid())
-			{
-				OGLRenderEngine &re = *checked_cast<OGLRenderEngine*>(&Context::Instance().RenderEngineInstance());
-				re.DeleteBuffers(1, &vbo_);
-			}
-			else
-			{
-				glDeleteBuffers(1, &vbo_);
-			}
+			OGLRenderEngine &re = *checked_cast<OGLRenderEngine*>(&Context::Instance().RenderEngineInstance());
+			re.DeleteBuffers(1, &vbo_);
 			vbo_ = 0;
 		}
 	}

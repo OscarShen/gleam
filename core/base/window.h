@@ -27,6 +27,8 @@ namespace gleam {
 		int Height() const { return height_; }
 		InputRecord &GetInputRecord() const { return *record; }
 
+		virtual void SwapBuffers() = 0;
+
 	protected:
 		int width_, height_;
 		std::string title_;
@@ -43,6 +45,8 @@ namespace gleam {
 		void Clear() const override;
 		void Close() override;
 		void Update() override;
+
+		void SwapBuffers() override;
 
 	private:
 		bool init();

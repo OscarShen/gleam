@@ -144,7 +144,7 @@ namespace gleam {
 
 		this->FlushScene();
 
-		
+		re.EndFrame();
 	}
 	uint32_t SceneManager::NumSceneObjects() const
 	{
