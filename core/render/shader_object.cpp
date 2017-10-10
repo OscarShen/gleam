@@ -50,7 +50,6 @@ namespace gleam {
 
 		glAttachShader(glsl_program_, gl_shader);
 		glDeleteShader(gl_shader);
-		glCheckError();
 	}
 	void OGLShaderObject::LinkShaders()
 	{
@@ -118,6 +117,18 @@ namespace gleam {
 		auto iter = attribs_.find(key);
 		CHECK_INFO(iter == attribs_.end(), "already have the same attrib : " << attrib->Name());
 		attribs_[key] = attrib;
+	}
+	UniformPtr OGLShaderObject::GetUniformByName(const std::string & uniform_name)
+	{
+		for (const auto &u : uniforms_)
+		{
+			if (u->Name() == uniform_name)
+			{
+				return u;
+			}
+		}
+		WARNING(false, "can't find uniform : " << uniform_name);
+		return nullptr;
 	}
 	void ShaderTypeFromString(ShaderType & type, const std::string & name)
 	{

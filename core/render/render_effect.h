@@ -57,9 +57,11 @@ namespace gleam
 
 		const ShaderObjectPtr & GetShaderObjectByIndex(uint32_t index) const;
 
-		const std::string & GetShaderCodeByName(uint32_t type, const std::string &func_name);
+		const std::string & GetShaderCodeByName(uint32_t shader_type, const std::string &func_name);
 
 		const std::vector<OGLAttribPtr> &GetShaderAttribsByName(const std::string &func_name);
+
+		UniformPtr GetUniformByName(uint32_t shader_type, const std::string &shader_name, const std::string &uniform_name);
 
 		void Load(const std::string &name);
 
@@ -69,7 +71,7 @@ namespace gleam
 
 	private:
 		std::array<std::unordered_map<std::string, std::string>, ST_NumShaderTypes> shader_codes_;
-		std::array<std::unordered_map<std::string, std::vector<OGLUniformPtr>>, ST_NumShaderTypes> shader_uniforms_;
+		std::array<std::unordered_map<std::string, std::vector<UniformPtr>>, ST_NumShaderTypes> shader_uniforms_;
 		std::array<std::unordered_map<std::string, std::vector<OGLUniformBufferPtr>>, ST_NumShaderTypes> shader_uniform_buffer_;
 		std::unordered_map<std::string, std::vector<OGLAttribPtr>> shader_attribs_;
 

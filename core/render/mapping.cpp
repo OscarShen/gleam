@@ -39,6 +39,7 @@ namespace gleam
 
 		default:
 			CHECK_INFO(false, "Invalid compare function...");
+			return 0;
 		}
 	}
 	GLenum OGLMapping::Mapping(AlphaBlendFactor factor)
@@ -98,6 +99,7 @@ namespace gleam
 
 		default:
 			CHECK_INFO(false, "Invalid alpha blend factor...");
+			return 0;
 		}
 	}
 	GLenum OGLMapping::Mapping(StencilOperation op)
@@ -130,6 +132,7 @@ namespace gleam
 
 		default:
 			CHECK_INFO(false, "Invalid stencil operation...");
+			return 0;
 		}
 	}
 	GLenum OGLMapping::Mapping(BlendOperation op)
@@ -153,6 +156,7 @@ namespace gleam
 
 		default:
 			CHECK_INFO(false, "Invalid blend operation...");
+			return 0;
 		}
 	}
 	GLint OGLMapping::Mapping(TexAddressingMode mode)
@@ -173,6 +177,7 @@ namespace gleam
 
 		default:
 			CHECK_INFO(false, "Invalid texture addressing mode...");
+			return 0;
 		}
 	}
 	GLenum OGLMapping::Mapping(LogicOperation op)
@@ -213,6 +218,7 @@ namespace gleam
 			return GL_OR_INVERTED;
 		default:
 			CHECK_INFO(false, "Invalid logic operation...");
+			return 0;
 		}
 	}
 	GLenum OGLMapping::Mapping(ShaderType type)
@@ -233,6 +239,7 @@ namespace gleam
 			return GL_TESS_EVALUATION_SHADER;
 		default:
 			CHECK_INFO(false, "Invalid shader type...");
+			return 0;
 		}
 	}
 	void OGLMapping::Mapping(GLenum & primType, uint32_t & primCount, const RenderLayout & layout)
@@ -287,6 +294,7 @@ namespace gleam
 
 		default:
 			CHECK_INFO(false, "Invalid polygon mode...");
+			return 0;
 		}
 	}
 	GLenum OGLMapping::Mapping(ShadeMode mode)
@@ -301,6 +309,7 @@ namespace gleam
 
 		default:
 			CHECK_INFO(false, "Invalid shade mode...");
+			return 0;
 		}
 	}
 	void OGLMapping::MappingFormat(GLint & internalFormat, GLenum & glformat, GLenum & gltype, ElementFormat format)

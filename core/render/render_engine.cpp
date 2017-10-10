@@ -682,6 +682,40 @@ namespace gleam {
 		return std::make_shared<OGLRenderLayout>();
 	}
 
+	UniformPtr OGLRenderEngine::MakeUniform(uint32_t type)
+	{
+		switch (type)
+		{
+		case gleam::UT_Bool:
+			return std::make_shared<OGLUniformBool>();
+		case gleam::UT_Float:
+			return std::make_shared<OGLUniformFloat>();
+		case gleam::UT_Vector2f:
+			return std::make_shared<OGLUniformVec2>();
+		case gleam::UT_Vector3f:
+			return std::make_shared<OGLUniformVec3>();
+		case gleam::UT_Vector4f:
+			return std::make_shared<OGLUniformVec4>();
+		case gleam::UT_Sampler:
+			return std::make_shared<OGLUniformSampler>();
+		case gleam::UT_Matrix4f:
+			return std::make_shared<OGLUniformMatrix4>();
+		default:
+			CHECK_INFO(false, "invalid uniform type : " << type);
+			return nullptr;
+		}
+	}
+
+	GraphicsBufferPtr OGLRenderEngine::MakeVertexBufferHandler(BufferUsage usage, uint32_t access_hint, uint32_t size_in_byte, ElementFormat format)
+	{
+		return std::make_shared<OGLGraphicsBuffer>(usage, access_hint, GL_ARRAY_BUFFER, size_in_byte, format);
+	}
+
+	GraphicsBufferPtr OGLRenderEngine::MakeIndexBufferHandler(BufferUsage usage, uint32_t access_hint, uint32_t size_in_byte, ElementFormat format)
+	{
+		return std::make_shared<OGLGraphicsBuffer>(usage, access_hint, GL_ELEMENT_ARRAY_BUFFER, size_in_byte, format);
+	}
+
 	void OGLRenderEngine::DoCreateRenderWindow(const std::string & name, const RenderSettings & settings)
 	{
 		win = std::make_shared<GLFWWnd>(name, settings.width, settings.height);
@@ -834,6 +868,12 @@ namespace gleam {
 		buffer->CreateResource(init_data);
 		return buffer;
 	}
+	GraphicsBufferPtr RenderEngine::MakeIndexBuffer(BufferUsage usage, uint32_t access_hint, uint32_t size_in_byte, void const * init_data, ElementFormat format)
+	{
+		GraphicsBufferPtr buffer = this->MakeIndexBufferHandler(usage, access_hint, size_in_byte, format);
+		buffer->CreateResource(init_data);
+		return buffer;
+	}
 	void RenderEngine::BeginFrame()
 	{
 		this->BindFrameBuffer(screen_frame_buffer_);
@@ -897,6 +937,6 @@ namespace gleam {
 	void RenderEngine::SwapBuffer()
 	{
 		win->SwapBuffers();
-		static int i = 0;
+		glfwPollEvents();
 	}
 }

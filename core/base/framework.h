@@ -72,7 +72,6 @@ namespace gleam
 		float app_time_;
 		float frame_time_;
 
-		WindowPtr main_wnd_;
 		RenderSettings settings;
 	};
 }

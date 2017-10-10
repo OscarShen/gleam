@@ -45,9 +45,14 @@ namespace gleam
 		virtual ShaderObjectPtr MakeShaderObject() = 0;
 
 		GraphicsBufferPtr MakeVertexBuffer(BufferUsage usage, uint32_t access_hint, uint32_t size_in_byte, void const *init_data, ElementFormat format = EF_Unknown);
+		GraphicsBufferPtr MakeIndexBuffer(BufferUsage usage, uint32_t access_hint, uint32_t size_in_byte, void const *init_data, ElementFormat format = EF_Unknown);
+
 		virtual GraphicsBufferPtr MakeVertexBufferHandler(BufferUsage usage, uint32_t access_hint, uint32_t size_in_byte, ElementFormat format = EF_Unknown) = 0;
+		virtual GraphicsBufferPtr MakeIndexBufferHandler(BufferUsage usage, uint32_t access_hint, uint32_t size_in_byte, ElementFormat format = EF_Unknown) = 0;
 
 		virtual RenderLayoutPtr MakeRenderLayout() = 0;
+
+		virtual UniformPtr MakeUniform(uint32_t type) = 0;
 
 		virtual void BeginFrame();
 		virtual void EndFrame();
@@ -132,10 +137,10 @@ namespace gleam
 
 		ShaderObjectPtr MakeShaderObject() override;
 		RenderLayoutPtr MakeRenderLayout() override;
-		GraphicsBufferPtr MakeVertexBufferHandler(BufferUsage usage, uint32_t access_hint, uint32_t size_in_byte, ElementFormat format = EF_Unknown) override
-		{
-			return std::make_shared<OGLGraphicsBuffer>(usage, access_hint, GL_ARRAY_BUFFER, size_in_byte, format);
-		}
+		UniformPtr MakeUniform(uint32_t type) override;
+		GraphicsBufferPtr MakeVertexBufferHandler(BufferUsage usage, uint32_t access_hint, uint32_t size_in_byte, ElementFormat format = EF_Unknown) override;
+		GraphicsBufferPtr MakeIndexBufferHandler(BufferUsage usage, uint32_t access_hint, uint32_t size_in_byte, ElementFormat format = EF_Unknown) override;
+
 
 	private:
 		void DoCreateRenderWindow(const std::string & name, const RenderSettings &settings);

@@ -43,6 +43,8 @@ namespace gleam
 		// TODO: use AttribPtr replace OGLAttribPtr
 		virtual void SetAttrib(VertexElementUsage usage, uint8_t usage_index, const OGLAttribPtr &attrib) = 0;
 
+		virtual UniformPtr GetUniformByName(const std::string &uniform_name) = 0;
+
 		bool HasTessellation() const { return has_tessellation; }
 
 	protected:
@@ -70,6 +72,9 @@ namespace gleam
 
 		GLint GetAttribLocation(VertexElementUsage usage, uint8_t usage_index);
 		void SetAttrib(VertexElementUsage usage, uint8_t usage_index, const OGLAttribPtr &attrib) override;
+
+		UniformPtr GetUniformByName(const std::string &uniform_name) override;
+
 	protected:
 		std::vector<OGLUniformPtr> uniforms_;
 		std::vector<OGLUniformBufferPtr> uniform_blocks_;

@@ -44,6 +44,20 @@ namespace gleam
 		assert(iter != shader_attribs_.end());
 		return iter->second;
 	}
+	UniformPtr RenderEffect::GetUniformByName(uint32_t shader_type, const std::string & shader_name, const std::string & uniform_name)
+	{
+		assert(shader_type < ST_NumShaderTypes);
+		auto iter = shader_uniforms_[shader_type].find(shader_name);
+		assert(iter != shader_uniforms_[shader_type].end());
+		for (const auto &uniform : iter->second)
+		{
+			if (uniform_name == uniform->Name())
+			{
+				return uniform;
+			}
+		}
+		return nullptr;
+	}
 	void RenderEffect::Load(const std::string & name)
 	{
 		std::string real_path = ResLoader::Instance().Locate(name);
@@ -100,6 +114,7 @@ namespace gleam
 	}
 	void RenderEffect::LoadResource(TiXmlElement * root)
 	{
+		RenderEngine &re = Context::Instance().RenderEngineInstance();
 		for (TiXmlElement *shader_node = root->FirstChildElement("shader");
 			shader_node; shader_node = shader_node->NextSiblingElement("shader"))
 		{
@@ -129,33 +144,8 @@ namespace gleam
 				std::string uniform_name = uniform_node->Attribute("name");
 				assert(!uniform_name.empty());
 
-				OGLUniformPtr uniform;
-				switch (uniform_type)
-				{
-				case gleam::UT_Bool:
-					uniform.reset(new OGLUniformBool(uniform_name));
-					break;
-				case gleam::UT_Float:
-					uniform.reset(new OGLUniformFloat(uniform_name));
-					break;
-				case gleam::UT_Vector2f:
-					uniform.reset(new OGLUniformVec2(uniform_name));
-					break;
-				case gleam::UT_Vector3f:
-					uniform.reset(new OGLUniformVec3(uniform_name));
-					break;
-				case gleam::UT_Vector4f:
-					uniform.reset(new OGLUniformVec4(uniform_name));
-					break;
-				case gleam::UT_Sampler:
-					uniform.reset(new OGLUniformSampler(uniform_name));
-					break;
-				case gleam::UT_Matrix4f:
-					uniform.reset(new OGLUniformMatrix4(uniform_name));
-					break;
-				default:
-					break;
-				}
+				UniformPtr uniform = re.MakeUniform(uniform_type);
+				uniform->Name(uniform_name);
 				assert(uniform);
 
 				shader_uniforms_[shader_type][name].push_back(uniform);

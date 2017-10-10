@@ -34,6 +34,7 @@ namespace gleam {
 	{
 		if (wnd_)
 			glfwDestroyWindow(wnd_);
+		wnd_ = nullptr;
 	}
 
 	void GLFWWnd::Clear() const
@@ -43,7 +44,6 @@ namespace gleam {
 
 	void GLFWWnd::Close()
 	{
-		glfwDestroyWindow(wnd_);
 		running_ = false;
 	}
 
@@ -92,6 +92,10 @@ namespace gleam {
 			record.keys[key] = true;
 		else if (action == GLFW_RELEASE)
 			record.keys[key] = false;
+		if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
+			glfwSetWindowShouldClose(window, true);
+			win->Close();
+		}
 	}
 
 	void cursor_position_callback(GLFWwindow * window, double xpos, double ypos)

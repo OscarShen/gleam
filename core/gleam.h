@@ -77,6 +77,17 @@ namespace gleam {
 	struct RenderSettings;
 	class Framework3D;
 
+	template <typename T>
+	class AABBox_T;
+	typedef AABBox_T<float> AABBox;
+	typedef std::shared_ptr<AABBox> AABBoxPtr;
+	template <typename T>
+	class OBBox_T;
+	typedef OBBox_T<float> OBBox;
+	typedef std::shared_ptr<OBBox> OBBoxPtr;
+	class Uniform;
+	typedef std::shared_ptr<Uniform> UniformPtr;
+
 	template <typename To, typename From>
 	inline To checked_cast(From p) noexcept
 	{
