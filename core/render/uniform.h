@@ -11,6 +11,7 @@
 #include <GL/glew.h>
 #include <gleam.h>
 #include "render_layout.h"
+#include <boost/noncopyable.hpp>
 namespace gleam {
 
 	enum UniformType
@@ -26,21 +27,39 @@ namespace gleam {
 
 	void UniformTypeFromString(UniformType &type, const std::string &name);
 
-	class OGLUniform
+	class Uniform : boost::noncopyable
 	{
 	public:
-		OGLUniform(const std::string &name);
-		virtual ~OGLUniform() { }
-		void StoreUniformLocation(GLuint program);
+		virtual ~Uniform() { }
 		const std::string &Name() const { return name_; }
+		void Name(const std::string &name) { name_ = name; }
+
+		virtual void Load() = 0;
+
+		virtual Uniform &operator=(const bool &value)	   { CHECK_INFO(false, "no impl..."); return *this; }
+		virtual Uniform &operator=(const uint32_t &value)  { CHECK_INFO(false, "no impl..."); return *this; }
+		virtual Uniform &operator=(const int32_t &value)   { CHECK_INFO(false, "no impl..."); return *this; }
+		virtual Uniform &operator=(const float &value)     { CHECK_INFO(false, "no impl..."); return *this; }
+		virtual Uniform &operator=(const glm::vec2 &value) { CHECK_INFO(false, "no impl..."); return *this; }
+		virtual Uniform &operator=(const glm::vec3 &value) { CHECK_INFO(false, "no impl..."); return *this; }
+		virtual Uniform &operator=(const glm::vec4 &value) { CHECK_INFO(false, "no impl..."); return *this; }
+		virtual Uniform &operator=(const glm::mat4 &value) { CHECK_INFO(false, "no impl..."); return *this; }
+
+	protected:
+		std::string name_;
+	};
+	typedef std::shared_ptr<Uniform> UniformPtr;
+
+	class OGLUniform : public Uniform
+	{
+	public:
+		void StoreUniformLocation(GLuint program);
 		GLint Location() const { return location_; }
 		GLuint Program() const { return program_; }
 
 	protected:
-		std::string name_;
 		GLuint program_;
 		GLint location_;
-		UniformType type_;
 	};
 
 	typedef std::shared_ptr<OGLUniform> OGLUniformPtr;
@@ -50,61 +69,63 @@ namespace gleam {
 	class OGLUniformTemplate : public OGLUniform
 	{
 	public:
-		OGLUniformTemplate(const std::string &name) : OGLUniform(name), used_(false) { }
-		void SetInitValue(T value) { data_ = value; }
+		OGLUniformTemplate() : dirty_(true) { }
 
 	protected:
 		T data_;
-		bool used_;
+		bool dirty_;
 	};
 
 	class OGLUniformBool : public OGLUniformTemplate<GLboolean>
 	{
 	public:
-		OGLUniformBool(const std::string &name) : OGLUniformTemplate(name) { type_ = UT_Bool; }
-		void Load(GLboolean value);
+		Uniform &operator=(const bool &value) override;
+		void Load() override;
 	};
 
 	class OGLUniformFloat : public OGLUniformTemplate<GLfloat>
 	{
 	public:
-		OGLUniformFloat(const std::string &name) : OGLUniformTemplate(name) { type_ = UT_Float; }
-		void Load(GLfloat value);
+		Uniform &operator=(const float &value) override;
+		Uniform &operator=(const uint32_t &value) override;
+		Uniform &operator=(const int32_t &value) override;
+		void Load() override;
 	};
 
 	class OGLUniformSampler : public OGLUniformTemplate<GLint>
 	{
 	public:
-		OGLUniformSampler(const std::string &name) : OGLUniformTemplate(name) { type_ = UT_Sampler; }
-		void Load(GLint value);
+		Uniform &operator=(const uint32_t &value) override;
+		Uniform &operator=(const int32_t &value) override;
+		void Load() override;
 	};
 
 	class OGLUniformVec2 : public OGLUniformTemplate<glm::vec2>
 	{
 	public:
-		OGLUniformVec2(const std::string &name) : OGLUniformTemplate(name) { type_ = UT_Vector2f; }
-		void Load(const glm::vec2 &value);
+		Uniform &operator=(const glm::vec2 &value) override;
+		void Load() override;
 	};
 
 	class OGLUniformVec3 : public OGLUniformTemplate<glm::vec3>
 	{
 	public:
-		OGLUniformVec3(const std::string &name) : OGLUniformTemplate(name) { type_ = UT_Vector3f; }
-		void Load(const glm::vec3 &value);
+		Uniform &operator=(const glm::vec3 &value) override;
+		void Load() override;
 	};
 
 	class OGLUniformVec4 : public OGLUniformTemplate<glm::vec4>
 	{
 	public:
-		OGLUniformVec4(const std::string &name) : OGLUniformTemplate(name) { type_ = UT_Vector4f; }
-		void Load(const glm::vec4 &value);
+		Uniform &operator=(const glm::vec4 &value) override;
+		void Load() override;
 	};
 
 	class OGLUniformMatrix4 : public OGLUniformTemplate<glm::mat4>
 	{
 	public:
-		OGLUniformMatrix4(const std::string &name) : OGLUniformTemplate(name) { type_ = UT_Matrix4f; }
-		void Load(const glm::mat4 &value);
+		Uniform &operator=(const glm::mat4 &value) override;
+		void Load() override;
 	};
 
 	class OGLUniformBuffer

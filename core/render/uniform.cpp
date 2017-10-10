@@ -1,77 +1,159 @@
 #include "uniform.h"
 #include <glm/gtc/type_ptr.hpp>
 namespace gleam {
-	OGLUniform::OGLUniform(const std::string & name)
-	{
-	}
-
 	void OGLUniform::StoreUniformLocation(GLuint program)
 	{
 		program_ = program;
 		location_ = glGetUniformLocation(program, name_.c_str());
 		CHECK_INFO(location_ != -1, "Uniform varible " << name_ << " not found...");
 	}
-	void OGLUniformBool::Load(GLboolean value)
+	Uniform & OGLUniformBool::operator=(const bool & value)
 	{
-		if (!used_ || data_ != value)
+		GLboolean v = static_cast<GLboolean>(value);
+		if (v != data_)
 		{
-			glProgramUniform1f(program_, location_, value ? 1.0f : 0.0f);
-			used_ = true;
-			data_ = value;
+			dirty_ = true;
+			data_ = v;
+		}
+		return *this;
+	}
+	void OGLUniformBool::Load()
+	{
+		if (dirty_) {
+			glProgramUniform1i(program_, location_, static_cast<GLint>(data_));
+			dirty_ = false;
 		}
 	}
-	void OGLUniformFloat::Load(GLfloat value)
+	Uniform & OGLUniformFloat::operator=(const float & value)
 	{
-		if (data_ != value)
+		if (value != data_)
 		{
-			glProgramUniform1f(program_, location_, value);
-			used_ = true;
+			dirty_ = true;
 			data_ = value;
 		}
+		return *this;
 	}
-	void OGLUniformSampler::Load(GLint value)
+	Uniform & OGLUniformFloat::operator=(const uint32_t & value)
 	{
-		if (!used_ || data_ != value)
+		GLfloat v = static_cast<GLfloat>(value);
+		if (v != data_)
 		{
-			glProgramUniform1i(program_, location_, value);
-			used_ = true;
-			data_ = value;
+			dirty_ = true;
+			data_ = v;
+		}
+		return *this;
+	}
+	Uniform & OGLUniformFloat::operator=(const int32_t & value)
+	{
+		GLfloat v = static_cast<GLfloat>(value);
+		if (v != data_)
+		{
+			dirty_ = true;
+			data_ = v;
+		}
+		return *this;
+	}
+	void OGLUniformFloat::Load()
+	{
+		if (dirty_) {
+			glProgramUniform1f(program_, location_, data_);
+			dirty_ = false;
 		}
 	}
-	void OGLUniformVec2::Load(const glm::vec2 & value)
+	Uniform & OGLUniformSampler::operator=(const uint32_t & value)
 	{
-		if (!used_ || data_ != value)
+		GLint v = static_cast<GLint>(value);
+		if (v != data_)
 		{
-			glProgramUniform2f(program_, location_, value.x, value.y);
-			data_ = value;
-			used_ = true;
+			dirty_ = true;
+			data_ = v;
+		}
+		return *this;
+	}
+	Uniform & OGLUniformSampler::operator=(const int32_t & value)
+	{
+		GLint v = static_cast<GLint>(value);
+		if (v != data_)
+		{
+			dirty_ = true;
+			data_ = v;
+		}
+		return *this;
+	}
+	void OGLUniformSampler::Load()
+	{
+		if (dirty_)
+		{
+			glProgramUniform1i(program_, location_, data_);
+			dirty_ = false;
 		}
 	}
-	void OGLUniformVec3::Load(const glm::vec3 & value)
+	Uniform & OGLUniformVec2::operator=(const glm::vec2 & value)
 	{
-		if (!used_ || data_ != value)
+		if (value != data_)
 		{
-			glProgramUniform3f(program_, location_, value.x, value.y, value.z);
+			dirty_ = true;
 			data_ = value;
-			used_ = true;
+		}
+		return *this;
+	}
+	void OGLUniformVec2::Load()
+	{
+		if (dirty_)
+		{
+			glProgramUniform2f(program_, location_, data_.x, data_.y);
+			dirty_ = false;
 		}
 	}
-	void OGLUniformVec4::Load(const glm::vec4 & value)
+	Uniform & OGLUniformVec3::operator=(const glm::vec3 & value)
 	{
-		if (!used_ || data_ != value)
+		if (value != data_)
 		{
-			glProgramUniform4f(program_, location_, value.x, value.y, value.z, value.w);
+			dirty_ = true;
 			data_ = value;
-			used_ = true;
+		}
+		return *this;
+	}
+	void OGLUniformVec3::Load()
+	{
+		if (dirty_)
+		{
+			glProgramUniform3f(program_, location_, data_.x, data_.y, data_.z);
+			dirty_ = false;
 		}
 	}
-	void OGLUniformMatrix4::Load(const glm::mat4 & value)
+	Uniform & OGLUniformVec4::operator=(const glm::vec4 & value)
 	{
-		if (!used_ || data_ != value)
+		if (value != data_)
 		{
-			glProgramUniformMatrix4fv(program_, location_, 1, false, glm::value_ptr(value));
+			dirty_ = true;
 			data_ = value;
-			used_ = true;
+		}
+		return *this;
+	}
+	void OGLUniformVec4::Load()
+	{
+		if (dirty_)
+		{
+			glProgramUniform4f(program_, location_, data_.x, data_.y, data_.z, data_.w);
+			dirty_ = false;
+		}
+	}
+	Uniform & OGLUniformMatrix4::operator=(const glm::mat4 & value)
+	{
+		if (value != data_)
+		{
+			dirty_ = true;
+			data_ = value;
+		}
+		return *this;
+	}
+	void OGLUniformMatrix4::Load()
+	{
+		if (dirty_)
+		{
+			glProgramUniformMatrix4fv(program_, location_, 1, false, glm::value_ptr(data_));
+			dirty_ = false;
 		}
 	}
 	OGLUniformBuffer::OGLUniformBuffer(const std::string & name)
@@ -114,6 +196,10 @@ namespace gleam {
 		else if (name == "sampler" || name == "sampler1d" || name == "sampler2d" ||
 			name == "sampler3d")
 			type = UT_Sampler;
+		else if (name == "mat4")
+			type = UT_Matrix4f;
+		else
+			CHECK_INFO(false, "invalid uniform type : " << name);
 	}
 	OGLAttrib::OGLAttrib(const std::string & name)
 		: name_(name)
