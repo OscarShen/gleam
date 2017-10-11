@@ -25,6 +25,7 @@ namespace gleam {
 
 		int Width() const { return width_; }
 		int Height() const { return height_; }
+
 		InputRecord &GetInputRecord() const { return *record; }
 
 		virtual void SwapBuffers() = 0;

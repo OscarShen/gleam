@@ -7,6 +7,8 @@ namespace gleam {
 	void key_callback(GLFWwindow * window, int key, int scancode, int action, int mods);
 	void cursor_position_callback(GLFWwindow * window, double xpos, double ypos);
 	void scroll_callback(GLFWwindow *window, double xoffset, double yoffset);
+	void mouse_button_callback(GLFWwindow* window, int button, int action, int mods);
+
 
 	Window::Window(const std::string & title, int width, int height)
 		: title_(title), width_(width), height_(height), running_(false),
@@ -50,7 +52,6 @@ namespace gleam {
 	void GLFWWnd::Update()
 	{
 		glfwPollEvents();
-		glfwSwapBuffers(wnd_);
 	}
 
 	void GLFWWnd::SwapBuffers()
@@ -77,6 +78,7 @@ namespace gleam {
 		glfwSetKeyCallback(wnd_, key_callback);
 		glfwSetCursorPosCallback(wnd_, cursor_position_callback);
 		glfwSetScrollCallback(wnd_, scroll_callback);
+		glfwSetMouseButtonCallback(wnd_, mouse_button_callback);
 		glfwSwapInterval(0);
 		glewExperimental = GL_TRUE;
 		glewInit();
@@ -87,7 +89,6 @@ namespace gleam {
 	{
 		Window *win = (Window*)glfwGetWindowUserPointer(window);
 		auto &record = win->GetInputRecord();
-		record.keys[key] = action != GLFW_RELEASE;
 		if (action == GLFW_PRESS && !record.keys[key])
 			record.keys[key] = true;
 		else if (action == GLFW_RELEASE)
@@ -96,6 +97,16 @@ namespace gleam {
 			glfwSetWindowShouldClose(window, true);
 			win->Close();
 		}
+	}
+
+	void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
+	{
+		Window *win = (Window*)glfwGetWindowUserPointer(window);
+		auto &record = win->GetInputRecord();
+		if (action == GLFW_PRESS && !record.mouse_button[button])
+			record.mouse_button[button] = true;
+		else if (action == GLFW_RELEASE)
+			record.mouse_button[button] = false;
 	}
 
 	void cursor_position_callback(GLFWwindow * window, double xpos, double ypos)
