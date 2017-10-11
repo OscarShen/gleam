@@ -706,6 +706,16 @@ namespace gleam {
 		}
 	}
 
+	UniformBufferPtr OGLRenderEngine::MakeUniformBuffer()
+	{
+		return std::make_shared<OGLUniformBuffer>();
+	}
+
+	AttribPtr OGLRenderEngine::MakeAttrib()
+	{
+		return std::make_shared<OGLAttrib>();
+	}
+
 	GraphicsBufferPtr OGLRenderEngine::MakeVertexBufferHandler(BufferUsage usage, uint32_t access_hint, uint32_t size_in_byte, ElementFormat format)
 	{
 		return std::make_shared<OGLGraphicsBuffer>(usage, access_hint, GL_ARRAY_BUFFER, size_in_byte, format);
@@ -937,6 +947,5 @@ namespace gleam {
 	void RenderEngine::SwapBuffer()
 	{
 		win->SwapBuffers();
-		glfwPollEvents();
 	}
 }

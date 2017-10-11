@@ -156,31 +156,26 @@ namespace gleam {
 			dirty_ = false;
 		}
 	}
-	OGLUniformBuffer::OGLUniformBuffer(const std::string & name)
-		: name_(name), dirty_(true)
-	{
-	}
 	void OGLUniformBuffer::StoreUniformBlockIndex(GLuint program)
 	{
 		index_ = glGetUniformBlockIndex(program, name_.c_str());
 		program_ = program;
 		CHECK_INFO(GL_INVALID_INDEX != index_, "Counldn't find uniform blocak : " << name_);
 	}
-	void OGLUniformBuffer::Bind(GLuint binding_point)
+	void OGLUniformBuffer::BindPoint(GLuint bind_point)
 	{
-		glUniformBlockBinding(program_, index_, binding_point);
-		dirty_ = true;
-	}
-	void OGLUniformBuffer::Unbind()
-	{
-		glUniformBlockBinding(program_, index_, 0);
-	}
-	void OGLUniformBuffer::BlockData(const GraphicsBufferPtr & buffer)
-	{
-		if (buffer != data_)
+		if (bind_point != bind_point_)
 		{
-			data_ = buffer;
 			dirty_ = true;
+			bind_point_ = bind_point;
+		}
+	}
+	void OGLUniformBuffer::Load()
+	{
+		if (dirty_)
+		{
+			glUniformBlockBinding(program_, index_, bind_point_);
+			dirty_ = false;
 		}
 	}
 	void UniformTypeFromString(UniformType & type, const std::string & name)
@@ -193,6 +188,8 @@ namespace gleam {
 			type = UT_Vector2f;
 		else if (name == "vec3")
 			type = UT_Vector3f;
+		else if (name == "vec4")
+			type = UT_Vector4f;
 		else if (name == "sampler" || name == "sampler1d" || name == "sampler2d" ||
 			name == "sampler3d")
 			type = UT_Sampler;
@@ -201,14 +198,19 @@ namespace gleam {
 		else
 			CHECK_INFO(false, "invalid uniform type : " << name);
 	}
-	OGLAttrib::OGLAttrib(const std::string & name)
-		: name_(name)
-	{
-	}
 	void OGLAttrib::StoreAttribLocation(GLuint program)
 	{
 		location_ = glGetAttribLocation(program, name_.c_str());
 		program_ = program;
 		CHECK_INFO(-1 != location_, "Counldn't find attrib : " << name_);
+	}
+	UniformBuffer & UniformBuffer::operator=(const GraphicsBufferPtr & buffer)
+	{
+		if (buffer != data_)
+		{
+			dirty_ = true;
+			data_ = buffer;
+		}
+		return *this;
 	}
 }

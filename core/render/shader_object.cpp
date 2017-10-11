@@ -64,7 +64,7 @@ namespace gleam {
 		{
 			u->StoreUniformLocation(glsl_program_);
 		}
-		for (const auto &ub : uniform_blocks_)
+		for (const auto &ub : uniform_buffers_)
 		{
 			ub->StoreUniformBlockIndex(glsl_program_);
 		}
@@ -80,7 +80,14 @@ namespace gleam {
 		re.UseProgram(glsl_program_);
 
 		// TODO:update all unifrom & ubo & texture ...
-
+		for (auto &u : uniforms_)
+		{
+			u->Load();
+		}
+		for (auto &ub : uniform_buffers_)
+		{
+			ub->Load();
+		}
 		// ...
 
 		glValidateProgram(glsl_program_);
@@ -111,12 +118,26 @@ namespace gleam {
 			return -1;
 		}
 	}
-	void OGLShaderObject::SetAttrib(VertexElementUsage usage, uint8_t usage_index, const OGLAttribPtr & attrib)
+	void OGLShaderObject::SetAttrib(VertexElementUsage usage, uint8_t usage_index, const AttribPtr & attrib)
 	{
 		auto key = std::make_pair(usage, usage_index);
 		auto iter = attribs_.find(key);
 		CHECK_INFO(iter == attribs_.end(), "already have the same attrib : " << attrib->Name());
-		attribs_[key] = attrib;
+		attribs_[key] = checked_pointer_cast<OGLAttrib>(attrib);
+	}
+	void OGLShaderObject::SetUniforms(const std::vector<UniformPtr>& uniforms)
+	{
+		for (size_t i = 0; i < uniforms.size(); ++i)
+		{
+			uniforms_.push_back(checked_pointer_cast<OGLUniform>(uniforms[i]));
+		}
+	}
+	void OGLShaderObject::SetUniformBuffers(const std::vector<UniformBufferPtr>& uniform_buffers)
+	{
+		for (size_t i = 0; i < uniform_buffers.size(); ++i)
+		{
+			uniform_buffers_.push_back(checked_pointer_cast<OGLUniformBuffer>(uniform_buffers[i]));
+		}
 	}
 	UniformPtr OGLShaderObject::GetUniformByName(const std::string & uniform_name)
 	{

@@ -38,25 +38,24 @@ namespace gleam
 		assert(iter != shader_codes_[type].end());
 		return iter->second;
 	}
-	const std::vector<OGLAttribPtr>& RenderEffect::GetShaderAttribsByName(const std::string & func_name)
+	const std::vector<AttribPtr>& RenderEffect::GetShaderAttribsByName(const std::string & func_name)
 	{
 		auto iter = shader_attribs_.find(func_name);
-		assert(iter != shader_attribs_.end());
 		return iter->second;
 	}
-	UniformPtr RenderEffect::GetUniformByName(uint32_t shader_type, const std::string & shader_name, const std::string & uniform_name)
+	const std::vector<UniformPtr>& RenderEffect::GetUniformsByName(uint32_t shader_type, const std::string & shader_name)
 	{
 		assert(shader_type < ST_NumShaderTypes);
-		auto iter = shader_uniforms_[shader_type].find(shader_name);
-		assert(iter != shader_uniforms_[shader_type].end());
-		for (const auto &uniform : iter->second)
-		{
-			if (uniform_name == uniform->Name())
-			{
-				return uniform;
-			}
-		}
-		return nullptr;
+		const auto &shader_type_uniforms = shader_uniforms_[shader_type];
+		auto iter = shader_type_uniforms.find(shader_name);
+		return iter->second;
+	}
+	const std::vector<UniformBufferPtr>& RenderEffect::GetUniformBuffersByName(uint32_t shader_type, const std::string & shader_name)
+	{
+		assert(shader_type < ST_NumShaderTypes);
+		const auto &shader_type_uniform_buffers = shader_uniform_buffer_[shader_type];
+		auto iter = shader_type_uniform_buffers.find(shader_name);
+		return iter->second;
 	}
 	void RenderEffect::Load(const std::string & name)
 	{
@@ -157,7 +156,8 @@ namespace gleam
 				std::string uniform_buffer_name = uniform_buffer_node->Attribute("name");
 				assert(!uniform_buffer_name.empty());
 
-				OGLUniformBufferPtr ubo = std::make_shared<OGLUniformBuffer>(uniform_buffer_name);
+				UniformBufferPtr ubo = re.MakeUniformBuffer();
+				ubo->Name(uniform_buffer_name);
 
 				shader_uniform_buffer_[shader_type][name].push_back(ubo);
 			}
@@ -180,7 +180,8 @@ namespace gleam
 					usage_index = boost::lexical_cast<uint8_t>(attrib_index_c);
 				}
 				
-				OGLAttribPtr attrib = std::make_shared<OGLAttrib>(attrib_name);
+				AttribPtr attrib = re.MakeAttrib();
+				attrib->Name(attrib_name);
 				attrib->VertexElementType(VertexElement(usage, usage_index, EF_Unknown)); // 绑定资源时才能知道 element format 的格式
 
 				shader_attribs_[name].push_back(attrib);
@@ -510,6 +511,12 @@ namespace gleam
 			{
 				const std::string &code = effect.GetShaderCodeByName(type, name);
 				shader_obj->AttachShader(static_cast<ShaderType>(type), code);
+
+				const std::vector<UniformPtr> &uniforms = effect.GetUniformsByName(type, name);
+				shader_obj->SetUniforms(uniforms);
+
+				const std::vector<UniformBufferPtr> &uniform_buffers = effect.GetUniformBuffersByName(type, name);
+				shader_obj->SetUniformBuffers(uniform_buffers);
 
 				if (type == ST_VertexShader)
 				{

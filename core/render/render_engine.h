@@ -53,6 +53,8 @@ namespace gleam
 		virtual RenderLayoutPtr MakeRenderLayout() = 0;
 
 		virtual UniformPtr MakeUniform(uint32_t type) = 0;
+		virtual UniformBufferPtr MakeUniformBuffer() = 0;
+		virtual AttribPtr MakeAttrib() = 0;
 
 		virtual void BeginFrame();
 		virtual void EndFrame();
@@ -138,6 +140,8 @@ namespace gleam
 		ShaderObjectPtr MakeShaderObject() override;
 		RenderLayoutPtr MakeRenderLayout() override;
 		UniformPtr MakeUniform(uint32_t type) override;
+		UniformBufferPtr MakeUniformBuffer() override;
+		AttribPtr MakeAttrib() override;
 		GraphicsBufferPtr MakeVertexBufferHandler(BufferUsage usage, uint32_t access_hint, uint32_t size_in_byte, ElementFormat format = EF_Unknown) override;
 		GraphicsBufferPtr MakeIndexBufferHandler(BufferUsage usage, uint32_t access_hint, uint32_t size_in_byte, ElementFormat format = EF_Unknown) override;
 

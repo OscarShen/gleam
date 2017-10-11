@@ -128,49 +128,73 @@ namespace gleam {
 		void Load() override;
 	};
 
-	class OGLUniformBuffer
+	class UniformBuffer : boost::noncopyable
 	{
 	public:
-		OGLUniformBuffer(const std::string &name);
-		virtual ~OGLUniformBuffer() { }
-		void StoreUniformBlockIndex(GLuint program);
-		const std::string &Name() const { return name_; }
-		GLint Index() const { return index_; }
-		GLuint Program() const { return program_; }
-		const GraphicsBufferPtr &BlockData() const { return data_; }
-		void BlockData(const GraphicsBufferPtr &buffer);
-		bool &Dirty() { return dirty_; }
-		bool Dirty() const { return dirty_; }
+		UniformBuffer() : dirty_(true) { }
+		virtual ~UniformBuffer() { }
 
-		void Bind(GLuint binding_point);
-		void Unbind();
+		void Name(const std::string &name) { name_ = name; }
+		const std::string &Name() const { return name_; }
+
+		virtual UniformBuffer &operator=(const GraphicsBufferPtr &buffer);
+
+		virtual void Load() = 0;
 
 	protected:
-		GLuint program_;
-		GLint index_;
 		std::string name_;
 		GraphicsBufferPtr data_;
 		size_t size_;
 		bool dirty_;
 	};
-	typedef std::shared_ptr<OGLUniformBuffer> OGLUniformBufferPtr;
 
-	class OGLAttrib
+	class OGLUniformBuffer : public UniformBuffer
 	{
 	public:
-		OGLAttrib(const std::string &name);
-		void StoreAttribLocation(GLuint program);
-		const std::string &Name() const { return name_; }
-		GLint Location() const { return location_; }
+		virtual ~OGLUniformBuffer() { }
+		void StoreUniformBlockIndex(GLuint program);
+		GLint Index() const { return index_; }
 		GLuint Program() const { return program_; }
+
+		void BindPoint(GLuint bind_point);
+		GLuint BindPoint() const { return bind_point_; }
+
+		void Load() override;
+
+	protected:
+		GLuint program_;
+		GLint index_;
+		GLuint bind_point_;
+	};
+	typedef std::shared_ptr<OGLUniformBuffer> OGLUniformBufferPtr;
+
+
+	class Attrib
+	{
+	public:
+		virtual ~Attrib() { }
+
+		const std::string &Name() const { return name_; }
+		void Name(const std::string &name) { name_ = name; }
 		const VertexElement &VertexElementType() const { return element_; }
 		void VertexElementType(const VertexElement &element) { element_ = element; }
+
+
+	protected:
+		std::string name_;
+		VertexElement element_;
+	};
+
+	class OGLAttrib : public Attrib
+	{
+	public:
+		void StoreAttribLocation(GLuint program);
+		GLint Location() const { return location_; }
+		GLuint Program() const { return program_; }
 
 	protected:
 		GLuint program_;
 		GLint location_;
-		std::string name_;
-		VertexElement element_;
 	};
 	typedef std::shared_ptr<OGLAttrib> OGLAttribPtr;
 }

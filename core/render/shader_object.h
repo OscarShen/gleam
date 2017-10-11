@@ -40,8 +40,9 @@ namespace gleam
 		virtual void Bind() = 0;
 		virtual void Unbind() = 0;
 
-		// TODO: use AttribPtr replace OGLAttribPtr
-		virtual void SetAttrib(VertexElementUsage usage, uint8_t usage_index, const OGLAttribPtr &attrib) = 0;
+		virtual void SetAttrib(VertexElementUsage usage, uint8_t usage_index, const AttribPtr &attrib) = 0;
+		virtual void SetUniforms(const std::vector<UniformPtr> &uniforms) = 0;
+		virtual void SetUniformBuffers(const std::vector<UniformBufferPtr> &uniform_buffers) = 0;
 
 		virtual UniformPtr GetUniformByName(const std::string &uniform_name) = 0;
 
@@ -71,13 +72,15 @@ namespace gleam
 		void Unbind() { }
 
 		GLint GetAttribLocation(VertexElementUsage usage, uint8_t usage_index);
-		void SetAttrib(VertexElementUsage usage, uint8_t usage_index, const OGLAttribPtr &attrib) override;
+		void SetAttrib(VertexElementUsage usage, uint8_t usage_index, const AttribPtr &attrib) override;
+		void SetUniforms(const std::vector<UniformPtr> &uniforms) override;
+		void SetUniformBuffers(const std::vector<UniformBufferPtr> &uniform_buffers) override;
 
 		UniformPtr GetUniformByName(const std::string &uniform_name) override;
 
 	protected:
 		std::vector<OGLUniformPtr> uniforms_;
-		std::vector<OGLUniformBufferPtr> uniform_blocks_;
+		std::vector<OGLUniformBufferPtr> uniform_buffers_;
 		std::vector<TextureBind> textures_;
 		GLuint glsl_program_;
 
