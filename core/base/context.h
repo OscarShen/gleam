@@ -28,6 +28,8 @@ namespace gleam
 		RenderEngine &RenderEngineInstance();
 
 		SceneManager &SceneManagerInstance();
+
+		InputEngine &InputEngineInstance();
 		
 		void FrameworkInstance(Framework3D &framework);
 		Framework3D &FrameworkInstance();
@@ -37,6 +39,7 @@ namespace gleam
 		static std::unique_ptr<Context> instance_;
 		std::unique_ptr<RenderEngine> render_engine_;
 		std::unique_ptr<SceneManager> scene_manager_;
+		std::unique_ptr<InputEngine> input_engine_;
 		Framework3D *framework_;
 	};
 }

@@ -6,6 +6,8 @@
 #include <render/camera.h>
 #include <scene/scene_manager.h>
 #include <render/ogl_util.h>
+#include <GLFW/glfw3.h>
+#include <input/input_engine.h>
 namespace gleam {
 	Framework3D::Framework3D(const std::string & name)
 		:name_(name), total_num_frames_(0), fps_(0), accumulate_time_(0),
@@ -24,6 +26,9 @@ namespace gleam {
 		{
 			Context::Instance().SceneManagerInstance().Update();
 			re.SwapBuffer();
+
+			InputEngine &ie = Context::Instance().InputEngineInstance();
+			ie.Update();
 		}
 	}
 	const Camera & Framework3D::ActiveCamera() const
