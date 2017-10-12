@@ -50,6 +50,10 @@ namespace gleam {
 		{
 			return *reinterpret_cast<const glm::vec3 *>(&inv_view_mat_[2]);
 		}
+		glm::vec3 LookAt() const
+		{
+			return this->EyePos() + this->ForwardVec() * this->LookAtDist();
+		}
 
 		float LookAtDist() const { return look_at_dist_; }
 		float FOV() const { return fov_; }
