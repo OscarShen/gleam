@@ -27,6 +27,8 @@ namespace gleam
 
 		virtual void AddToRenderQueue();
 
+		virtual void OnRenderBegin() { }
+		virtual void OnRenderEnd() { }
 		virtual void Render();
 
 		void AddInstance(const SceneObject *object);
@@ -53,18 +55,45 @@ namespace gleam
 
 		glm::mat4 model_matrix_;
 		std::vector<RenderablePtr> subrenderables_;
+
+		UniformPtr mvp_;
 	};
 
 	class RenderableHelper : public Renderable
 	{
 	public:
 		RenderableHelper();
-
+		
 		RenderLayout &GetRenderLayout() const override;
 
 	protected:
 		RenderLayoutPtr layout_;
-		OGLUniform *color_;
+		UniformPtr color_;
+	};
+
+	class RenderableBox : public RenderableHelper
+	{
+	public:
+		RenderableBox();
+		RenderableBox(const OBBox &obb, const Color &color);
+
+		void SetBox(const OBBox &obb);
+		void SetColor(const Color &color);
+
+		void OnRenderBegin() override;
+
+	private:
+		void Init();
+
+	private:
+		UniformPtr v0_;
+		UniformPtr v1_;
+		UniformPtr v2_;
+		UniformPtr v3_;
+		UniformPtr v4_;
+		UniformPtr v5_;
+		UniformPtr v6_;
+		UniformPtr v7_;
 	};
 }
 

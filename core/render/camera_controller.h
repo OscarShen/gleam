@@ -41,6 +41,26 @@ namespace gleam {
 		glm::vec2 rot_x_, rot_y_, rot_z_;
 		glm::quat inv_rot_;
 	};
+
+	class TrackballCameraController : public CameraController
+	{
+	public:
+		TrackballCameraController();
+
+		void Rotate(float offset_x, float offset_y);
+		void Move(float offset_x, float offset_y);
+		void Zoom(float offset_x, float offset_y);
+
+		void AttachCamera(Camera &camera) override;
+
+	private:
+		void RegisterToInputEngine();
+
+	private:
+		glm::vec3 target_;
+		glm::vec3 right_;
+		bool reverse_target_;
+	};
 }
 
 #endif // !GLEAM_RENDER_CAMERA_CONTROLLER_H_

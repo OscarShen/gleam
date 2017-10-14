@@ -87,6 +87,10 @@ namespace gleam {
 	typedef std::shared_ptr<OBBox> OBBoxPtr;
 	class Uniform;
 	typedef std::shared_ptr<Uniform> UniformPtr;
+	class UniformBuffer;
+	typedef std::shared_ptr<UniformBuffer> UniformBufferPtr;
+	class Attrib;
+	typedef std::shared_ptr<Attrib> AttribPtr;
 
 	template <typename To, typename From>
 	inline To checked_cast(From p) noexcept

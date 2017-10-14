@@ -226,6 +226,13 @@ namespace gleam {
 				streams_dirty_ = false;
 			}
 		}
+
+		if (this->UseIndices())
+		{
+			OGLGraphicsBuffer &stream(*checked_pointer_cast<OGLGraphicsBuffer>(this->GetIndexStream()));
+			assert(GL_ELEMENT_ARRAY_BUFFER == stream.GLType());
+			stream.Active(true);
+		}
 	}
 	void OGLRenderLayout::BindVertexStreams(const ShaderObjectPtr & shader, GLuint vao) const
 	{

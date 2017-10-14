@@ -46,9 +46,9 @@ namespace gleam {
 		{
 			return *reinterpret_cast<const glm::vec3 *>(&inv_view_mat_[1]);
 		}
-		const glm::vec3 &ForwardVec() const
+		glm::vec3 ForwardVec() const
 		{
-			return *reinterpret_cast<const glm::vec3 *>(&inv_view_mat_[2]);
+			return -(*reinterpret_cast<const glm::vec3 *>(&inv_view_mat_[2]));
 		}
 		glm::vec3 LookAt() const
 		{

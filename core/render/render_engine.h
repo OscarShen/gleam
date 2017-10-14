@@ -66,6 +66,8 @@ namespace gleam
 		const FrameBufferPtr & DefaultFrameBuffer() const;
 		float DefaultFOV() const { return fov_; }
 
+		const WindowPtr &GetWindow() const { return win; }
+
 		bool Quit();
 
 		void SwapBuffer();
@@ -85,7 +87,8 @@ namespace gleam
 		FrameBufferPtr current_frame_buffer_;
 		FrameBufferPtr screen_frame_buffer_;
 
-		float fov_;
+		// TODO : do not hard code
+		float fov_ = 45.0f;
 
 		int fb_stage_;
 		bool force_line_mode;
