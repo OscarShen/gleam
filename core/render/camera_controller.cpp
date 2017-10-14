@@ -24,6 +24,10 @@ namespace gleam {
 		this->rotationScaler_ = rotationScaler;
 		this->moveScaler_ = moveScaler;
 	}
+	FirstPersonCameraController::FirstPersonCameraController()
+	{
+		this->RegisterToInputEngine();
+	}
 	void FirstPersonCameraController::AttachCamera(Camera & camera)
 	{
 		glm::quat quat = glm::toQuat(camera.ViewMatrix());
@@ -82,40 +86,46 @@ namespace gleam {
 			camera_->ViewParams(camera_->EyePos(), camera_->EyePos() + forward_vec * camera_->LookAtDist(), up_vec);
 		}
 	}
-	void FirstPersonCameraController::RotateAbs(const glm::quat & quat)
+	void FirstPersonCameraController::RegisterToInputEngine()
 	{
-		if (camera_) {
-			float yaw = glm::yaw(quat), pitch = glm::pitch(quat), roll = glm::roll(quat);
-			auto sincos = [&](float radians) -> glm::vec2 {
-				return glm::vec2(glm::sin(radians), glm::cos(radians));
-			};
+		double lastCursorX, lastCursorY;
+		bool firstMouse = true;
 
-			rot_x_ = sincos(pitch * 0.5f);
-			rot_y_ = sincos(yaw * 0.5f);
-			rot_z_ = sincos(roll * 0.5f);
-			inv_rot_ = glm::inverse(quat);
+		auto input_handler = [=]() mutable {
+			float elapsed_time = Context::Instance().InputEngineInstance().ElapsedTime();
+			if (camera_) {
+				const float scaler = elapsed_time * 10;
 
-			glm::vec3 forward_vec = glm::rotate(inv_rot_, glm::vec3(0, 0, -1));
-			glm::vec3 up_vec = glm::rotate(inv_rot_, glm::vec3(0, 1, 0));
-		}
-	}
-	void FirstPersonCameraController::InputHandler(const InputEngine &ie, const WindowPtr &window)
-	{
-		float elapsed_time = ie.ElapsedTime();
-		if (camera_) {
-			const float scaler = elapsed_time * 10;
-			auto &record = window->GetInputRecord();
+				RenderEngine &re = Context::Instance().RenderEngineInstance();
+				WindowPtr window = re.GetWindow();
+				InputRecord &record = window->GetInputRecord();
 
-			if (record.keys[GLFW_KEY_UP])
-				Move(0, 0, -scaler);
-			if (record.keys[GLFW_KEY_DOWN])
-				Move(0, 0, scaler);
-			if (record.keys[GLFW_KEY_LEFT])
-				Move(-scaler, 0, 0);
-			if (record.keys[GLFW_KEY_RIGHT])
-				Move(scaler, 0, 0);
+				if (firstMouse)
+				{
+					lastCursorX = record.cursorPosX;
+					lastCursorY = record.cursorPosY;
+					firstMouse = false;
+				}
 
-		}
+				float x = static_cast<float>(record.cursorPosX - lastCursorX);
+				float y = static_cast<float>(record.cursorPosY - lastCursorY);
+
+				if (record.keys[GLFW_KEY_W])
+					Move(0, 0, -scaler);
+				if (record.keys[GLFW_KEY_S])
+					Move(0, 0, scaler);
+				if (record.keys[GLFW_KEY_A])
+					Move(-scaler, 0, 0);
+				if (record.keys[GLFW_KEY_D])
+					Move(scaler, 0, 0);
+
+				this->RotateRelated(-x, -y, 0);
+
+				lastCursorX = record.cursorPosX;
+				lastCursorY = record.cursorPosY;
+			}
+		};
+		Context::Instance().InputEngineInstance().Register(input_handler);
 	}
 	TrackballCameraController::TrackballCameraController()
 	{

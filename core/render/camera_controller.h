@@ -30,12 +30,14 @@ namespace gleam {
 	class FirstPersonCameraController : public CameraController
 	{
 	public:
+		FirstPersonCameraController();
 		void AttachCamera(Camera &camera) override;
 		void Move(float x, float y, float z);
 		void Move(glm::vec3 movement);
 		void RotateRelated(float yaw, float pitch, float roll);
-		void RotateAbs(const glm::quat &quat);
-		void InputHandler(const InputEngine &ie, const WindowPtr &window);
+
+	private:
+		void RegisterToInputEngine();
 
 	private:
 		glm::vec2 rot_x_, rot_y_, rot_z_;
