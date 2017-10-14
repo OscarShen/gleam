@@ -11,8 +11,8 @@ namespace gleam {
 		if (elapsed_time_ > 0.01f) {
 			timer_.Restart();
 
-			Context::Instance().RenderEngineInstance().GetWindow()->Update();
 
+			Context::Instance().RenderEngineInstance().GetWindow()->Update();
 			for (size_t i = 0; i < input_handlers_.size(); ++i) {
 				input_handlers_[i]();
 			}

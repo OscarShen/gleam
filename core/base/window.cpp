@@ -113,8 +113,6 @@ namespace gleam {
 	{
 		Window *win = (Window*)glfwGetWindowUserPointer(window);
 		auto &record = win->GetInputRecord();
-		record.lastCursorPosX = record.cursorPosX;
-		record.lastCursorPosY = record.cursorPosY;
 		record.cursorPosX = xpos;
 		record.cursorPosY = ypos;
 	}
