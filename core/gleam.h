@@ -76,6 +76,12 @@ namespace gleam {
 	typedef std::shared_ptr<ResLoadingDesc> ResLoadingDescPtr;
 	struct RenderSettings;
 	class Framework3D;
+	class Mesh;
+	typedef std::shared_ptr<Mesh> MeshPtr;
+	class Model;
+	typedef std::shared_ptr<Model> ModelPtr;
+	struct Material;
+	typedef std::shared_ptr<Material> MaterialPtr;
 
 	template <typename T>
 	class AABBox_T;
