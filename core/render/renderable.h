@@ -57,6 +57,8 @@ namespace gleam
 		std::vector<RenderablePtr> subrenderables_;
 
 		UniformPtr mvp_;
+
+		MaterialPtr mtl_;
 	};
 
 	class RenderableHelper : public Renderable
