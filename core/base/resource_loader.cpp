@@ -12,8 +12,6 @@ namespace std
 namespace gleam
 {
 
-	std::mutex singleton_mutex;
-
 	ResLoader::ResLoader()
 	{
 		const int maxlen = 256;
@@ -25,9 +23,11 @@ namespace gleam
 		::GetModuleFileNameA(nullptr, buf, sizeof(buf));
 		exe_path_ = buf;
 		exe_path_ = exe_path_.substr(0, exe_path_.rfind("\\")) + "/";
+		std::replace(exe_path_.begin(), exe_path_.end(), '\\', '/');
 #endif
 		this->AddPath("..");
 		this->AddPath("../../resource/render");
+		this->AddPath("../../resource/common");
 	}
 
 	std::unique_ptr<ResLoader> ResLoader::res_loader_instance_;
@@ -36,11 +36,7 @@ namespace gleam
 	{
 		if (!res_loader_instance_)
 		{
-			std::lock_guard<std::mutex> lock(singleton_mutex);
-			if (!res_loader_instance_)
-			{
-				res_loader_instance_ = std::make_unique<ResLoader>();
-			}
+			res_loader_instance_ = std::make_unique<ResLoader>();
 		}
 		return *res_loader_instance_;
 	}
