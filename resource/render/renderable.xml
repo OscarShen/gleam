@@ -90,11 +90,39 @@ void main()
     </code>
   </shader>
 
+  <shader type="vertex_shader" name="HelperVS">
+    <attrib  name="pos" usage="position"/>
+    <uniform type="mat4" name="mvp"/>
+
+    <code>
+      <![CDATA[
+#version 450 core
+      
+in vec3 pos;
+
+uniform mat4 mvp;
+      
+void main()
+{
+	gl_Position = mvp * vec4(pos, 1.0f);
+}
+      ]]>
+    </code>
+  </shader>
+
   <technique name="LineTec">
     <state name="polygon_mode" value="line"/>
     <state name="cull_mode" value="none"/>
 
     <state name="vertex_shader" value="PrimitiveVS"/>
+    <state name="fragment_shader" value="HelperFS"/>
+  </technique>
+
+  <technique name="HelperTec">
+    <state name="polygon_mode" value="line"/>
+    <state name="cull_mode" value="none"/>
+
+    <state name="vertex_shader" value="HelperVS"/>
     <state name="fragment_shader" value="HelperFS"/>
   </technique>
 </effect>
