@@ -30,17 +30,8 @@ namespace gleam {
 	}
 	void FirstPersonCameraController::AttachCamera(Camera & camera)
 	{
-		glm::quat quat = glm::toQuat(camera.ViewMatrix());
-		float yaw = glm::yaw(quat), pitch = glm::pitch(quat), roll = glm::roll(quat);
-
-		auto sincos = [&](float radians) -> glm::vec2 {
-			return glm::vec2(glm::sin(radians), glm::cos(radians));
-		};
-
-		rot_x_ = sincos(pitch * 0.5f);
-		rot_y_ = sincos(yaw * 0.5f);
-		rot_z_ = sincos(roll * 0.5f);
-		inv_rot_ = glm::inverse(quat);
+		rot_ = glm::toQuat(camera.ViewMatrix());
+		inv_rot_ = glm::inverse(rot_);
 
 		camera_ = &camera;
 	}
@@ -65,25 +56,16 @@ namespace gleam {
 			yaw *= -rotationScaler_ * 0.5f;
 			roll *= -rotationScaler_ * 0.5f;
 
-			auto sincos = [&](float radians) -> glm::vec2 {
-				return glm::vec2(glm::sin(radians), glm::cos(radians));
-			};
-			glm::vec2 delta_x = sincos(pitch), delta_y = sincos(yaw), delta_z = sincos(roll);
+			glm::quat related_quat = glm::rotate(glm::quat(), yaw, camera_->UpVec());
+			related_quat = glm::rotate(related_quat, pitch, camera_->RightVec());
 
-			glm::quat quat_x(rot_x_.y * delta_x.y - rot_x_.x * delta_x.x, rot_x_.x * delta_x.y + rot_x_.y * delta_x.x, 0, 0);
-			glm::quat quat_y(rot_y_.y * delta_y.y - rot_y_.x * delta_y.x, 0, rot_y_.x * delta_y.y + rot_y_.y * delta_y.x, 0);
-			glm::quat quat_z(rot_z_.y * delta_z.y - rot_z_.x * delta_z.x, 0, 0, rot_z_.x * delta_z.y + rot_z_.y * delta_z.x);
+			rot_ = rot_ * related_quat;
 
-			rot_x_ = glm::vec2(quat_x.x, quat_x.w);
-			rot_y_ = glm::vec2(quat_y.y, quat_y.w);
-			rot_z_ = glm::vec2(quat_z.z, quat_z.w);
-
-			inv_rot_ = glm::inverse(quat_y * quat_x * quat_z);
+			inv_rot_ = glm::inverse(rot_);
 
 			glm::vec3 forward_vec = glm::rotate(inv_rot_, glm::vec3(0, 0, -1));
-			glm::vec3 up_vec = glm::rotate(inv_rot_, glm::vec3(0, 1, 0));
 
-			camera_->ViewParams(camera_->EyePos(), camera_->EyePos() + forward_vec * camera_->LookAtDist(), up_vec);
+			camera_->ViewParams(camera_->EyePos(), camera_->EyePos() + forward_vec * camera_->LookAtDist(), glm::vec3(0, 1, 0));
 		}
 	}
 	void FirstPersonCameraController::RegisterToInputEngine()
@@ -119,6 +101,7 @@ namespace gleam {
 				if (record.keys[GLFW_KEY_D])
 					Move(scaler, 0, 0);
 
+				std::cout << x << ", " << y << std::endl;
 				this->RotateRelated(-x, -y, 0);
 
 				lastCursorX = record.cursorPosX;
