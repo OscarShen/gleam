@@ -116,6 +116,7 @@ namespace gleam
 		}
 		else
 		{
+			res = res_desc->CreateResource();
 			res_desc->Load();
 			res = res_desc->Resource();
 			this->AddLoadedResource(res_desc, res);

@@ -26,22 +26,36 @@ namespace gleam {
 				std::vector<std::string> mesh_names;
 				std::vector<int32_t> mtl_ids;
 				std::vector<uint32_t> mesh_num_vertices;
+				std::vector<uint32_t> mesh_start_vertices;
 				std::vector<uint32_t> mesh_num_indices;
+				std::vector<uint32_t> mesh_start_indices;
 			};
 
 			std::string res_name;
 			uint32_t access_hint;
 			std::shared_ptr<ModelData> model_data;
-			std::shared_ptr<ModelPtr> model; // pointer to model pointer
+			std::shared_ptr<Model> model; 
+			std::function<ModelPtr(const std::string &)> CreateModelFunc;
+			std::function<MeshPtr(const std::string &, const ModelPtr &)> CreateMeshFunc;
 		};
 
 	public:
-		ModelLoadingDesc(const std::string &res_name, uint32_t access_hint)
+		ModelLoadingDesc(const std::string &res_name, uint32_t access_hint,
+			std::function<ModelPtr(const std::string &)> create_model_func,
+			std::function<MeshPtr(const std::string &, const ModelPtr &)> create_mesh_func)
 		{
 			model_desc_.res_name = res_name;
 			model_desc_.access_hint = access_hint;
+			model_desc_.CreateModelFunc = create_model_func;
+			model_desc_.CreateMeshFunc = create_mesh_func;
 			model_desc_.model_data = std::make_shared<ModelDesc::ModelData>();
-			model_desc_.model = std::make_shared<ModelPtr>();
+		}
+
+		std::shared_ptr<void> CreateResource()
+		{
+			ModelPtr model = model_desc_.CreateModelFunc("Model");
+			model_desc_.model = model;
+			return model;
 		}
 
 		uint64_t Type() const override
@@ -52,57 +66,71 @@ namespace gleam {
 
 		void Load() override
 		{
-			const ModelPtr &model = *model_desc_.model;
+			const ModelPtr &model = model_desc_.model;
 
-			if (model)
+			CHECK_INFO(LoadModel(
+				model_desc_.res_name,
+				model_desc_.model_data->mtls,
+				model_desc_.model_data->merged_elements,
+				model_desc_.model_data->merged_buffer,
+				model_desc_.model_data->merged_indices,
+				model_desc_.model_data->mesh_names,
+				model_desc_.model_data->mtl_ids,
+				model_desc_.model_data->mesh_num_vertices,
+				model_desc_.model_data->mesh_start_vertices,
+				model_desc_.model_data->mesh_num_indices,
+				model_desc_.model_data->mesh_start_indices), "Load model failed : " << model_desc_.res_name);
+
+			this->AssignModelInfo();
+
+			// create resource
+			for (size_t i = 0; i < model_desc_.model_data->merged_buffer.size(); ++i)
 			{
-				// already loaded
-				return;
+				model_desc_.model_data->merged_vbs[i]->CreateResource(&model_desc_.model_data->merged_buffer[i][0]);
+			}
+			model_desc_.model_data->merged_ib->CreateResource(&model_desc_.model_data->merged_indices[0]);
+
+			this->AddSubPath();
+
+			model->LoadModelInfo();
+
+			for (uint32_t i = 0; i < model->NumSubrenderables(); ++i)
+			{
+				checked_pointer_cast<Mesh>(model->Subrenderable(i))->LoadMeshInfo();
 			}
 
-
-
-			if (!model)
-			{
-				this->AssignModelInfo();
-
-				// create resource
-				for (size_t i = 0; i < model_desc_.model_data->merged_buffer.size(); ++i)
-				{
-					model_desc_.model_data->merged_vbs[i]->CreateResource(&model_desc_.model_data->merged_buffer[i][0]);
-				}
-				model_desc_.model_data->merged_ib->CreateResource(&model_desc_.model_data->merged_indices[0]);
-
-				this->AddSubPath();
-
-				model->LoadModelInfo();
-
-				for (uint32_t i = 0; i < model->NumSubrenderables(); ++i)
-				{
-					checked_pointer_cast<Mesh>(model->Subrenderable(i))->LoadMeshInfo();
-				}
-
-				// release resources
-				model_desc_.model_data.reset();
-			}
+			// release resources in Host
+			model_desc_.model_data.reset();
 		}
 
-		bool Match(const ResLoadingDesc &rhs) const override;
+		bool Match(const ResLoadingDesc &rhs) const override
+		{
+			if (this->Type() == rhs.Type())
+			{
+				const ModelLoadingDesc &desc = static_cast<const ModelLoadingDesc &>(rhs);
+				return model_desc_.res_name == desc.model_desc_.res_name &&
+					model_desc_.access_hint == desc.model_desc_.access_hint;
+			}
+			return false;
+		}
 
-		std::shared_ptr<void> Resource() const override;
+		std::shared_ptr<void> Resource() const override
+		{
+			return model_desc_.model;
+		}
 
 	private:
 		void AssignModelInfo()
 		{
 			RenderEngine &re = Context::Instance().RenderEngineInstance();
-			const ModelPtr &model = *model_desc_.model;
+			const ModelPtr &model = model_desc_.model;
 
 			// materials
-			model->NumMaterials(model_desc_.model_data->mtls.size());
-			for (size_t mtl_index = 0; mtl_index < model_desc_.model_data->mtls.size(); ++mtl_index)
-			{
-				model->GetMaterial(static_cast<int32_t>(mtl_index)) = model_desc_.model_data->mtls[mtl_index];
-			}
+			//model->NumMaterials(model_desc_.model_data->mtls.size());
+			//for (size_t mtl_index = 0; mtl_index < model_desc_.model_data->mtls.size(); ++mtl_index)
+			//{
+			//	model->GetMaterial(static_cast<int32_t>(mtl_index)) = model_desc_.model_data->mtls[mtl_index];
+			//}
 
 			// vertices, indices
 			model_desc_.model_data->merged_vbs.resize(model_desc_.model_data->merged_buffer.size());
@@ -118,7 +146,7 @@ namespace gleam {
 			std::vector<MeshPtr> meshes(model_desc_.model_data->mesh_names.size());
 			for (uint32_t mesh_index = 0; mesh_index < model_desc_.model_data->mesh_names.size(); ++mesh_index)
 			{
-				meshes[mesh_index] = std::make_shared<Mesh>(model_desc_.model_data->mesh_names[mesh_index], model);
+				meshes[mesh_index] = model_desc_.CreateMeshFunc(model_desc_.model_data->mesh_names[mesh_index], model);
 				MeshPtr &mesh = meshes[mesh_index];
 
 				mesh->MaterialID(model_desc_.model_data->mtl_ids[mesh_index]);
@@ -127,10 +155,13 @@ namespace gleam {
 				{
 					mesh->AddVertexStream(model_desc_.model_data->merged_vbs[buffer_index], model_desc_.model_data->merged_elements[buffer_index]);
 				}
-				mesh->AddIndexStream(model_desc_.model_data->merged_ib, model_desc_.model_data->all_index_16_bit ? EF_R16UI : EF_R32UI);
+				mesh->AddIndexStream(model_desc_.model_data->merged_ib, EF_R32UI);
 
 				mesh->NumVertices(model_desc_.model_data->mesh_num_vertices[mesh_index]);
 				mesh->NumIndices(model_desc_.model_data->mesh_num_indices[mesh_index]);
+
+				mesh->StartVertexLocation(model_desc_.model_data->mesh_start_vertices[mesh_index]);
+				mesh->StartIndexLocation(model_desc_.model_data->mesh_start_indices[mesh_index]);
 			}
 
 			model->AssignSubrenderable(meshes.begin(), meshes.end());
@@ -191,11 +222,18 @@ namespace gleam {
 	void Mesh::DoLoadMeshInfo()
 	{
 		ModelPtr model = model_.lock();
-		mtl_ = model->GetMaterial(this->MaterialID());
+		//mtl_ = model->GetMaterial(this->MaterialID());
 
 		// TODO : Load Textures
 		//
 		///////////////////////
+
+
+	}
+
+	Model::Model(const std::string & name)
+		: name_(name)
+	{
 	}
 
 	void Model::LoadModelInfo()
@@ -447,12 +485,7 @@ namespace gleam {
 	bool LoadModel(const std::string & name, std::vector<MaterialPtr>& mtls, std::vector<VertexElement>& merged_ves, std::vector<std::vector<uint8_t>>& merged_buff, std::vector<uint8_t>& merged_indices, std::vector<std::string>& mesh_names, std::vector<int32_t>& mtl_ids, std::vector<uint32_t>& mesh_num_vertices, std::vector<uint32_t> &mesh_start_vertices,
 		std::vector<uint32_t>& mesh_num_indices, std::vector<uint32_t> &mesh_start_indices)
 	{
-		
-		const aiScene *scene = nullptr;
-		std::string file_name = name;
-
-		//std::string file_name = ResLoader::Instance().Locate(name);
-		std::string mtl_basepath;
+		std::string file_name = ResLoader::Instance().Locate(name);
 
 		if (file_name.empty())
 		{
@@ -460,16 +493,10 @@ namespace gleam {
 			return false;
 		}
 
-		auto sub_path_loc = file_name.find_last_of('/');
-		if (sub_path_loc != std::string::npos)
-		{
-			mtl_basepath = file_name.substr(0, sub_path_loc);
-		}
-
-		scene = aiImportFile(file_name.c_str(), aiProcess_CalcTangentSpace | aiProcess_GenSmoothNormals |
+		const aiScene *scene = aiImportFile(file_name.c_str(), aiProcess_CalcTangentSpace | aiProcess_GenSmoothNormals |
 			aiProcess_JoinIdenticalVertices | aiProcess_Triangulate);
 		
-		WARNING(scene, aiGetErrorString());
+		CHECK_INFO(scene, aiGetErrorString());
 		
 		std::vector<AssimpMesh> meshes;
 		std::vector<AssimpMaterial> materials;
@@ -488,15 +515,20 @@ namespace gleam {
 		merged_ves.resize(num_merged_ves);
 		merged_ves[0].usage = VEU_Position;
 		merged_ves[0].format = EF_BGR32F;
+		merged_ves[0].usage_index = 0;
 		merged_ves[1].usage = VEU_Normal;
 		merged_ves[1].format = EF_BGR32F;
+		merged_ves[1].usage_index = 0;
 		merged_ves[2].usage = VEU_Tangent;
 		merged_ves[2].format = EF_BGR32F;
+		merged_ves[2].usage_index = 0;
 		merged_ves[3].usage = VEU_Binormal;
 		merged_ves[3].format = EF_BGR32F;
+		merged_ves[3].usage_index = 0;
 		if (has_texCoord) {
 			merged_ves[4].usage = VEU_TextureCoord;
 			merged_ves[4].format = EF_GR32F;
+			merged_ves[4].usage_index = 0;
 		}
 
 		uint32_t all_num_vertices = 0, all_num_indices = 0;
@@ -564,7 +596,11 @@ namespace gleam {
 			mesh_start_indices[mesh_index] = start_indices;
 			start_indices += mesh_num_indices[mesh_index];
 		}
-	}
 
-	
+		return true;
+	}
+	ModelPtr LoadModel(const std::string & name, uint32_t access_hint, std::function<ModelPtr(const std::string &)> create_model_func, std::function<MeshPtr(const std::string &, const ModelPtr &)> create_mesh_func)
+	{
+		return ResLoader::Instance().QueryT<Model>(std::make_shared<ModelLoadingDesc>(name, access_hint, create_model_func, create_mesh_func));
+	}
 }

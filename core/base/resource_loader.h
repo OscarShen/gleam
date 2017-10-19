@@ -19,6 +19,11 @@ namespace gleam
 		{
 		}
 
+		virtual std::shared_ptr<void> CreateResource()
+		{
+			return std::shared_ptr<void>();
+		}
+
 		virtual uint64_t Type() const = 0;
 
 		virtual void Load() = 0;

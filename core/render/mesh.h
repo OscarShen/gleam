@@ -36,6 +36,12 @@ namespace gleam
 		int32_t MaterialID() const { return mtl_id_; }
 		void MaterialID(int32_t mtl_id) { mtl_id_ = mtl_id; }
 
+		void StartVertexLocation(uint32_t location) { layout_->StartVertexLocation(location); }
+		uint32_t StartVertexLocation() const { return layout_->StartVertexLocation(); }
+
+		void StartIndexLocation(uint32_t location) { layout_->StartIndexLocation(location); }
+		uint32_t StartIndexLocation() const { return layout_->StartIndexLocation(); }
+
 	protected:
 		virtual void DoLoadMeshInfo();
 
@@ -52,6 +58,8 @@ namespace gleam
 	class Model : public Renderable
 	{
 	public:
+		Model(const std::string &name);
+
 		void LoadModelInfo();
 
 		RenderLayout &GetRenderLayout() const override { return *layout_; }
@@ -70,9 +78,29 @@ namespace gleam
 		virtual void DoLoadModelInfo() { }
 
 	protected:
+		std::string name_;
+
 		RenderLayoutPtr layout_;
 
 		std::vector<MaterialPtr> materials_;
+	};
+
+	template <typename T>
+	struct CreateMeshFunc
+	{
+		MeshPtr operator()(const std::string & name, const ModelPtr & model)
+		{
+			return std::make_shared<T>(name, model);
+		}
+	};
+
+	template <typename T>
+	struct CreateModelFunc
+	{
+		ModelPtr operator()(const std::string & name)
+		{
+			return std::make_shared<T>(name);
+		}
 	};
 
 	bool LoadModel(const std::string &name, std::vector<MaterialPtr> &mtls,
@@ -82,6 +110,9 @@ namespace gleam
 		std::vector<uint32_t>& mesh_num_vertices, std::vector<uint32_t> &mesh_start_vertices,
 		std::vector<uint32_t>& mesh_num_indices, std::vector<uint32_t> &mesh_start_indices
 		);
+	ModelPtr LoadModel(const std::string &name, uint32_t access_hint,
+		std::function<ModelPtr(const std::string &)> create_model_func,
+		std::function<MeshPtr(const std::string &, const ModelPtr &)> create_mesh_func);
 }
 
 #endif // !GLEAM_CORE_RENDER_MESH_H_
