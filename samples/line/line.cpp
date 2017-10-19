@@ -44,7 +44,7 @@ public:
 protected:
 	void OnCreate() override
 	{
-		OBBox box(convert_to_obbox(AABBox(glm::vec3(-0.25f, -0.25f, -0.25f), glm::vec3(0.25f, 0.25f, 0.25f))));
+		OBBox box(convert_to_obbox(AABBox(glm::vec3(-0.25f, -0.5f, -0.25f), glm::vec3(0.25f, 0, 0.25f))));
 		Color color(1.0f, 0, 0, 1);
 		renderableBox_ = std::make_shared<SceneObjectHelper>(
 			std::make_shared<RenderableBox>(box, color), SOA_Cullable
@@ -53,8 +53,8 @@ protected:
 
 		ModelPtr teapot_model = LoadModel("teapot.obj", EAH_GPU_Read, CreateModelFunc<Model>(), CreateMeshFunc<RenderPolygon>());
 		teapot_ = std::make_shared<SceneObjectHelper>(teapot_model, SOA_Cullable);
-		glm::mat4 model = glm::scale(glm::mat4(), glm::vec3(0.01f));
-		model = glm::translate(glm::mat4(), glm::vec3(0, 0.5f, 0));
+		glm::mat4 model = glm::scale(glm::mat4(), glm::vec3(0.005f));
+		model = glm::translate(model, glm::vec3(0, 0.5f, 0));
 		teapot_->ModelMatrix(model);
 		teapot_->AddToSceneManager();
 
@@ -79,11 +79,10 @@ private:
 	SceneObjectHelperPtr renderableBox_;
 	SceneObjectHelperPtr teapot_;
 
-	//TrackballCameraController controller;
-	FirstPersonCameraController controller;
+	TrackballCameraController controller;
+	//FirstPersonCameraController controller;
 };
 
-#define LineAPP
 #ifdef LineAPP
 void main()
 {

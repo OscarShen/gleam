@@ -101,7 +101,6 @@ namespace gleam {
 				if (record.keys[GLFW_KEY_D])
 					Move(scaler, 0, 0);
 
-				std::cout << x << ", " << y << std::endl;
 				this->RotateRelated(-x, -y, 0);
 
 				lastCursorX = record.cursorPosX;
