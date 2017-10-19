@@ -46,6 +46,7 @@ namespace gleam
 
 	protected:
 		virtual void UpdateInstanceStream();
+		void LoadUniforms();
 
 	protected:
 		std::vector<const SceneObject *> instances_;

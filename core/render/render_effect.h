@@ -51,6 +51,7 @@ namespace gleam
 	class RenderEffect : boost::noncopyable
 	{
 	public:
+		RenderEffect();
 		uint32_t AddShaderObject();
 
 		RenderTechnique * GetTechniqueByName(const std::string &name) const;
@@ -60,9 +61,12 @@ namespace gleam
 		const std::string & GetShaderCodeByName(uint32_t shader_type, const std::string &func_name);
 
 		const std::vector<AttribPtr> &GetShaderAttribsByName(const std::string &func_name);
+		std::vector<AttribPtr> GetShaderAttribCopyByName(const std::string &func_name);
 
 		const std::vector<UniformPtr> &GetUniformsByName(uint32_t shader_type, const std::string &shader_name);
+		std::vector<UniformPtr> GetUniformsCopyByName(uint32_t shader_type, const std::string &shader_name);
 		const std::vector<UniformBufferPtr> &GetUniformBuffersByName(uint32_t shader_type, const std::string &shader_name);
+		std::vector<UniformBufferPtr> GetUniformBuffersCopyByName(uint32_t shader_type, const std::string &shader_name);
 
 
 		void Load(const std::string &name);
@@ -72,6 +76,7 @@ namespace gleam
 		void LoadResource(TiXmlElement *root);
 
 	private:
+		std::string name_;
 		std::array<std::unordered_map<std::string, std::string>, ST_NumShaderTypes> shader_codes_;
 		std::array<std::unordered_map<std::string, std::vector<UniformPtr>>, ST_NumShaderTypes> shader_uniforms_;
 		std::array<std::unordered_map<std::string, std::vector<UniformBufferPtr>>, ST_NumShaderTypes> shader_uniform_buffer_;

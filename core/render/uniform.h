@@ -45,6 +45,8 @@ namespace gleam {
 		virtual Uniform &operator=(const glm::vec4 &value) { CHECK_INFO(false, "no impl..."); return *this; }
 		virtual Uniform &operator=(const glm::mat4 &value) { CHECK_INFO(false, "no impl..."); return *this; }
 
+		virtual UniformPtr CopyResource() const = 0;
+
 	protected:
 		std::string name_;
 	};
@@ -81,6 +83,7 @@ namespace gleam {
 	public:
 		Uniform &operator=(const bool &value) override;
 		void Load() override;
+		UniformPtr CopyResource() const override;
 	};
 
 	class OGLUniformFloat : public OGLUniformTemplate<GLfloat>
@@ -90,6 +93,7 @@ namespace gleam {
 		Uniform &operator=(const uint32_t &value) override;
 		Uniform &operator=(const int32_t &value) override;
 		void Load() override;
+		UniformPtr CopyResource() const override;
 	};
 
 	class OGLUniformSampler : public OGLUniformTemplate<GLint>
@@ -98,6 +102,7 @@ namespace gleam {
 		Uniform &operator=(const uint32_t &value) override;
 		Uniform &operator=(const int32_t &value) override;
 		void Load() override;
+		UniformPtr CopyResource() const override;
 	};
 
 	class OGLUniformVec2 : public OGLUniformTemplate<glm::vec2>
@@ -105,6 +110,7 @@ namespace gleam {
 	public:
 		Uniform &operator=(const glm::vec2 &value) override;
 		void Load() override;
+		UniformPtr CopyResource() const override;
 	};
 
 	class OGLUniformVec3 : public OGLUniformTemplate<glm::vec3>
@@ -112,6 +118,7 @@ namespace gleam {
 	public:
 		Uniform &operator=(const glm::vec3 &value) override;
 		void Load() override;
+		UniformPtr CopyResource() const override;
 	};
 
 	class OGLUniformVec4 : public OGLUniformTemplate<glm::vec4>
@@ -119,6 +126,7 @@ namespace gleam {
 	public:
 		Uniform &operator=(const glm::vec4 &value) override;
 		void Load() override;
+		UniformPtr CopyResource() const override;
 	};
 
 	class OGLUniformMatrix4 : public OGLUniformTemplate<glm::mat4>
@@ -126,6 +134,7 @@ namespace gleam {
 	public:
 		Uniform &operator=(const glm::mat4 &value) override;
 		void Load() override;
+		UniformPtr CopyResource() const override;
 	};
 
 	class UniformBuffer : boost::noncopyable
@@ -141,10 +150,11 @@ namespace gleam {
 
 		virtual void Load() = 0;
 
+		virtual UniformBufferPtr CopyResource() const = 0;
+
 	protected:
 		std::string name_;
 		GraphicsBufferPtr data_;
-		size_t size_;
 		bool dirty_;
 	};
 
@@ -160,6 +170,8 @@ namespace gleam {
 		GLuint BindPoint() const { return bind_point_; }
 
 		void Load() override;
+
+		UniformBufferPtr CopyResource() const override;
 
 	protected:
 		GLuint program_;
@@ -179,6 +191,7 @@ namespace gleam {
 		const VertexElement &VertexElementType() const { return element_; }
 		void VertexElementType(const VertexElement &element) { element_ = element; }
 
+		virtual AttribPtr CopyResource() const = 0;
 
 	protected:
 		std::string name_;
@@ -191,6 +204,8 @@ namespace gleam {
 		void StoreAttribLocation(GLuint program);
 		GLint Location() const { return location_; }
 		GLuint Program() const { return program_; }
+
+		AttribPtr CopyResource() const override;
 
 	protected:
 		GLuint program_;

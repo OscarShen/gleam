@@ -24,6 +24,12 @@ namespace gleam {
 			dirty_ = false;
 		}
 	}
+	UniformPtr OGLUniformBool::CopyResource() const
+	{
+		std::shared_ptr<OGLUniformBool> u = std::make_shared<OGLUniformBool>();
+		u->name_ = this->name_;
+		return u;
+	}
 	Uniform & OGLUniformFloat::operator=(const float & value)
 	{
 		if (value != data_)
@@ -60,6 +66,12 @@ namespace gleam {
 			dirty_ = false;
 		}
 	}
+	UniformPtr OGLUniformFloat::CopyResource() const
+	{
+		std::shared_ptr<OGLUniformFloat> u = std::make_shared<OGLUniformFloat>();
+		u->name_ = this->name_;
+		return u;
+	}
 	Uniform & OGLUniformSampler::operator=(const uint32_t & value)
 	{
 		GLint v = static_cast<GLint>(value);
@@ -88,6 +100,12 @@ namespace gleam {
 			dirty_ = false;
 		}
 	}
+	UniformPtr OGLUniformSampler::CopyResource() const
+	{
+		std::shared_ptr<OGLUniformSampler> u = std::make_shared<OGLUniformSampler>();
+		u->name_ = this->name_;
+		return u;
+	}
 	Uniform & OGLUniformVec2::operator=(const glm::vec2 & value)
 	{
 		if (value != data_)
@@ -104,6 +122,12 @@ namespace gleam {
 			glProgramUniform2f(program_, location_, data_.x, data_.y);
 			dirty_ = false;
 		}
+	}
+	UniformPtr OGLUniformVec2::CopyResource() const
+	{
+		std::shared_ptr<OGLUniformVec2> u = std::make_shared<OGLUniformVec2>();
+		u->name_ = this->name_;
+		return u;
 	}
 	Uniform & OGLUniformVec3::operator=(const glm::vec3 & value)
 	{
@@ -122,6 +146,12 @@ namespace gleam {
 			dirty_ = false;
 		}
 	}
+	UniformPtr OGLUniformVec3::CopyResource() const
+	{
+		std::shared_ptr<OGLUniformVec3> u = std::make_shared<OGLUniformVec3>();
+		u->name_ = this->name_;
+		return u;
+	}
 	Uniform & OGLUniformVec4::operator=(const glm::vec4 & value)
 	{
 		if (value != data_)
@@ -139,6 +169,12 @@ namespace gleam {
 			dirty_ = false;
 		}
 	}
+	UniformPtr OGLUniformVec4::CopyResource() const
+	{
+		std::shared_ptr<OGLUniformVec4> u = std::make_shared<OGLUniformVec4>();
+		u->name_ = this->name_;
+		return u;
+	}
 	Uniform & OGLUniformMatrix4::operator=(const glm::mat4 & value)
 	{
 		if (value != data_)
@@ -155,6 +191,12 @@ namespace gleam {
 			glProgramUniformMatrix4fv(program_, location_, 1, false, glm::value_ptr(data_));
 			dirty_ = false;
 		}
+	}
+	UniformPtr OGLUniformMatrix4::CopyResource() const
+	{
+		std::shared_ptr<OGLUniformMatrix4> u = std::make_shared<OGLUniformMatrix4>();
+		u->name_ = this->name_;
+		return u;
 	}
 	void OGLUniformBuffer::StoreUniformBlockIndex(GLuint program)
 	{
@@ -177,6 +219,12 @@ namespace gleam {
 			glUniformBlockBinding(program_, index_, bind_point_);
 			dirty_ = false;
 		}
+	}
+	UniformBufferPtr OGLUniformBuffer::CopyResource() const
+	{
+		std::shared_ptr<OGLUniformBuffer> u = std::make_shared<OGLUniformBuffer>();
+		u->name_ = this->name_;
+		return u;
 	}
 	void UniformTypeFromString(UniformType & type, const std::string & name)
 	{
@@ -203,6 +251,13 @@ namespace gleam {
 		location_ = glGetAttribLocation(program, name_.c_str());
 		program_ = program;
 		CHECK_INFO(-1 != location_, "Counldn't find attrib : " << name_);
+	}
+	AttribPtr OGLAttrib::CopyResource() const
+	{
+		std::shared_ptr<OGLAttrib> u = std::make_shared<OGLAttrib>();
+		u->name_ = this->name_;
+		u->element_ = this->element_;
+		return u;
 	}
 	UniformBuffer & UniformBuffer::operator=(const GraphicsBufferPtr & buffer)
 	{

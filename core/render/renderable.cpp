@@ -34,6 +34,7 @@ namespace gleam {
 			if (layout.NumInstances() > 0)
 			{
 				this->OnRenderBegin();
+				this->LoadUniforms();
 				re.Render(effect, tech, layout);
 				this->OnRenderEnd();
 			}
@@ -41,6 +42,7 @@ namespace gleam {
 		else
 		{
 			this->OnRenderBegin();
+			this->LoadUniforms();
 			if (instances_.empty())
 			{
 				re.Render(effect, tech, layout);
@@ -118,6 +120,11 @@ namespace gleam {
 				layout.VertexStreamFrequencyDivider(i, ST_Geometry, static_cast<uint32_t>(instances_.size()));
 			}
 		}
+	}
+	void Renderable::LoadUniforms()
+	{
+		const ShaderObjectPtr &shader = this->GetRenderTechnique()->GetShaderObject(*this->GetRenderEffect());
+		shader->LoadUniforms();
 	}
 	RenderableHelper::RenderableHelper()
 	{

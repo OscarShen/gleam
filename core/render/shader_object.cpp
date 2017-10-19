@@ -79,17 +79,6 @@ namespace gleam {
 		OGLRenderEngine &re = *checked_cast<OGLRenderEngine *>(&Context::Instance().RenderEngineInstance());
 		re.UseProgram(glsl_program_);
 
-		// TODO:update all unifrom & ubo & texture ...
-		for (auto &u : uniforms_)
-		{
-			u->Load();
-		}
-		for (auto &ub : uniform_buffers_)
-		{
-			ub->Load();
-		}
-		// ...
-
 		glValidateProgram(glsl_program_);
 		GLint validated = false;
 		glGetProgramiv(glsl_program_, GL_VALIDATE_STATUS, &validated);
@@ -150,6 +139,19 @@ namespace gleam {
 		}
 		WARNING(false, "can't find uniform : " << uniform_name);
 		return nullptr;
+	}
+	void OGLShaderObject::LoadUniforms()
+	{
+		// TODO:update all unifrom & ubo & texture ...
+		for (auto &u : uniforms_)
+		{
+			u->Load();
+		}
+		for (auto &ub : uniform_buffers_)
+		{
+			ub->Load();
+		}
+		// ...
 	}
 	void ShaderTypeFromString(ShaderType & type, const std::string & name)
 	{

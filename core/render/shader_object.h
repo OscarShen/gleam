@@ -46,6 +46,8 @@ namespace gleam
 
 		virtual UniformPtr GetUniformByName(const std::string &uniform_name) = 0;
 
+		virtual void LoadUniforms() = 0;
+
 		bool HasTessellation() const { return has_tessellation; }
 
 	protected:
@@ -77,6 +79,8 @@ namespace gleam
 		void SetUniformBuffers(const std::vector<UniformBufferPtr> &uniform_buffers) override;
 
 		UniformPtr GetUniformByName(const std::string &uniform_name) override;
+
+		void LoadUniforms() override;
 
 	protected:
 		std::vector<OGLUniformPtr> uniforms_;

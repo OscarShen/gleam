@@ -8,6 +8,10 @@
 #include <base/resource_loader.h>
 namespace gleam
 {
+	RenderEffect::RenderEffect()
+		: name_("RenderEffect")
+	{
+	}
 	uint32_t RenderEffect::AddShaderObject()
 	{
 		uint32_t index = static_cast<uint32_t>(shaders_.size());
@@ -24,6 +28,7 @@ namespace gleam
 				return tech.get();
 			}
 		}
+		WARNING(false, "Can't find technique : " << name);
 		return nullptr;
 	}
 	const ShaderObjectPtr & RenderEffect::GetShaderObjectByIndex(uint32_t index) const
@@ -43,12 +48,34 @@ namespace gleam
 		auto iter = shader_attribs_.find(func_name);
 		return iter->second;
 	}
+	std::vector<AttribPtr> RenderEffect::GetShaderAttribCopyByName(const std::string & func_name)
+	{
+		const std::vector<AttribPtr> &attribs = shader_attribs_.find(func_name)->second;
+		std::vector<AttribPtr> ret(attribs.size());
+		for (size_t i = 0; i < attribs.size(); ++i)
+		{
+			ret[i] = attribs[i]->CopyResource();
+		}
+		return ret;
+	}
 	const std::vector<UniformPtr>& RenderEffect::GetUniformsByName(uint32_t shader_type, const std::string & shader_name)
 	{
 		assert(shader_type < ST_NumShaderTypes);
 		const auto &shader_type_uniforms = shader_uniforms_[shader_type];
 		auto iter = shader_type_uniforms.find(shader_name);
 		return iter->second;
+	}
+	std::vector<UniformPtr> RenderEffect::GetUniformsCopyByName(uint32_t shader_type, const std::string & shader_name)
+	{
+		assert(shader_type < ST_NumShaderTypes);
+		const auto &shader_type_uniforms = shader_uniforms_[shader_type];
+		const std::vector<UniformPtr> &uniforms = shader_type_uniforms.find(shader_name)->second;
+		std::vector<UniformPtr> ret(uniforms.size());
+		for (size_t i = 0; i < uniforms.size(); ++i)
+		{
+			ret[i] = uniforms[i]->CopyResource();
+		}
+		return ret;
 	}
 	const std::vector<UniformBufferPtr>& RenderEffect::GetUniformBuffersByName(uint32_t shader_type, const std::string & shader_name)
 	{
@@ -57,8 +84,22 @@ namespace gleam
 		auto iter = shader_type_uniform_buffers.find(shader_name);
 		return iter->second;
 	}
+	std::vector<UniformBufferPtr> RenderEffect::GetUniformBuffersCopyByName(uint32_t shader_type, const std::string & shader_name)
+	{
+		assert(shader_type < ST_NumShaderTypes);
+		const auto &shader_type_uniform_buffers = shader_uniform_buffer_[shader_type];
+		const std::vector<UniformBufferPtr> &uniform_buffers = shader_type_uniform_buffers.find(shader_name)->second;
+		std::vector<UniformBufferPtr> ret(uniform_buffers.size());
+		for (size_t i = 0; i < uniform_buffers.size(); ++i)
+		{
+			ret[i] = uniform_buffers[i]->CopyResource();
+		}
+		return ret;
+	}
 	void RenderEffect::Load(const std::string & name)
 	{
+		this->name_ = name;
+
 		std::string real_path = ResLoader::Instance().Locate(name);
 		CHECK_INFO(!real_path.empty(), "name of render effect file is null...");
 		std::unique_ptr<TiXmlDocument> doc = std::make_unique<TiXmlDocument>(real_path.c_str());
@@ -512,15 +553,15 @@ namespace gleam
 				const std::string &code = effect.GetShaderCodeByName(type, name);
 				shader_obj->AttachShader(static_cast<ShaderType>(type), code);
 
-				const std::vector<UniformPtr> &uniforms = effect.GetUniformsByName(type, name);
+				std::vector<UniformPtr> uniforms = effect.GetUniformsCopyByName(type, name);
 				shader_obj->SetUniforms(uniforms);
 
-				const std::vector<UniformBufferPtr> &uniform_buffers = effect.GetUniformBuffersByName(type, name);
+				std::vector<UniformBufferPtr> uniform_buffers = effect.GetUniformBuffersCopyByName(type, name);
 				shader_obj->SetUniformBuffers(uniform_buffers);
 
 				if (type == ST_VertexShader)
 				{
-					const auto &attribs = effect.GetShaderAttribsByName(name);
+					std::vector<AttribPtr> attribs = effect.GetShaderAttribCopyByName(name);
 					for (const auto &attrib : attribs)
 					{
 						const auto &type = attrib->VertexElementType();
