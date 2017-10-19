@@ -104,7 +104,7 @@ namespace gleam {
 		if (renderable_ && (renderable_->NumSubrenderables() > 0))
 		{
 			children_.resize(renderable_->NumSubrenderables());
-			for (uint32_t i = 0; i < renderable_->NumSubrenderables();)
+			for (uint32_t i = 0; i < renderable_->NumSubrenderables(); ++i)
 			{
 				SceneObjectHelperPtr child = std::make_shared<SceneObjectHelper>(renderable_->Subrenderable(i), attrib_);
 				child->Parent(this);
