@@ -126,11 +126,11 @@ namespace gleam {
 			const ModelPtr &model = model_desc_.model;
 
 			// materials
-			//model->NumMaterials(model_desc_.model_data->mtls.size());
-			//for (size_t mtl_index = 0; mtl_index < model_desc_.model_data->mtls.size(); ++mtl_index)
-			//{
-			//	model->GetMaterial(static_cast<int32_t>(mtl_index)) = model_desc_.model_data->mtls[mtl_index];
-			//}
+			model->NumMaterials(model_desc_.model_data->mtls.size());
+			for (size_t mtl_index = 0; mtl_index < model_desc_.model_data->mtls.size(); ++mtl_index)
+			{
+				model->GetMaterial(static_cast<int32_t>(mtl_index)) = model_desc_.model_data->mtls[mtl_index];
+			}
 
 			// vertices, indices
 			model_desc_.model_data->merged_vbs.resize(model_desc_.model_data->merged_buffer.size());
@@ -162,6 +162,7 @@ namespace gleam {
 
 				mesh->StartVertexLocation(model_desc_.model_data->mesh_start_vertices[mesh_index]);
 				mesh->StartIndexLocation(model_desc_.model_data->mesh_start_indices[mesh_index]);
+
 			}
 
 			model->AssignSubrenderable(meshes.begin(), meshes.end());
@@ -222,11 +223,15 @@ namespace gleam {
 	void Mesh::DoLoadMeshInfo()
 	{
 		ModelPtr model = model_.lock();
-		//mtl_ = model->GetMaterial(this->MaterialID());
+		mtl_ = model->GetMaterial(this->MaterialID());
 
-		// TODO : Load Textures
-		//
-		///////////////////////
+		for (size_t i = 0; i < TS_NumTextureSlots; ++i)
+		{
+			if (!mtl_->tex_names[i].empty())
+			{
+				// Load Texture
+			}
+		}
 
 
 	}
@@ -281,7 +286,7 @@ namespace gleam {
 	{
 		enum AssimpTextureSlot
 		{
-			ATS_Albedo,
+			ATS_Albedo = 0,
 			ATS_Metalness,
 			ATS_Glossiness,
 			ATS_Emissive,
@@ -595,6 +600,22 @@ namespace gleam {
 			mesh_num_indices[mesh_index] = static_cast<uint32_t>(meshes[mesh_index].indices.size());
 			mesh_start_indices[mesh_index] = start_indices;
 			start_indices += mesh_num_indices[mesh_index];
+		}
+
+		uint32_t num_materials = static_cast<uint32_t>(materials.size());
+		mtls.resize(num_materials);
+		for (uint32_t i = 0; i < num_materials; ++i)
+		{
+			mtls[i] = std::make_shared<Material>();
+			mtls[i]->name = materials[i].name;
+			mtls[i]->albedo = materials[i].albedo;
+			mtls[i]->emissive = materials[i].emissive;
+			mtls[i]->glossiness = materials[i].glossiness;
+			mtls[i]->metalness = materials[i].metalness;
+			// TextureSlot should relate to AssimpTextureSlot
+			mtls[i]->tex_names = materials[i].tex_name;
+			mtls[i]->transparent = materials[i].transparent;
+			mtls[i]->two_sided = materials[i].tow_sided;
 		}
 
 		return true;

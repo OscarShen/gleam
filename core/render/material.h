@@ -11,6 +11,32 @@
 
 namespace gleam
 {
+	enum TextureSlot
+	{
+		TS_Albedo = 0,
+		TS_Metalness,
+		TS_Glossiness,
+		TS_Emissive,
+		TS_Normal,
+		TS_Height,
+
+		TS_NumTextureSlots
+	};
+
+	struct Material
+	{
+		std::string name;
+
+		glm::vec4 albedo;
+		float metalness;
+		float glossiness;
+		glm::vec3 emissive;
+
+		bool transparent;
+		bool two_sided;
+		std::array<std::string, TS_NumTextureSlots> tex_names;
+	};
+
 	float const MAX_SHININESS = 8192;
 	float const INV_LOG_MAX_SHININESS = 1 / log(MAX_SHININESS);
 
