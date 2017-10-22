@@ -68,6 +68,42 @@ namespace gleam {
 		TextureDesc texture_desc;
 	};
 
+	TextureMapper::TextureMapper(Texture & tex, uint32_t level, TextureMapAccess access, uint32_t x_offset, uint32_t width)
+		: texture_(tex), mapped_level_(level)
+	{
+		texture_.Map1D(level, access, x_offset, width, data_);
+		row_pitch_ = slice_pitch_ = width * NumFormatBytes(texture_.Format());
+	}
+	TextureMapper::TextureMapper(Texture & tex, uint32_t level, TextureMapAccess access, uint32_t x_offset, uint32_t y_offset, uint32_t width, uint32_t height)
+		: texture_(tex), mapped_level_(level)
+	{
+		texture_.Map2D(level, access, x_offset, y_offset, width, height, data_, row_pitch_);
+		slice_pitch_ = row_pitch_ * height;
+	}
+	TextureMapper::TextureMapper(Texture & tex, CubeFaces face, uint32_t level, TextureMapAccess access, uint32_t x_offset, uint32_t y_offset, uint32_t width, uint32_t height)
+		: texture_(tex), mapped_level_(level), mapped_face_(face)
+	{
+		texture_.MapCube(face, level, access, x_offset, y_offset, width, height, data_, row_pitch_);
+		slice_pitch_ = row_pitch_ * height;
+	}
+	TextureMapper::~TextureMapper()
+	{
+		switch (texture_.Type())
+		{
+		case TT_1D:
+			texture_.Unmap1D(mapped_level_);
+			break;
+		case TT_2D:
+			texture_.Unmap2D(mapped_level_);
+			break;
+		case TT_Cube:
+			texture_.UnmapCube(mapped_face_, mapped_level_);
+			break;
+		default:
+			break;
+		}
+	}
+
 	Texture::Texture(TextureType type, uint32_t sample_count, uint32_t access_hint)
 		: type_(type), sample_count_(sample_count), access_hint_(access_hint)
 	{
@@ -92,25 +128,16 @@ namespace gleam {
 	{
 		return access_hint_;
 	}
-	OGLTexture::OGLTexture(TextureType type, uint32_t array_size, uint32_t sample_count, uint32_t access_hint)
+	OGLTexture::OGLTexture(TextureType type, uint32_t sample_count, uint32_t access_hint)
 		: Texture(type, sample_count, access_hint)
 	{
 		switch (type_)
 		{
 		case gleam::TT_1D:
-			if (array_size > 1)
-				target_type_ = GL_TEXTURE_1D_ARRAY;
-			else
-				target_type_ = GL_TEXTURE_1D;
+			target_type_ = GL_TEXTURE_1D;
 			break;
 		case gleam::TT_2D:
-			if (array_size > 1)
-				target_type_ = GL_TEXTURE_2D_ARRAY;
-			else
-				target_type_ = GL_TEXTURE_2D;
-			break;
-		case gleam::TT_3D:
-			target_type_ = GL_TEXTURE_3D;
+			target_type_ = GL_TEXTURE_2D;
 			break;
 		case gleam::TT_Cube:
 			target_type_ = GL_TEXTURE_CUBE_MAP;
@@ -125,15 +152,15 @@ namespace gleam {
 				glGenRenderbuffers(1, &texture_);
 		}
 	}
-	void OGLTexture::Map1D(uint32_t level, TextureAccess access, uint32_t x_offset, uint32_t width, void *& data)
+	void OGLTexture::Map1D(uint32_t level, TextureMapAccess access, uint32_t x_offset, uint32_t width, void *& data)
 	{
 		CHECK_INFO(false, "no impl");
 	}
-	void OGLTexture::Map2D(uint32_t level, TextureAccess access, uint32_t x_offset, uint32_t y_offset, uint32_t width, uint32_t height, void *& data, uint32_t & row_pitch)
+	void OGLTexture::Map2D(uint32_t level, TextureMapAccess access, uint32_t x_offset, uint32_t y_offset, uint32_t width, uint32_t height, void *& data, uint32_t & row_pitch)
 	{
 		CHECK_INFO(false, "no impl");
 	}
-	void OGLTexture::MapCube(CubeFaces face, uint32_t level, TextureAccess access, uint32_t x_offset, uint32_t y_offset, uint32_t width, uint32_t height, void *& data, uint32_t & row_pitch)
+	void OGLTexture::MapCube(CubeFaces face, uint32_t level, TextureMapAccess access, uint32_t x_offset, uint32_t y_offset, uint32_t width, uint32_t height, void *& data, uint32_t & row_pitch)
 	{
 		CHECK_INFO(false, "no impl");
 	}
@@ -209,6 +236,10 @@ namespace gleam {
 	{
 		CHECK_INFO(false, "no impl");
 	}
+	void OGLTexture::BuildMipSubLevels()
+	{
+		glGenerateTextureMipmap(texture_);
+	}
 	ElementFormat OGLTexture::SRGBToRGB(ElementFormat pf)
 	{
 		switch (pf)
@@ -229,6 +260,40 @@ namespace gleam {
 			return pf;
 		}
 	}
+	OGLTexture1D::OGLTexture1D(uint32_t width, uint32_t num_mip_maps, uint32_t array_size, ElementFormat format, uint32_t sample_count, uint32_t access_hint)
+		: OGLTexture(TT_1D, sample_count, access_hint)
+	{
+		format_ = format;
+		if (0 == num_mip_maps)
+		{
+			num_mip_maps_ = 1;
+			uint32_t w = width;
+			while (w != 1)
+			{
+				++num_mip_maps_;
+				w = std::max<uint32_t>(1U, w / 2);
+			}
+		}
+		else
+		{
+			num_mip_maps_ = num_mip_maps;
+		}
+		width_ = width;
+
+		glCreateBuffers(1, &pbo_);
+
+		mipmap_start_offset_.resize(num_mip_maps + 1);
+		mipmap_start_offset_[0] = 0;
+		for (uint32_t level = 0; level < num_mip_maps_; ++level)
+		{
+			const uint32_t w = this->Width(level);
+
+			const uint32_t texel_size = NumFormatBytes(format_);
+			GLsizei image_size = w * texel_size;
+
+			mipmap_start_offset_[level + 1] = mipmap_start_offset_[level] + image_size;
+		}
+	}
 	uint32_t OGLTexture1D::Width(uint32_t level) const
 	{
 		assert(level < num_mip_maps_);
@@ -244,20 +309,15 @@ namespace gleam {
 
 		if (sample_count_ <= 1)
 		{
-			glBindTexture(target_type_, texture_);
-			glTexParameteri(target_type_, GL_TEXTURE_MAX_LEVEL, num_mip_maps_ - 1);
+			glNamedBufferData(pbo_, mipmap_start_offset_.back(), nullptr, GL_STREAM_COPY);
 
-			OGLRenderEngine &re = *checked_cast<OGLRenderEngine*>(&Context::Instance().RenderEngineInstance());
-			re.BindBuffer(GL_PIXEL_UNPACK_BUFFER, pbo_);
-			glBufferData(GL_PIXEL_UNPACK_BUFFER, mipmap_start_offset_.back(), nullptr, GL_STREAM_COPY);
-			re.BindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
+			glTextureStorage1D(texture_, num_mip_maps_, glinternalformat, this->Width(0));
+			glTextureParameteri(texture_, GL_TEXTURE_MAX_LEVEL, num_mip_maps_ - 1);
 
 			for (uint32_t level = 0; level < num_mip_maps_; ++level)
 			{
 				const uint32_t w = this->Width(level);
-
-				glTexImage1D(target_type_, level, glinternalformat, w, 0, glformat, gltype,
-					init_data.empty() ? nullptr : init_data[num_mip_maps_ + level].data);
+				glTextureSubImage1D(texture_, level, 0, w, glformat, gltype, init_data.empty() ? nullptr : init_data[num_mip_maps_ + level].data);
 			}
 		}
 		else
@@ -274,6 +334,150 @@ namespace gleam {
 			this->CopyToSubTexture1D(target,
 				level, 0, target.Width(level),
 				level, 0, this->Width(level));
+		}
+	}
+
+	void OGLTexture1D::CopyToSubTexture1D(Texture & target, uint32_t dst_level, uint32_t dst_x_offset, uint32_t dst_width, uint32_t src_level, uint32_t src_x_offset, uint32_t src_width)
+	{
+		assert(type_ == target.Type());
+		if (format_ == target.Format() && src_width == dst_width && 1 == sample_count_)
+		{
+			OGLTexture &gl_target = *checked_cast<OGLTexture*>(&target);
+			glCopyImageSubData(
+				texture_, target_type_, src_level, src_x_offset, 0, 0,
+				gl_target.GLTexture(), gl_target.GLType(), dst_level, dst_x_offset, 0, 0,
+				src_width, 1, 1);
+		}
+		else
+		{
+			OGLRenderEngine &re = *checked_cast<OGLRenderEngine*>(&Context::Instance().RenderEngineInstance());
+			GLuint fbo_src, fbo_dst;
+			re.GetBlitFBO(fbo_src, fbo_dst);
+
+			if (sample_count_ <= 1)
+			{
+				glNamedFramebufferTexture(fbo_src, GL_COLOR_ATTACHMENT0, texture_, src_level);
+			}
+			else
+			{
+				glNamedFramebufferRenderbuffer(fbo_src, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, texture_);
+			}
+
+			OGLTexture &gl_target = *checked_cast<OGLTexture*>(&target);
+			glNamedFramebufferTexture(fbo_dst, GL_COLOR_ATTACHMENT0, gl_target.GLTexture(), dst_level);
+
+			glBlitNamedFramebuffer(fbo_src, fbo_dst,
+				src_x_offset, 0, src_x_offset + src_width, 1,
+				dst_x_offset, 0, dst_x_offset + src_width, 1,
+				GL_COLOR_BUFFER_BIT, (src_width == dst_width) ? GL_NEAREST : GL_LINEAR);
+		}
+	}
+
+	void OGLTexture1D::Map1D(uint32_t level, TextureMapAccess access, uint32_t x_offset, uint32_t width, void *& data)
+	{
+		last_access_ = access;
+		const uint32_t texel_size = NumFormatBytes(format_);
+
+		uint8_t *p;
+		OGLRenderEngine &re = *checked_cast<OGLRenderEngine*>(&Context::Instance().RenderEngineInstance());
+		switch (access)
+		{
+		case gleam::TMA_Read_Only:
+		case gleam::TMA_Read_Write:
+			GLint gl_internalFormat;
+			GLenum gl_format;
+			GLenum gl_type;
+			OGLMapping::MappingFormat(gl_internalFormat, gl_format, gl_type, format_);
+
+			re.BindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
+			re.BindBuffer(GL_PIXEL_PACK_BUFFER, pbo_);
+
+			glGetTextureImage(texture_, level, gl_format, gl_type, static_cast<GLsizei>(mipmap_start_offset_.back()), nullptr);
+			p = static_cast<uint8_t*>(glMapNamedBuffer(pbo_, GL_READ_ONLY));
+			break;
+		case gleam::TMA_Write_Only:
+			re.BindBuffer(GL_PIXEL_PACK_BUFFER, 0);
+			re.BindBuffer(GL_PIXEL_UNPACK_BUFFER, pbo_);
+			p = static_cast<uint8_t*>(glMapNamedBuffer(pbo_, GL_WRITE_ONLY));
+			break;
+		default:
+			CHECK_INFO(false, "Invalid texture map access...");
+			break;
+		}
+
+		p += mipmap_start_offset_[level];
+		data = p + x_offset * texel_size;
+	}
+
+	void OGLTexture1D::Unmap1D(uint32_t level)
+	{
+		OGLRenderEngine &re = *checked_cast<OGLRenderEngine *>(&Context::Instance().RenderEngineInstance());
+		switch (last_access_)
+		{
+		case TMA_Read_Only:
+			glUnmapNamedBuffer(pbo_);
+			break;
+		case gleam::TMA_Write_Only:
+		case gleam::TMA_Read_Write:
+			GLint gl_internalFormat;
+			GLenum gl_format;
+			GLenum gl_type;
+			OGLMapping::MappingFormat(gl_internalFormat, gl_format, gl_type, format_);
+
+			const uint32_t w = this->Width(level);
+
+			re.BindBuffer(GL_PIXEL_PACK_BUFFER, 0);
+			re.BindBuffer(GL_PIXEL_UNPACK_BUFFER, pbo_);
+			glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER);
+
+			GLvoid *offset = reinterpret_cast<GLvoid*>(
+				static_cast<GLintptr>(mipmap_start_offset_[level]));
+			glTextureSubImage1D(texture_, level, 0, w, gl_format, gl_type, offset);
+			break;
+		default:
+			CHECK_INFO(false, "invalid texture map access : " << last_access_);
+			break;
+		}
+	}
+
+	OGLTexture2D::OGLTexture2D(uint32_t width, uint32_t height, uint32_t num_mip_maps, ElementFormat format, uint32_t sample_count, uint32_t access_hint)
+		: OGLTexture(TT_2D, sample_count, access_hint)
+	{
+		format_ = format;
+		if (0 == num_mip_maps)
+		{
+			num_mip_maps_ = 1;
+			uint32_t w = width;
+			uint32_t h = height;
+			while ((w != 1) || (h != 1))
+			{
+				++num_mip_maps_;
+
+				w = std::max<uint32_t>(1U, w / 2);
+				h = std::max<uint32_t>(1U, h / 2);
+			}
+		}
+		else
+		{
+			num_mip_maps_ = num_mip_maps;
+		}
+
+		width_ = width;
+		height_ = height;
+		glCreateBuffers(1, &pbo_);
+
+		mipmap_start_offset_.resize(num_mip_maps + 1);
+		mipmap_start_offset_[0] = 0;
+		for (uint32_t level = 0; level < num_mip_maps_; ++level)
+		{
+			uint32_t const w = this->Width(level);
+			uint32_t const h = this->Height(level);
+
+			GLsizei image_size;
+			uint32_t const texel_size = NumFormatBytes(format_);
+			image_size = w * h * texel_size;
+
+			mipmap_start_offset_[level + 1] = mipmap_start_offset_[level] + image_size;
 		}
 	}
 
@@ -296,20 +500,16 @@ namespace gleam {
 
 		if (sample_count_ <= 1)
 		{
-			glBindTexture(target_type_, texture_);
-			glTexParameteri(target_type_, GL_TEXTURE_MAX_LEVEL, num_mip_maps_ - 1);
+			glNamedBufferData(pbo_, mipmap_start_offset_.back(), nullptr, GL_STREAM_COPY);
 
-			OGLRenderEngine &re = *checked_cast<OGLRenderEngine*>(&Context::Instance().RenderEngineInstance());
-			re.BindBuffer(GL_PIXEL_UNPACK_BUFFER, pbo_);
-			glBufferData(GL_PIXEL_UNPACK_BUFFER, mipmap_start_offset_.back(), nullptr, GL_STREAM_COPY);
-			re.BindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
+			glTextureStorage2D(texture_, num_mip_maps_, glinternalformat, width_, height_);
+			glTextureParameteri(texture_, GL_TEXTURE_MAX_LEVEL, num_mip_maps_ - 1);
 
 			for (uint32_t level = 0; level < num_mip_maps_; ++level)
 			{
 				const uint32_t w = this->Width(level);
 				const uint32_t h = this->Height(level);
-
-				glTexImage2D(target_type_, level, glinternalformat, w, h, 0, glformat, gltype,
+				glTextureSubImage2D(texture_, level, 0, 0, w, h, glformat, gltype,
 					init_data.empty() ? nullptr : init_data[num_mip_maps_ + level].data);
 			}
 		}
@@ -329,6 +529,151 @@ namespace gleam {
 				level, 0, 0, this->Width(level), this->Height(level));
 		}
 	}
+	void OGLTexture2D::CopyToSubTexture2D(Texture & target, uint32_t dst_level, uint32_t dst_x_offset, uint32_t dst_y_offset, uint32_t dst_width, uint32_t dst_height, uint32_t src_level, uint32_t src_x_offset, uint32_t src_y_offset, uint32_t src_width, uint32_t src_height)
+	{
+		assert(type_ == target.Type());
+
+		OGLRenderEngine &re = *checked_cast<OGLRenderEngine*>(&Context::Instance().RenderEngineInstance());
+		if (format_ == target.Format() && (src_width == dst_width) && src_height == dst_height && 1 == sample_count_)
+		{
+			OGLTexture &gl_target = *checked_cast<OGLTexture*>(&target);
+			glCopyImageSubData(
+				texture_, target_type_, src_level, src_x_offset, src_y_offset, 0,
+				gl_target.GLTexture(), gl_target.GLType(), dst_level, dst_x_offset, dst_y_offset, 0,
+				src_width, src_height, 1);
+		}
+		else
+		{
+			OGLRenderEngine &re = *checked_cast<OGLRenderEngine*>(&Context::Instance().RenderEngineInstance());
+			GLuint fbo_src, fbo_dst;
+			re.GetBlitFBO(fbo_src, fbo_dst);
+
+			if (sample_count_ <= 1)
+			{
+				glNamedFramebufferTexture(fbo_src, GL_COLOR_ATTACHMENT0, texture_, src_level);
+			}
+			else
+			{
+				glNamedFramebufferRenderbuffer(fbo_src, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, texture_);
+			}
+
+			OGLTexture &gl_target = *checked_cast<OGLTexture*>(&target);
+			glNamedFramebufferTexture(fbo_dst, GL_COLOR_ATTACHMENT0, gl_target.GLTexture(), dst_level);
+
+			glBlitNamedFramebuffer(fbo_src, fbo_dst,
+				src_x_offset, src_y_offset, src_x_offset + src_width, src_y_offset + src_height,
+				dst_x_offset, dst_y_offset, dst_x_offset + src_width, dst_y_offset + dst_height,
+				GL_COLOR_BUFFER_BIT, (src_width == dst_width) ? GL_NEAREST : GL_LINEAR);
+		}
+	}
+	void OGLTexture2D::Map2D(uint32_t level, TextureMapAccess access, uint32_t x_offset, uint32_t y_offset, uint32_t width, uint32_t height, void *& data, uint32_t & row_pitch)
+	{
+		last_access_ = access;
+
+		const uint32_t texel_size = NumFormatBytes(format_);
+		const uint32_t w = this->Width(level);
+
+		row_pitch = w * texel_size;
+
+		uint8_t *p;
+		OGLRenderEngine &re = *checked_cast<OGLRenderEngine*>(&Context::Instance().RenderEngineInstance());
+		switch (access)
+		{
+		case gleam::TMA_Read_Only:
+		case gleam::TMA_Read_Write:
+			GLint gl_internalFormat;
+			GLenum gl_format;
+			GLenum gl_type;
+			OGLMapping::MappingFormat(gl_internalFormat, gl_format, gl_type, format_);
+
+			re.BindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
+			re.BindBuffer(GL_PIXEL_PACK_BUFFER, pbo_);
+
+			glGetTextureImage(texture_, level, gl_format, gl_type, mipmap_start_offset_.back(), nullptr);
+
+			p = static_cast<uint8_t*>(glMapNamedBuffer(pbo_, GL_READ_ONLY));
+			break;
+		case gleam::TMA_Write_Only:
+			re.BindBuffer(GL_PIXEL_PACK_BUFFER, 0);
+			re.BindBuffer(GL_PIXEL_UNPACK_BUFFER, pbo_);
+			p = static_cast<uint8_t*>(glMapNamedBuffer(pbo_, GL_WRITE_ONLY));
+			break;
+		default:
+			CHECK_INFO(false, "Invalid texture map access : " << access);
+			break;
+		}
+
+		p += mipmap_start_offset_[level];
+		data = p + (y_offset * w + x_offset) * texel_size;
+	}
+	void OGLTexture2D::Unmap2D(uint32_t level)
+	{
+		OGLRenderEngine& re = *checked_cast<OGLRenderEngine*>(&Context::Instance().RenderEngineInstance());
+		switch (last_access_)
+		{
+		case gleam::TMA_Read_Only:
+			glUnmapNamedBuffer(pbo_);
+			break;
+		case gleam::TMA_Write_Only:
+		case gleam::TMA_Read_Write:
+			GLint gl_internalFormat;
+			GLenum gl_format;
+			GLenum gl_type;
+			OGLMapping::MappingFormat(gl_internalFormat, gl_format, gl_type, format_);
+
+			uint32_t const w = this->Width(level);
+			uint32_t const h = this->Height(level);
+
+			re.BindBuffer(GL_PIXEL_PACK_BUFFER, 0);
+			re.BindBuffer(GL_PIXEL_UNPACK_BUFFER, pbo_);
+			glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER);
+
+			GLvoid* offset = reinterpret_cast<GLvoid*>(
+				static_cast<GLintptr>(mipmap_start_offset_[level]));
+			glTextureSubImage2D(texture_, level, 0, 0, w, h, gl_format, gl_type, offset);
+			break;
+		default:
+			CHECK_INFO(false, "Invalid texture map access : " << last_access_);
+			break;
+		}
+	}
+	OGLTextureCube::OGLTextureCube(uint32_t size, uint32_t num_mip_maps, ElementFormat format, uint32_t sample_count, uint32_t access_hint)
+		: OGLTexture(TT_Cube, sample_count, access_hint)
+	{
+		format_ = format;
+
+		if (0 == num_mip_maps)
+		{
+			num_mip_maps_ = 1;
+			uint32_t s = size;
+			while (s > 1)
+			{
+				++num_mip_maps_;
+
+				s = std::max<uint32_t>(1U, s / 2);
+			}
+		}
+		else
+		{
+			num_mip_maps_ = num_mip_maps;
+		}
+
+		width_ = size;
+
+		glCreateBuffers(1, &pbo_);
+
+		mipmap_start_offset_.resize(num_mip_maps_ + 1);
+		mipmap_start_offset_[0] = 0;
+		for (uint32_t level = 0; level < num_mip_maps_; ++level)
+		{
+			uint32_t const s = this->Width(level);
+
+			uint32_t const texel_size = NumFormatBytes(format_);
+			GLsizei image_size = s * s * texel_size;
+
+			mipmap_start_offset_[level + 1] = mipmap_start_offset_[level] + image_size;
+		}
+	}
 	uint32_t OGLTextureCube::Width(uint32_t level) const
 	{
 		assert(level < num_mip_maps_);
@@ -345,13 +690,11 @@ namespace gleam {
 		GLenum gltype;
 		OGLMapping::MappingFormat(glinternalFormat, glformat, gltype, format_);
 
-		glBindTexture(target_type_, texture_);
-		glTexParameteri(target_type_, GL_TEXTURE_MAX_LEVEL, num_mip_maps_ - 1);
+		glTextureParameteri(texture_, GL_TEXTURE_MAX_LEVEL, num_mip_maps_ - 1);
+		glTextureStorage2D(texture_, num_mip_maps_, glinternalFormat, width_, width_);
 
 		OGLRenderEngine& re = *checked_cast<OGLRenderEngine*>(&Context::Instance().RenderEngineInstance());
-		re.BindBuffer(GL_PIXEL_UNPACK_BUFFER, pbo_);
-		glBufferData(GL_PIXEL_UNPACK_BUFFER, mipmap_start_offset_.back() * 6, nullptr, GL_STREAM_COPY);
-		re.BindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
+		glBufferData(pbo_, mipmap_start_offset_.back() * 6, nullptr, GL_STREAM_COPY);
 
 		for (int face = 0; face < 6; ++face)
 		{
@@ -359,8 +702,7 @@ namespace gleam {
 			{
 				const uint32_t s = this->Width(level);
 
-				glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + face, level, glinternalFormat, s, s, 0,
-					glformat, gltype, init_data.empty() ? nullptr : init_data[face * num_mip_maps_ + level].data);
+				glTextureSubImage3D(texture_, level, 0, 0, face, s, s, 1, glformat, gltype, init_data.empty() ? nullptr : init_data[face * num_mip_maps_ + level].data);
 			}
 		}
 	}
@@ -376,6 +718,112 @@ namespace gleam {
 					static_cast<CubeFaces>(face), level, 0, 0, target.Width(level), target.Height(level),
 					static_cast<CubeFaces>(face), level, 0, 0, this->Width(level), this->Height(level));
 			}
+		}
+	}
+
+	void OGLTextureCube::CopyToSubTextureCube(Texture & target, CubeFaces dst_face, uint32_t dst_level, uint32_t dst_x_offset, uint32_t dst_y_offset, uint32_t dst_width, uint32_t dst_height, CubeFaces src_face, uint32_t src_level, uint32_t src_x_offset, uint32_t src_y_offset, uint32_t src_width, uint32_t src_height)
+	{
+		assert(type_ == target.Type());
+
+		if (format_ == target.Format() && src_width == dst_width && src_height == dst_width && 1 == sample_count_)
+		{
+			OGLTexture &gl_target = *checked_cast<OGLTexture*>(&target);
+			glCopyImageSubData(
+				texture_, target_type_, src_level, src_x_offset, src_y_offset, src_face - CF_Positive_X,
+				gl_target.GLTexture(), gl_target.GLType(), dst_level, dst_x_offset, dst_y_offset, dst_face - CF_Positive_X,
+				src_width, src_height, 1);
+		}
+		else
+		{
+			OGLRenderEngine &re = *checked_cast<OGLRenderEngine*>(&Context::Instance().RenderEngineInstance());
+			GLuint fbo_src, fbo_dst;
+			re.GetBlitFBO(fbo_src, fbo_dst);
+
+			glNamedFramebufferTexture(fbo_src, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + src_face - CF_Positive_X, src_level);
+
+			OGLTexture &gl_target = *checked_cast<OGLTexture*>(&target);
+			glNamedFramebufferTexture(fbo_dst, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + dst_face - CF_Positive_X, dst_level);
+
+			glBlitNamedFramebuffer(fbo_src, fbo_dst,
+				src_x_offset, src_y_offset, src_x_offset + src_width, src_y_offset + src_height,
+				dst_x_offset, dst_y_offset, dst_x_offset + dst_width, dst_y_offset + dst_height,
+				GL_COLOR_BUFFER_BIT, ((src_width == dst_width) && (src_height == dst_height)) ? GL_NEAREST : GL_LINEAR);
+		}
+	}
+
+	void OGLTextureCube::MapCube(CubeFaces face, uint32_t level, TextureMapAccess access, uint32_t x_offset, uint32_t y_offset, uint32_t width, uint32_t height, void *& data, uint32_t & row_pitch)
+	{
+		last_access_ = access;
+
+		uint32_t const texel_size = NumFormatBytes(format_);
+		uint32_t const w = this->Width(level);
+
+		row_pitch = w * texel_size;
+
+		uint8_t* p;
+		OGLRenderEngine& re = *checked_cast<OGLRenderEngine*>(&Context::Instance().RenderEngineInstance());
+
+		switch (access)
+		{
+		case gleam::TMA_Read_Only:
+		case gleam::TMA_Read_Write:
+			GLint gl_internalFormat;
+			GLenum gl_format;
+			GLenum gl_type;
+			OGLMapping::MappingFormat(gl_internalFormat, gl_format, gl_type, format_);
+
+			re.BindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
+			re.BindBuffer(GL_PIXEL_PACK_BUFFER, pbo_);
+
+			GLvoid* offset = reinterpret_cast<GLvoid*>(
+				static_cast<GLintptr>(mipmap_start_offset_.back() * face));
+			glGetTextureImage(texture_, level, gl_format, gl_type, mipmap_start_offset_.back(), offset);
+
+			p = static_cast<uint8_t*>(glMapNamedBuffer(pbo_, GL_READ_ONLY));
+			break;
+		case gleam::TMA_Write_Only:
+			re.BindBuffer(GL_PIXEL_PACK_BUFFER, 0);
+			re.BindBuffer(GL_PIXEL_UNPACK_BUFFER, pbo_);
+			p = static_cast<uint8_t*>(glMapNamedBuffer(pbo_, GL_WRITE_ONLY));
+			break;
+		default:
+			CHECK_INFO(false, "Invalid texture map access : " << last_access_);
+			break;
+		}
+
+		p += mipmap_start_offset_[level];
+		data = p + (y_offset * w + x_offset) * texel_size;
+	}
+
+	void OGLTextureCube::UnmapCube(CubeFaces face, uint32_t level)
+	{
+		OGLRenderEngine& re = *checked_cast<OGLRenderEngine*>(&Context::Instance().RenderEngineInstance());
+		switch (last_access_)
+		{
+		case gleam::TMA_Read_Only:
+			glUnmapBuffer(pbo_);
+			break;
+		case gleam::TMA_Write_Only:
+		case gleam::TMA_Read_Write:
+			GLint gl_internalFormat;
+			GLenum gl_format;
+			GLenum gl_type;
+			OGLMapping::MappingFormat(gl_internalFormat, gl_format, gl_type, format_);
+
+			uint32_t const s = this->Width(level);
+
+			re.BindBuffer(GL_PIXEL_PACK_BUFFER, 0);
+			re.BindBuffer(GL_PIXEL_UNPACK_BUFFER, pbo_);
+			glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER);
+
+			GLvoid *offset = reinterpret_cast<GLvoid*>(
+				static_cast<GLintptr>(mipmap_start_offset_[level]));
+
+			glTextureSubImage3D(texture_, level, 0, 0, face, s, s, 1, gl_format, gl_type, offset);
+			break;
+		default:
+			CHECK_INFO(false, "Invalid texture map access : " << last_access_);
+			break;
 		}
 	}
 
@@ -502,7 +950,7 @@ namespace gleam {
 				}
 
 				uint32_t row_pitch = width * c, slice_pitch = row_pitch * height;
-				
+
 				if (i == 0)
 				{
 					data.resize(slice_pitch * 6);

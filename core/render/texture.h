@@ -22,11 +22,11 @@ namespace gleam
 		TT_Cube
 	};
 
-	enum TextureAccess
+	enum TextureMapAccess
 	{
-		TA_Read_Only,
-		TA_Write_Only,
-		TA_Read_Write
+		TMA_Read_Only,
+		TMA_Write_Only,
+		TMA_Read_Write
 	};
 
 	enum CubeFaces
@@ -39,11 +39,47 @@ namespace gleam
 		CF_Negative_Z = 5
 	};
 
+	class TextureMapper : boost::noncopyable
+	{
+		friend class Texture;
+
+	public:
+		TextureMapper(Texture &tex, uint32_t level, TextureMapAccess access,
+			uint32_t x_offset, uint32_t width);
+		TextureMapper(Texture &tex, uint32_t level, TextureMapAccess access,
+			uint32_t x_offset, uint32_t y_offset, uint32_t width, uint32_t height);
+		TextureMapper(Texture &tex, CubeFaces face, uint32_t level, TextureMapAccess access,
+			uint32_t x_offset, uint32_t y_offset, uint32_t width, uint32_t height);
+		~TextureMapper();
+
+		template <typename T>
+		const T *Pointer() const
+		{
+			return static_cast<T*>(data_);
+		}
+		template <typename T>
+		T* Pointer()
+		{
+			return static_cast<T*>(data_);
+		}
+
+		uint32_t RowPitch() const { return row_pitch_; }
+		uint32_t SlicePitch() const { return slice_pitch_; }
+
+	private:
+		Texture &texture_;
+
+		void *data_;
+		uint32_t row_pitch_, slice_pitch_;
+
+		CubeFaces mapped_face_;
+		uint32_t mapped_level_;
+	};
+
 	class Texture
 	{
 	public:
-		explicit Texture(TextureType type, uint32_t sample_count,
-			uint32_t access_hint);
+		explicit Texture(TextureType type, uint32_t sample_count, uint32_t access_hint);
 		virtual ~Texture() { }
 
 		virtual void CreateResource(ArrayRef<ElementInitData> init_data) = 0;
@@ -71,19 +107,20 @@ namespace gleam
 
 		virtual void BuildMipSubLevels() = 0;
 
-		virtual void Map1D(uint32_t level, TextureAccess access,
+		virtual void Map1D(uint32_t level, TextureMapAccess access,
 			uint32_t x_offset, uint32_t width,
 			void*& data) = 0;
-		virtual void Map2D(uint32_t level, TextureAccess access,
+		virtual void Map2D(uint32_t level, TextureMapAccess access,
 			uint32_t x_offset, uint32_t y_offset, uint32_t width, uint32_t height,
 			void*& data, uint32_t& row_pitch) = 0;
-		virtual void MapCube(CubeFaces face, uint32_t level, TextureAccess access,
+		virtual void MapCube(CubeFaces face, uint32_t level, TextureMapAccess access,
 			uint32_t x_offset, uint32_t y_offset, uint32_t width, uint32_t height,
 			void*& data, uint32_t& row_pitch) = 0;
 
 		virtual void Unmap1D(uint32_t level) = 0;
 		virtual void Unmap2D(uint32_t level) = 0;
 		virtual void UnmapCube(CubeFaces face, uint32_t level) = 0;
+
 	protected:
 		uint32_t		num_mip_maps_;
 			
@@ -96,8 +133,7 @@ namespace gleam
 	class OGLTexture : public Texture
 	{
 	public:
-		OGLTexture(TextureType type, uint32_t array_size, uint32_t sample_count,
-			uint32_t access_hint);
+		OGLTexture(TextureType type, uint32_t sample_count, uint32_t access_hint);
 
 		GLuint GLTexture() const { return texture_; }
 		GLenum GLType() const { return target_type_; }
@@ -125,13 +161,13 @@ namespace gleam
 
 		void BuildMipSubLevels() override;
 
-		void Map1D(uint32_t level, TextureAccess access,
+		void Map1D(uint32_t level, TextureMapAccess access,
 			uint32_t x_offset, uint32_t width,
 			void*& data) override;
-		void Map2D(uint32_t level, TextureAccess access,
+		void Map2D(uint32_t level, TextureMapAccess access,
 			uint32_t x_offset, uint32_t y_offset, uint32_t width, uint32_t height,
 			void*& data, uint32_t& row_pitch) override;
-		void MapCube(CubeFaces face, uint32_t level, TextureAccess access,
+		void MapCube(CubeFaces face, uint32_t level, TextureMapAccess access,
 			uint32_t x_offset, uint32_t y_offset, uint32_t width, uint32_t height,
 			void*& data, uint32_t& row_pitch) override;
 
@@ -147,7 +183,7 @@ namespace gleam
 		GLenum target_type_;
 		GLuint pbo_;
 		std::vector<uint32_t> mipmap_start_offset_;
-		TextureAccess last_ta_;
+		TextureMapAccess last_access_;
 
 		std::map<GLenum, GLint> tex_param_i_;
 		std::map<GLenum, GLfloat> tex_param_f_;
@@ -170,7 +206,7 @@ namespace gleam
 			uint32_t dst_level, uint32_t dst_x_offset, uint32_t dst_width,
 			uint32_t src_level, uint32_t src_x_offset, uint32_t src_width) override;
 
-		void Map1D(uint32_t level, TextureAccess access,
+		void Map1D(uint32_t level, TextureMapAccess access,
 			uint32_t x_offset, uint32_t width,
 			void*& data) override;
 		void Unmap1D(uint32_t level) override;
@@ -181,7 +217,7 @@ namespace gleam
 	class OGLTexture2D : public OGLTexture
 	{
 	public:
-		OGLTexture2D(uint32_t width, uint32_t height, uint32_t num_mip_maps, uint32_t array_size,
+		OGLTexture2D(uint32_t width, uint32_t height, uint32_t num_mip_maps,
 			ElementFormat format, uint32_t sample_count, uint32_t access_hint);
 
 		uint32_t Width(uint32_t level) const override;
@@ -193,7 +229,7 @@ namespace gleam
 			uint32_t dst_level, uint32_t dst_x_offset, uint32_t dst_y_offset, uint32_t dst_width, uint32_t dst_height,
 			uint32_t src_level, uint32_t src_x_offset, uint32_t src_y_offset, uint32_t src_width, uint32_t src_height) override;
 
-		void Map2D(uint32_t level, TextureAccess access,
+		void Map2D(uint32_t level, TextureMapAccess access,
 			uint32_t x_offset, uint32_t y_offset, uint32_t width, uint32_t height,
 			void*& data, uint32_t& row_pitch) override;
 		void Unmap2D(uint32_t level) override;
@@ -205,7 +241,7 @@ namespace gleam
 	class OGLTextureCube : public OGLTexture
 	{
 	public:
-		OGLTextureCube(uint32_t size, uint32_t numMipMaps, uint32_t array_size, ElementFormat format,
+		OGLTextureCube(uint32_t size, uint32_t num_mip_maps, ElementFormat format,
 			uint32_t sample_count, uint32_t access_hint);
 
 		uint32_t Width(uint32_t level) const;
@@ -217,7 +253,7 @@ namespace gleam
 			CubeFaces dst_face, uint32_t dst_level, uint32_t dst_x_offset, uint32_t dst_y_offset, uint32_t dst_width, uint32_t dst_height,
 			CubeFaces src_face, uint32_t src_level, uint32_t src_x_offset, uint32_t src_y_offset, uint32_t src_width, uint32_t src_height) override;
 
-		void MapCube(CubeFaces face, uint32_t level, TextureAccess access,
+		void MapCube(CubeFaces face, uint32_t level, TextureMapAccess access,
 			uint32_t x_offset, uint32_t y_offset, uint32_t width, uint32_t height,
 			void*& data, uint32_t& row_pitch) override;
 		void UnmapCube(CubeFaces face, uint32_t level) override;
