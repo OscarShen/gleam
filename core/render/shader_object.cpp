@@ -64,6 +64,10 @@ namespace gleam {
 		{
 			u->StoreUniformLocation(glsl_program_);
 		}
+		for (const auto &s : samplers_)
+		{
+			s->StoreUniformLocation(glsl_program_);
+		}
 		for (const auto &ub : uniform_buffers_)
 		{
 			ub->StoreUniformBlockIndex(glsl_program_);
@@ -121,6 +125,13 @@ namespace gleam {
 			uniforms_.push_back(checked_pointer_cast<OGLUniform>(uniforms[i]));
 		}
 	}
+	void OGLShaderObject::SetSamplers(const std::vector<UniformPtr>& samplers)
+	{
+		for (size_t i = 0; i < samplers.size(); ++i)
+		{
+			samplers_.push_back(checked_pointer_cast<OGLUniform>(samplers[i]));
+		}
+	}
 	void OGLShaderObject::SetUniformBuffers(const std::vector<UniformBufferPtr>& uniform_buffers)
 	{
 		for (size_t i = 0; i < uniform_buffers.size(); ++i)
@@ -137,7 +148,17 @@ namespace gleam {
 				return u;
 			}
 		}
-		WARNING(false, "can't find uniform : " << uniform_name);
+		return nullptr;
+	}
+	UniformPtr OGLShaderObject::GetSamplerByName(const std::string & sampler_name)
+	{
+		for (const auto &u : samplers_)
+		{
+			if (u->Name() == sampler_name)
+			{
+				return u;
+			}
+		}
 		return nullptr;
 	}
 	void OGLShaderObject::LoadUniforms()
@@ -146,6 +167,10 @@ namespace gleam {
 		for (auto &u : uniforms_)
 		{
 			u->Load();
+		}
+		for (auto &s : samplers_)
+		{
+			s->Load();
 		}
 		for (auto &ub : uniform_buffers_)
 		{

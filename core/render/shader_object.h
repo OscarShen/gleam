@@ -42,9 +42,11 @@ namespace gleam
 
 		virtual void SetAttrib(VertexElementUsage usage, uint8_t usage_index, const AttribPtr &attrib) = 0;
 		virtual void SetUniforms(const std::vector<UniformPtr> &uniforms) = 0;
+		virtual void SetSamplers(const std::vector<UniformPtr> &sampler) = 0;
 		virtual void SetUniformBuffers(const std::vector<UniformBufferPtr> &uniform_buffers) = 0;
 
 		virtual UniformPtr GetUniformByName(const std::string &uniform_name) = 0;
+		virtual UniformPtr GetSamplerByName(const std::string &sampler_name) = 0;
 
 		virtual void LoadUniforms() = 0;
 
@@ -52,13 +54,6 @@ namespace gleam
 
 	protected:
 		bool has_tessellation;
-	};
-
-	struct TextureBind
-	{
-		GraphicsBufferPtr texture_buffer;
-		TexturePtr texture;
-		SamplerStateObjectPtr sampler_state;
 	};
 
 	class OGLShaderObject : public ShaderObject
@@ -76,16 +71,18 @@ namespace gleam
 		GLint GetAttribLocation(VertexElementUsage usage, uint8_t usage_index);
 		void SetAttrib(VertexElementUsage usage, uint8_t usage_index, const AttribPtr &attrib) override;
 		void SetUniforms(const std::vector<UniformPtr> &uniforms) override;
+		void SetSamplers(const std::vector<UniformPtr> &samplers) override;
 		void SetUniformBuffers(const std::vector<UniformBufferPtr> &uniform_buffers) override;
 
 		UniformPtr GetUniformByName(const std::string &uniform_name) override;
+		UniformPtr GetSamplerByName(const std::string &sampler_name) override;
 
 		void LoadUniforms() override;
 
 	protected:
 		std::vector<OGLUniformPtr> uniforms_;
 		std::vector<OGLUniformBufferPtr> uniform_buffers_;
-		std::vector<TextureBind> textures_;
+		std::vector<OGLUniformPtr> samplers_;
 		GLuint glsl_program_;
 
 		std::map<std::pair<VertexElementUsage, uint8_t>, OGLAttribPtr> attribs_;
