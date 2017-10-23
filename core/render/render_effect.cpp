@@ -96,6 +96,25 @@ namespace gleam
 		}
 		return ret;
 	}
+	const std::vector<UniformPtr>& RenderEffect::GetSamplersByName(uint32_t shader_type, const std::string & shader_name)
+	{
+		assert(shader_type < ST_NumShaderTypes);
+		const auto &shader_type_samplers = shader_samplers[shader_type];
+		auto iter = shader_type_samplers.find(shader_name);
+		return iter->second;
+	}
+	std::vector<UniformPtr> RenderEffect::GetSamplersCopyByName(uint32_t shader_type, const std::string & shader_name)
+	{
+		assert(shader_type < ST_NumShaderTypes);
+		const auto &shader_type_samplers = shader_samplers[shader_type];
+		const std::vector<UniformPtr> &uniform_buffers = shader_type_samplers.find(shader_name)->second;
+		std::vector<UniformPtr> ret(uniform_buffers.size());
+		for (size_t i = 0; i < uniform_buffers.size(); ++i)
+		{
+			ret[i] = uniform_buffers[i]->CopyResource();
+		}
+		return ret;
+	}
 	void RenderEffect::Load(const std::string & name)
 	{
 		this->name_ = name;
@@ -185,10 +204,98 @@ namespace gleam
 				assert(!uniform_name.empty());
 
 				UniformPtr uniform = re.MakeUniform(uniform_type);
-				uniform->Name(uniform_name);
-				assert(uniform);
 
-				shader_uniforms_[shader_type][name].push_back(uniform);
+				assert(uniform);
+				if (uniform_type == UT_Sampler)
+				{
+					uniform->Name(uniform_name);
+					SamplerStateDesc desc;
+
+					for (TiXmlElement *state_node = uniform_node->FirstChildElement("state");
+						state_node; state_node = state_node->NextSiblingElement("state"))
+					{
+						std::string type = state_node->Attribute("name");
+						if (type == "filtering")
+						{
+							std::string value = state_node->Attribute("value");
+							TextureFilterOpFromString(desc.filter, value);
+						}
+						else if (type == "address_u")
+						{
+							std::string value = state_node->Attribute("value");
+							TextureAddressingModeFromString(desc.addr_mode_u, value);
+						}
+						else if (type == "address_v")
+						{
+							std::string value = state_node->Attribute("value");
+							TextureAddressingModeFromString(desc.addr_mode_v, value);
+						}
+						else if (type == "address_w")
+						{
+							std::string value = state_node->Attribute("value");
+							TextureAddressingModeFromString(desc.addr_mode_w, value);
+						}
+						else if (type == "max_anisotropy")
+						{
+							std::string value = state_node->Attribute("value");
+							desc.max_anisotropy = boost::lexical_cast<uint8_t>(value);
+						}
+						else if (type == "min_lod")
+						{
+							std::string value = state_node->Attribute("value");
+							desc.min_lod = boost::lexical_cast<float>(value);
+						}
+						else if (type == "max_lod")
+						{
+							std::string value = state_node->Attribute("value");
+							desc.max_lod = boost::lexical_cast<float>(value);
+						}
+						else if (type == "mip_map_lod_bias")
+						{
+							std::string value = state_node->Attribute("value");
+							desc.mip_map_lod_bias = boost::lexical_cast<float>(value);
+						}
+						else if (type == "cmp_func")
+						{
+							std::string value = state_node->Attribute("value");
+							CompareFunctionFromString(desc.cmp_func, value);
+						}
+						else if (type == "border_color")
+						{
+							const char *attr = state_node->Attribute("r");
+							if (attr)
+							{
+								desc.border_color.r = boost::lexical_cast<float>(attr);
+							}
+							attr = state_node->Attribute("g");
+							if (attr)
+							{
+								desc.border_color.g = boost::lexical_cast<float>(attr);
+							}
+							attr = state_node->Attribute("b");
+							if (attr)
+							{
+								desc.border_color.b = boost::lexical_cast<float>(attr);
+							}
+							attr = state_node->Attribute("a");
+							if (attr)
+							{
+								desc.border_color.a = boost::lexical_cast<float>(attr);
+							}
+						}
+						else
+							CHECK_INFO(false, "Invalid sampler state name : " << uniform_name);
+					}
+
+					SamplerStateObjectPtr sampler_state = re.MakeSamplerStateObject(desc);
+					*uniform = sampler_state;
+					shader_samplers[shader_type][name].push_back(uniform);
+				}
+				else
+				{
+					uniform->Name(uniform_name);
+					shader_uniforms_[shader_type][name].push_back(uniform);
+				}
 			}
 
 			for (TiXmlElement *uniform_buffer_node = shader_node->FirstChildElement("uniform_buffer");
@@ -555,6 +662,8 @@ namespace gleam
 
 				std::vector<UniformPtr> uniforms = effect.GetUniformsCopyByName(type, name);
 				shader_obj->SetUniforms(uniforms);
+				std::vector<UniformPtr> samplers = effect.GetSamplersCopyByName(type, name);
+				shader_obj->SetSamplers(samplers);
 
 				std::vector<UniformBufferPtr> uniform_buffers = effect.GetUniformBuffersCopyByName(type, name);
 				shader_obj->SetUniformBuffers(uniform_buffers);

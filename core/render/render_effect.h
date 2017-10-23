@@ -67,7 +67,8 @@ namespace gleam
 		std::vector<UniformPtr> GetUniformsCopyByName(uint32_t shader_type, const std::string &shader_name);
 		const std::vector<UniformBufferPtr> &GetUniformBuffersByName(uint32_t shader_type, const std::string &shader_name);
 		std::vector<UniformBufferPtr> GetUniformBuffersCopyByName(uint32_t shader_type, const std::string &shader_name);
-
+		const std::vector<UniformPtr> &GetSamplersByName(uint32_t shader_type, const std::string &shader_name);
+		std::vector<UniformPtr> GetSamplersCopyByName(uint32_t shader_type, const std::string &shader_name);
 
 		void Load(const std::string &name);
 
@@ -80,6 +81,7 @@ namespace gleam
 		std::array<std::unordered_map<std::string, std::string>, ST_NumShaderTypes> shader_codes_;
 		std::array<std::unordered_map<std::string, std::vector<UniformPtr>>, ST_NumShaderTypes> shader_uniforms_;
 		std::array<std::unordered_map<std::string, std::vector<UniformBufferPtr>>, ST_NumShaderTypes> shader_uniform_buffer_;
+		std::array<std::unordered_map<std::string, std::vector<UniformPtr>>, ST_NumShaderTypes> shader_samplers;
 		std::unordered_map<std::string, std::vector<AttribPtr>> shader_attribs_;
 
 		std::vector<RenderTechniquePtr> techniques_;

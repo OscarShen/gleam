@@ -1,5 +1,11 @@
 #include "uniform.h"
 #include <glm/gtc/type_ptr.hpp>
+#include "texture.h"
+#include "render_state.h"
+#include "graphics_buffer.h"
+#include <base/context.h>
+#include "render_engine.h"
+#include "ogl_util.h"
 namespace gleam {
 	void OGLUniform::StoreUniformLocation(GLuint program)
 	{
@@ -28,6 +34,8 @@ namespace gleam {
 	{
 		std::shared_ptr<OGLUniformBool> u = std::make_shared<OGLUniformBool>();
 		u->name_ = this->name_;
+		u->data_ = this->data_;
+		u->dirty_ = true;
 		return u;
 	}
 	Uniform & OGLUniformFloat::operator=(const float & value)
@@ -70,25 +78,45 @@ namespace gleam {
 	{
 		std::shared_ptr<OGLUniformFloat> u = std::make_shared<OGLUniformFloat>();
 		u->name_ = this->name_;
+		u->data_ = this->data_;
+		u->dirty_ = true;
 		return u;
+	}
+	Uniform & OGLUniformSampler::operator=(const SamplerStateObjectPtr & value)
+	{
+		if(data_.sampler_state != value)
+		{
+			dirty_ = true;
+			data_.sampler_state = value;
+		}
+		return *this;
+	}
+	Uniform & OGLUniformSampler::operator=(const TexturePtr & value)
+	{
+		if (data_.texture != value)
+		{
+			dirty_ = true;
+			data_.texture = value;
+		}
+		return *this;
 	}
 	Uniform & OGLUniformSampler::operator=(const uint32_t & value)
 	{
-		GLint v = static_cast<GLint>(value);
-		if (v != data_)
+		GLuint unit = static_cast<GLuint>(value);
+		if (data_.unit != unit)
 		{
 			dirty_ = true;
-			data_ = v;
+			data_.unit = unit;
 		}
 		return *this;
 	}
 	Uniform & OGLUniformSampler::operator=(const int32_t & value)
 	{
-		GLint v = static_cast<GLint>(value);
-		if (v != data_)
+		GLuint unit = static_cast<GLuint>(value);
+		if (data_.unit != unit)
 		{
 			dirty_ = true;
-			data_ = v;
+			data_.unit = unit;
 		}
 		return *this;
 	}
@@ -96,7 +124,10 @@ namespace gleam {
 	{
 		if (dirty_)
 		{
-			glProgramUniform1i(program_, location_, data_);
+			OGLTexture &gl_texture = *checked_pointer_cast<OGLTexture>(data_.texture);
+			OGLSamplerStateObject &gl_sampler_state = *checked_pointer_cast<OGLSamplerStateObject>(data_.sampler_state);
+			glBindTextureUnit(data_.unit, gl_texture.GLTexture());
+			glBindSampler(data_.unit, gl_sampler_state.GLSampler());
 			dirty_ = false;
 		}
 	}
@@ -104,6 +135,8 @@ namespace gleam {
 	{
 		std::shared_ptr<OGLUniformSampler> u = std::make_shared<OGLUniformSampler>();
 		u->name_ = this->name_;
+		u->data_ = this->data_;
+		u->dirty_ = true;
 		return u;
 	}
 	Uniform & OGLUniformVec2::operator=(const glm::vec2 & value)
@@ -127,6 +160,8 @@ namespace gleam {
 	{
 		std::shared_ptr<OGLUniformVec2> u = std::make_shared<OGLUniformVec2>();
 		u->name_ = this->name_;
+		u->data_ = this->data_;
+		u->dirty_ = true;
 		return u;
 	}
 	Uniform & OGLUniformVec3::operator=(const glm::vec3 & value)
@@ -150,6 +185,8 @@ namespace gleam {
 	{
 		std::shared_ptr<OGLUniformVec3> u = std::make_shared<OGLUniformVec3>();
 		u->name_ = this->name_;
+		u->data_ = this->data_;
+		u->dirty_ = true;
 		return u;
 	}
 	Uniform & OGLUniformVec4::operator=(const glm::vec4 & value)
@@ -173,6 +210,8 @@ namespace gleam {
 	{
 		std::shared_ptr<OGLUniformVec4> u = std::make_shared<OGLUniformVec4>();
 		u->name_ = this->name_;
+		u->data_ = this->data_;
+		u->dirty_ = true;
 		return u;
 	}
 	Uniform & OGLUniformMatrix4::operator=(const glm::mat4 & value)
@@ -196,6 +235,8 @@ namespace gleam {
 	{
 		std::shared_ptr<OGLUniformMatrix4> u = std::make_shared<OGLUniformMatrix4>();
 		u->name_ = this->name_;
+		u->data_ = this->data_;
+		u->dirty_ = true;
 		return u;
 	}
 	void OGLUniformBuffer::StoreUniformBlockIndex(GLuint program)
@@ -224,6 +265,12 @@ namespace gleam {
 	{
 		std::shared_ptr<OGLUniformBuffer> u = std::make_shared<OGLUniformBuffer>();
 		u->name_ = this->name_;
+		if (this->data_)
+		{
+			u->data_ = Context::Instance().RenderEngineInstance().MakeConstantBuffer(this->data_->Usage(), this->data_->AccessHint(), this->data_->Size(), nullptr);
+			this->data_->CopyToBuffer(*u->data_);
+		}
+		u->dirty_ = true;
 		return u;
 	}
 	void UniformTypeFromString(UniformType & type, const std::string & name)

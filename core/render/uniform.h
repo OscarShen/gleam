@@ -36,14 +36,16 @@ namespace gleam {
 
 		virtual void Load() = 0;
 
-		virtual Uniform &operator=(const bool &value)	   { CHECK_INFO(false, "no impl..."); return *this; }
-		virtual Uniform &operator=(const uint32_t &value)  { CHECK_INFO(false, "no impl..."); return *this; }
-		virtual Uniform &operator=(const int32_t &value)   { CHECK_INFO(false, "no impl..."); return *this; }
-		virtual Uniform &operator=(const float &value)     { CHECK_INFO(false, "no impl..."); return *this; }
-		virtual Uniform &operator=(const glm::vec2 &value) { CHECK_INFO(false, "no impl..."); return *this; }
-		virtual Uniform &operator=(const glm::vec3 &value) { CHECK_INFO(false, "no impl..."); return *this; }
-		virtual Uniform &operator=(const glm::vec4 &value) { CHECK_INFO(false, "no impl..."); return *this; }
-		virtual Uniform &operator=(const glm::mat4 &value) { CHECK_INFO(false, "no impl..."); return *this; }
+		virtual Uniform &operator=(const bool &value)					{ CHECK_INFO(false, "no impl..."); return *this; }
+		virtual Uniform &operator=(const uint32_t &value)				{ CHECK_INFO(false, "no impl..."); return *this; }
+		virtual Uniform &operator=(const int32_t &value)				{ CHECK_INFO(false, "no impl..."); return *this; }
+		virtual Uniform &operator=(const float &value)					{ CHECK_INFO(false, "no impl..."); return *this; }
+		virtual Uniform &operator=(const glm::vec2 &value)				{ CHECK_INFO(false, "no impl..."); return *this; }
+		virtual Uniform &operator=(const glm::vec3 &value)				{ CHECK_INFO(false, "no impl..."); return *this; }
+		virtual Uniform &operator=(const glm::vec4 &value)				{ CHECK_INFO(false, "no impl..."); return *this; }
+		virtual Uniform &operator=(const glm::mat4 &value)				{ CHECK_INFO(false, "no impl..."); return *this; }
+		virtual Uniform &operator=(const SamplerStateObjectPtr &value)	{ CHECK_INFO(false, "no impl..."); return *this; }
+		virtual Uniform &operator=(const TexturePtr &value)				{ CHECK_INFO(false, "no impl..."); return *this; }
 
 		virtual UniformPtr CopyResource() const = 0;
 
@@ -66,7 +68,6 @@ namespace gleam {
 
 	typedef std::shared_ptr<OGLUniform> OGLUniformPtr;
 
-	// TODO, add some other operations
 	template <typename T>
 	class OGLUniformTemplate : public OGLUniform
 	{
@@ -96,9 +97,18 @@ namespace gleam {
 		UniformPtr CopyResource() const override;
 	};
 
-	class OGLUniformSampler : public OGLUniformTemplate<GLint>
+	struct TextureBind
+	{
+		TexturePtr texture;
+		SamplerStateObjectPtr sampler_state;
+		GLuint unit;
+	};
+
+	class OGLUniformSampler : public OGLUniformTemplate<TextureBind>
 	{
 	public:
+		Uniform &operator=(const SamplerStateObjectPtr &value) override;
+		Uniform &operator=(const TexturePtr &value) override;
 		Uniform &operator=(const uint32_t &value) override;
 		Uniform &operator=(const int32_t &value) override;
 		void Load() override;
