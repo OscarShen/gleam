@@ -736,6 +736,65 @@ namespace gleam {
 		else
 			CHECK_INFO(false, "Invalid stencil operation : " << name);
 	}
+	void TextureAddressingModeFromString(TexAddressingMode & mode, const std::string & name)
+	{
+		//// Texture wraps at values over 1.0
+		//TAM_Wrap,
+		//	// Texture mirrors (flips) at joins over 1.0
+		//	TAM_Mirror,
+		//	// Texture clamps at 1.0
+		//	TAM_Clamp,
+		//	// Texture coordinates outside the range [0.0, 1.0] are set to the border color.
+		//	TAM_Border
+		if (name == "wrap")
+			mode = TAM_Wrap;
+		else if (name == "mirror")
+			mode = TAM_Mirror;
+		else if (name == "clamp")
+			mode = TAM_Clamp;
+		else if (name == "border")
+			mode = TAM_Border;
+		else 
+			CHECK_INFO(false, "Invalid texture addressing mode : " << name);
+	}
+	void TextureFilterOpFromString(TexFilterOp & op, const std::string & name)
+	{
+		int cmp;
+		std::string f;
+		if (0 == name.find("cmp_"))
+		{
+			cmp = 1;
+			f = name.substr(4);
+		}
+		else
+		{
+			cmp = 0;
+			f = name;
+		}
+
+		if (f == "min_mag_mip_nearest")
+			op = TFO_Min_Mag_Mip_Point;
+		else if (f == "min_mag_nearest_mip_linear")
+			op = TFO_Min_Mag_Point_Mip_Linear;
+		else if (f == "min_nearest_mag_linear_mip_nearest")
+			op = TFO_Min_Point_Mag_Linear_Mip_Point;
+		else if (f == "min_nearest_mag_mip_linear")
+			op = TFO_Min_Point_Mag_Mip_Linear;
+		else if (f == "min_linear_mag_mip_nearest")
+			op = TFO_Min_Linear_Mag_Mip_Point;
+		else if (f == "min_linear_mag_nearest_mip_linear")
+			op = TFO_Min_Linear_Mag_Point_Mip_Linear;
+		else if (f == "min_mag_linear_mip_nearest")
+			op = TFO_Min_Mag_Linear_Mip_Point;
+		else if (f == "min_mag_mip_linear")
+			op = TFO_Min_Mag_Mip_Linear;
+		else if (f == "anisotropic")
+			op = TFO_Anisotropic;
+		else
+			CHECK_INFO(false, "Invalid texture filter operation : " << name);
+
+		op = static_cast<TexFilterOp>(op + (cmp << 4));
+	}
 	void LogicOperationFromString(LogicOperation & logic_op, const std::string & name)
 	{
 		//LOP_Clear,

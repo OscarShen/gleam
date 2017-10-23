@@ -149,6 +149,7 @@ namespace gleam
 		// Texture coordinates outside the range [0.0, 1.0] are set to the border color.
 		TAM_Border
 	};
+	void TextureAddressingModeFromString(TexAddressingMode &mode, const std::string &name);
 
 	enum TexFilterOp
 	{
@@ -183,6 +184,7 @@ namespace gleam
 		TFO_Cmp_Min_Mag_Mip_Linear = TFOE_Comparison | TFO_Min_Mag_Mip_Linear,
 		TFO_Cmp_Anisotropic = TFOE_Comparison | TFO_Anisotropic
 	};
+	void TextureFilterOpFromString(TexFilterOp &op, const std::string& name);
 
 	enum LogicOperation
 	{
