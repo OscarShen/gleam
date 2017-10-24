@@ -5,6 +5,7 @@
 #include "mapping.h"
 #include "render_engine.h"
 #include <base/context.h>
+#include "ogl_util.h"
 
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image/stb_image.h>
@@ -31,17 +32,16 @@ namespace gleam {
 		};
 
 	public:
-		TextureLoadingDesc(const std::string &name, uint32_t access_hint, TextureType type)
+		TextureLoadingDesc(const std::string &name, uint32_t access_hint)
 		{
 			texture_desc.name = name;
 			texture_desc.access_hint = access_hint;
 			texture_desc.texture_data = std::make_shared<TextureDesc::TextureData>();
-			texture_desc.texture_data->type = type;
 		}
 
 		uint64_t Type() const override
 		{
-			static const uint32_t type = CT_HASH("TextureLoadingDesc");
+			static const uint64_t type = CT_HASH("TextureLoadingDesc");
 			return type;
 		}
 
@@ -57,12 +57,39 @@ namespace gleam {
 				tex_data.init_data,
 				tex_data.data_block));
 
-			const TexturePtr &texture = texture_desc.texture;
+			RenderEngine &re = Context::Instance().RenderEngineInstance();
+			switch (tex_data.type)
+			{
+			case TT_1D:
+				texture_desc.texture = re.MakeTextureHandler1D(tex_data.width, 0, tex_data.format, 1, texture_desc.access_hint);
+				break;
+			case TT_2D:
+				texture_desc.texture = re.MakeTexture2D(tex_data.width, tex_data.height, 0, tex_data.format, 1, texture_desc.access_hint, tex_data.init_data);
+				break;
+			case TT_Cube:
+				texture_desc.texture = re.MakeTextureHandlerCube(tex_data.width, 0, tex_data.format, 1, texture_desc.access_hint);
+				break;
+			default:
+				CHECK_INFO(false, "Invalid texture type : " << tex_data.type);
+				break;
+			}
 		}
 
-		virtual bool Match(const ResLoadingDesc &rhs) const = 0;
+		bool Match(const ResLoadingDesc &rhs) const override
+		{
+			if (this->Type() == rhs.Type())
+			{
+				const TextureLoadingDesc & tld = static_cast<const TextureLoadingDesc&>(rhs);
+				return texture_desc.name == tld.texture_desc.name &&
+					texture_desc.access_hint == tld.texture_desc.access_hint;
+			}
+			return false;
+		}
 
-		virtual std::shared_ptr<void> Resource() const = 0;
+		std::shared_ptr<void> Resource() const override
+		{
+			return texture_desc.texture;
+		}
 
 	private:
 		TextureDesc texture_desc;
@@ -145,12 +172,11 @@ namespace gleam {
 		default:
 			std::cout << "Invalid texture type" << std::endl;
 			break;
-
-			if (sample_count_ <= 1)
-				glCreateTextures(target_type_, 1, &texture_);
-			else
-				glGenRenderbuffers(1, &texture_);
 		}
+		if (sample_count_ <= 1)
+			glCreateTextures(target_type_, 1, &texture_);
+		else
+			glGenRenderbuffers(1, &texture_);
 	}
 	void OGLTexture::Map1D(uint32_t level, TextureMapAccess access, uint32_t x_offset, uint32_t width, void *& data)
 	{
@@ -260,7 +286,7 @@ namespace gleam {
 			return pf;
 		}
 	}
-	OGLTexture1D::OGLTexture1D(uint32_t width, uint32_t num_mip_maps, uint32_t array_size, ElementFormat format, uint32_t sample_count, uint32_t access_hint)
+	OGLTexture1D::OGLTexture1D(uint32_t width, uint32_t num_mip_maps, ElementFormat format, uint32_t sample_count, uint32_t access_hint)
 		: OGLTexture(TT_1D, sample_count, access_hint)
 	{
 		format_ = format;
@@ -317,7 +343,7 @@ namespace gleam {
 			for (uint32_t level = 0; level < num_mip_maps_; ++level)
 			{
 				const uint32_t w = this->Width(level);
-				glTextureSubImage1D(texture_, level, 0, w, glformat, gltype, init_data.empty() ? nullptr : init_data[num_mip_maps_ + level].data);
+				glTextureSubImage1D(texture_, level, 0, w, glformat, gltype, init_data.empty() ? nullptr : init_data[level].data);
 			}
 		}
 		else
@@ -378,12 +404,13 @@ namespace gleam {
 		last_access_ = access;
 		const uint32_t texel_size = NumFormatBytes(format_);
 
-		uint8_t *p;
+		uint8_t *p = nullptr;
 		OGLRenderEngine &re = *checked_cast<OGLRenderEngine*>(&Context::Instance().RenderEngineInstance());
 		switch (access)
 		{
 		case gleam::TMA_Read_Only:
 		case gleam::TMA_Read_Write:
+		{
 			GLint gl_internalFormat;
 			GLenum gl_format;
 			GLenum gl_type;
@@ -395,11 +422,14 @@ namespace gleam {
 			glGetTextureImage(texture_, level, gl_format, gl_type, static_cast<GLsizei>(mipmap_start_offset_.back()), nullptr);
 			p = static_cast<uint8_t*>(glMapNamedBuffer(pbo_, GL_READ_ONLY));
 			break;
+		}
 		case gleam::TMA_Write_Only:
+		{
 			re.BindBuffer(GL_PIXEL_PACK_BUFFER, 0);
 			re.BindBuffer(GL_PIXEL_UNPACK_BUFFER, pbo_);
 			p = static_cast<uint8_t*>(glMapNamedBuffer(pbo_, GL_WRITE_ONLY));
 			break;
+		}
 		default:
 			CHECK_INFO(false, "Invalid texture map access...");
 			break;
@@ -419,6 +449,7 @@ namespace gleam {
 			break;
 		case gleam::TMA_Write_Only:
 		case gleam::TMA_Read_Write:
+		{
 			GLint gl_internalFormat;
 			GLenum gl_format;
 			GLenum gl_type;
@@ -434,6 +465,7 @@ namespace gleam {
 				static_cast<GLintptr>(mipmap_start_offset_[level]));
 			glTextureSubImage1D(texture_, level, 0, w, gl_format, gl_type, offset);
 			break;
+		}
 		default:
 			CHECK_INFO(false, "invalid texture map access : " << last_access_);
 			break;
@@ -466,7 +498,7 @@ namespace gleam {
 		height_ = height;
 		glCreateBuffers(1, &pbo_);
 
-		mipmap_start_offset_.resize(num_mip_maps + 1);
+		mipmap_start_offset_.resize(num_mip_maps_ + 1);
 		mipmap_start_offset_[0] = 0;
 		for (uint32_t level = 0; level < num_mip_maps_; ++level)
 		{
@@ -497,21 +529,14 @@ namespace gleam {
 		GLenum glformat;
 		GLenum gltype;
 		OGLMapping::MappingFormat(glinternalformat, glformat, gltype, format_);
-
 		if (sample_count_ <= 1)
 		{
 			glNamedBufferData(pbo_, mipmap_start_offset_.back(), nullptr, GL_STREAM_COPY);
 
-			glTextureStorage2D(texture_, num_mip_maps_, glinternalformat, width_, height_);
+			glBindTexture(target_type_, texture_);
+			glTexImage2D(target_type_, 0, glinternalformat, width_, height_, 0, glformat, gltype, init_data.empty() ? nullptr : init_data[0].data);
+			glGenerateTextureMipmap(texture_);
 			glTextureParameteri(texture_, GL_TEXTURE_MAX_LEVEL, num_mip_maps_ - 1);
-
-			for (uint32_t level = 0; level < num_mip_maps_; ++level)
-			{
-				const uint32_t w = this->Width(level);
-				const uint32_t h = this->Height(level);
-				glTextureSubImage2D(texture_, level, 0, 0, w, h, glformat, gltype,
-					init_data.empty() ? nullptr : init_data[num_mip_maps_ + level].data);
-			}
 		}
 		else
 		{
@@ -575,12 +600,13 @@ namespace gleam {
 
 		row_pitch = w * texel_size;
 
-		uint8_t *p;
+		uint8_t *p = nullptr;
 		OGLRenderEngine &re = *checked_cast<OGLRenderEngine*>(&Context::Instance().RenderEngineInstance());
 		switch (access)
 		{
 		case gleam::TMA_Read_Only:
 		case gleam::TMA_Read_Write:
+		{
 			GLint gl_internalFormat;
 			GLenum gl_format;
 			GLenum gl_type;
@@ -593,11 +619,14 @@ namespace gleam {
 
 			p = static_cast<uint8_t*>(glMapNamedBuffer(pbo_, GL_READ_ONLY));
 			break;
+		}
 		case gleam::TMA_Write_Only:
+		{
 			re.BindBuffer(GL_PIXEL_PACK_BUFFER, 0);
 			re.BindBuffer(GL_PIXEL_UNPACK_BUFFER, pbo_);
 			p = static_cast<uint8_t*>(glMapNamedBuffer(pbo_, GL_WRITE_ONLY));
 			break;
+		}
 		default:
 			CHECK_INFO(false, "Invalid texture map access : " << access);
 			break;
@@ -616,6 +645,7 @@ namespace gleam {
 			break;
 		case gleam::TMA_Write_Only:
 		case gleam::TMA_Read_Write:
+		{
 			GLint gl_internalFormat;
 			GLenum gl_format;
 			GLenum gl_type;
@@ -632,6 +662,7 @@ namespace gleam {
 				static_cast<GLintptr>(mipmap_start_offset_[level]));
 			glTextureSubImage2D(texture_, level, 0, 0, w, h, gl_format, gl_type, offset);
 			break;
+		}
 		default:
 			CHECK_INFO(false, "Invalid texture map access : " << last_access_);
 			break;
@@ -760,13 +791,14 @@ namespace gleam {
 
 		row_pitch = w * texel_size;
 
-		uint8_t* p;
+		uint8_t* p = nullptr;
 		OGLRenderEngine& re = *checked_cast<OGLRenderEngine*>(&Context::Instance().RenderEngineInstance());
 
 		switch (access)
 		{
 		case gleam::TMA_Read_Only:
 		case gleam::TMA_Read_Write:
+		{
 			GLint gl_internalFormat;
 			GLenum gl_format;
 			GLenum gl_type;
@@ -781,11 +813,14 @@ namespace gleam {
 
 			p = static_cast<uint8_t*>(glMapNamedBuffer(pbo_, GL_READ_ONLY));
 			break;
+		}
 		case gleam::TMA_Write_Only:
+		{
 			re.BindBuffer(GL_PIXEL_PACK_BUFFER, 0);
 			re.BindBuffer(GL_PIXEL_UNPACK_BUFFER, pbo_);
 			p = static_cast<uint8_t*>(glMapNamedBuffer(pbo_, GL_WRITE_ONLY));
 			break;
+		}
 		default:
 			CHECK_INFO(false, "Invalid texture map access : " << last_access_);
 			break;
@@ -805,6 +840,7 @@ namespace gleam {
 			break;
 		case gleam::TMA_Write_Only:
 		case gleam::TMA_Read_Write:
+		{
 			GLint gl_internalFormat;
 			GLenum gl_format;
 			GLenum gl_type;
@@ -821,25 +857,22 @@ namespace gleam {
 
 			glTextureSubImage3D(texture_, level, 0, 0, face, s, s, 1, gl_format, gl_type, offset);
 			break;
+		}
 		default:
 			CHECK_INFO(false, "Invalid texture map access : " << last_access_);
 			break;
 		}
 	}
 
-	TexturePtr LoadTexture(const std::string & name, uint32_t access_hint, TextureType type)
+	TexturePtr LoadTexture(const std::string & name, uint32_t access_hint)
 	{
-		return ResLoader::Instance().QueryT<Texture>(std::make_shared<TextureLoadingDesc>(name, access_hint, type));
+		return ResLoader::Instance().QueryT<Texture>(std::make_shared<TextureLoadingDesc>(name, access_hint));
 	}
-	bool LoadTexture(const std::string & name, TextureType type, uint32_t & width, uint32_t & height, ElementFormat & format, std::vector<ElementInitData> &init_data, std::vector<uint8_t>& data)
+	bool LoadTexture(const std::string & name, TextureType &type, uint32_t & width, uint32_t & height, ElementFormat & format, std::vector<ElementInitData> &init_data, std::vector<uint8_t>& data)
 	{
-		switch (type)
+		std::string file_name = ResLoader::Instance().Locate(name);
+		if (!file_name.empty()) // TT_1D, TT2D
 		{
-		case gleam::TT_1D:
-		case gleam::TT_2D:
-		{
-			std::string file_name = ResLoader::Instance().Locate(name);
-
 			int w, h, c;
 			uint8_t *image = stbi_load(file_name.c_str(), &w, &h, &c, 0);
 
@@ -850,9 +883,13 @@ namespace gleam {
 
 			width = w;
 			height = h;
-			if (type == TT_1D)
+			if (height == 1)
 			{
-				height = 1;
+				type = TT_1D;
+			}
+			else
+			{
+				type = TT_2D;
 			}
 			format = EF_Unknown;
 			switch (c)
@@ -886,7 +923,7 @@ namespace gleam {
 
 			return true;
 		}
-		case gleam::TT_Cube:
+		else // TT_Cube
 		{
 			std::function<std::string(int)> func = [](int i) -> std::string
 			{
@@ -915,9 +952,13 @@ namespace gleam {
 				size_t dot_pos = name.find_last_of('.');
 				assert(dot_pos != std::string::npos);
 
-				std::string file_name = name.substr(0, dot_pos) + func(i) + name.substr(dot_pos);
+				file_name = name.substr(0, dot_pos) + func(i) + name.substr(dot_pos);
 
 				file_name = ResLoader::Instance().Locate(file_name);
+				if (file_name.empty())
+				{
+					return false;
+				}
 
 				int w, h, c;
 				uint8_t *image = stbi_load(file_name.c_str(), &w, &h, &c, 0);
@@ -964,10 +1005,6 @@ namespace gleam {
 				std::copy_n(image, slice_pitch, (uint8_t *)init_data[i].data);
 			}
 			return true;
-		}
-		default:
-			CHECK_INFO(false, "invalid texture type : " << type << ", " << name);
-			return false;
 		}
 	}
 }

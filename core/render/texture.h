@@ -12,6 +12,7 @@
 #include <gleam.h>
 #include "element_format.h"
 #include <util/array_ref.hpp>
+#include <boost/noncopyable.hpp>
 namespace gleam
 {
 	enum TextureType
@@ -195,7 +196,7 @@ namespace gleam
 	class OGLTexture1D : public OGLTexture
 	{
 	public:
-		OGLTexture1D(uint32_t width, uint32_t num_mip_maps, uint32_t array_size,
+		OGLTexture1D(uint32_t width, uint32_t num_mip_maps,
 			ElementFormat format, uint32_t sample_count, uint32_t access_hint);
 
 		uint32_t Width(uint32_t level) const override;
@@ -262,8 +263,8 @@ namespace gleam
 		uint32_t width_;
 	};
 
-	TexturePtr LoadTexture(const std::string &name, uint32_t access_hint, TextureType type);
-	bool LoadTexture(const std::string &name, TextureType type, uint32_t &width, uint32_t &height,
+	TexturePtr LoadTexture(const std::string &name, uint32_t access_hint);
+	bool LoadTexture(const std::string &name, TextureType &type, uint32_t &width, uint32_t &height,
 		ElementFormat &format, std::vector<ElementInitData> &init_data, std::vector<uint8_t> &data);
 }
 #endif // !GLEAM_CORE_RENDER_TEXTURE_H_

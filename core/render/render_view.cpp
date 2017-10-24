@@ -138,12 +138,10 @@ namespace gleam {
 		OGLRenderEngine &re = *checked_cast<OGLRenderEngine*>(&Context::Instance().RenderEngineInstance());
 		re.BindFrameBuffer(0);
 	}
-	OGLTexture1DRenderView::OGLTexture1DRenderView(Texture & texture_1d, int array_index, int array_size, int level)
-		: texture_1d_(*checked_cast<OGLTexture1D*>(&texture_1d)), array_index_(array_index),
-		array_size_(array_size), level_(level)
+	OGLTexture1DRenderView::OGLTexture1DRenderView(Texture & texture_1d, int level)
+		: texture_1d_(*checked_cast<OGLTexture1D*>(&texture_1d)), level_(level)
 	{
 		assert(TextureType::TT_1D == texture_1d.Type());
-		assert((1 == array_size) || ((0 == array_index) && (static_cast<uint32_t>(array_size) == texture_1d_.ArraySize())));
 
 		texture_ = texture_1d_.GLTexture();
 
@@ -185,14 +183,7 @@ namespace gleam {
 		}
 		else
 		{
-			if (array_size_ > 1)
-			{
-				glNamedFramebufferTexture(fbo_, GL_COLOR_ATTACHMENT0 + att - ATT_Color0, texture_, level_);
-			}
-			else
-			{
-				glNamedFramebufferTextureLayer(fbo_, GL_COLOR_ATTACHMENT0 + att - ATT_Color0, texture_, level_, array_index_);
-			}
+			glNamedFramebufferTexture(fbo_, GL_COLOR_ATTACHMENT0 + att - ATT_Color0, texture_, level_);
 		}
 	}
 	void OGLTexture1DRenderView::OnDetached(FrameBuffer & fb, uint32_t att)
@@ -211,22 +202,13 @@ namespace gleam {
 		}
 		else
 		{
-			if (array_size_ > 1)
-			{
-				glNamedFramebufferTexture(fbo_, GL_COLOR_ATTACHMENT0 + att - ATT_Color0, 0, 0);
-			}
-			else
-			{
-				glNamedFramebufferTextureLayer(fbo_, GL_COLOR_ATTACHMENT0 + att - ATT_Color0, 0, 0, 0);
-			}
+			glNamedFramebufferTexture(fbo_, GL_COLOR_ATTACHMENT0 + att - ATT_Color0, 0, 0);
 		}
 	}
-	OGLTexture2DRenderView::OGLTexture2DRenderView(Texture & texture_2d, int array_index, int array_size, int level)
-		: texture_2d_(*checked_cast<OGLTexture2D*>(&texture_2d)), array_index_(array_index),
-		array_size_(array_size), level_(level)
+	OGLTexture2DRenderView::OGLTexture2DRenderView(Texture & texture_2d, int level)
+		: texture_2d_(*checked_cast<OGLTexture2D*>(&texture_2d)), level_(level)
 	{
 		assert(TextureType::TT_2D == texture_2d.Type());
-		assert((1 == array_size) || ((0 == array_index) && (static_cast<uint32_t>(array_size) == texture_2d_.ArraySize())));
 
 		texture_ = texture_2d_.GLTexture();
 
@@ -271,14 +253,7 @@ namespace gleam {
 		}
 		else
 		{
-			if (array_size_ > 1)
-			{
-				glNamedFramebufferTexture(fbo_, GL_COLOR_ATTACHMENT0 + att - ATT_Color0, texture_, level_);
-			}
-			else
-			{
-				glNamedFramebufferTextureLayer(fbo_, GL_COLOR_ATTACHMENT0 + att - ATT_Color0, texture_, level_, array_index_);
-			}
+			glNamedFramebufferTexture(fbo_, GL_COLOR_ATTACHMENT0 + att - ATT_Color0, texture_, level_);
 		}
 	}
 
@@ -298,128 +273,15 @@ namespace gleam {
 		}
 		else
 		{
-			if (array_size_ > 1)
-			{
-				glNamedFramebufferTexture(fbo_, GL_COLOR_ATTACHMENT0 + att - ATT_Color0, 0, 0);
-			}
-			else
-			{
-				glNamedFramebufferTextureLayer(fbo_, GL_COLOR_ATTACHMENT0 + att - ATT_Color0, 0, 0, 0);
-			}
+			glNamedFramebufferTexture(fbo_, GL_COLOR_ATTACHMENT0 + att - ATT_Color0, 0, 0);
 		}
 	}
 
-	OGLTexture3DRenderView::OGLTexture3DRenderView(Texture & texture_3d, int array_index, uint32_t slice, int level)
-		: texture_3d_(*checked_cast<OGLTexture3D*>(&texture_3d)), slice_(slice),
-		level_(level), copy_to_tex_(0)
-	{
-		assert(TT_3D == texture_3d.Type());
-		assert(texture_3d_.Depth(level) > slice);
-		assert(array_index == 0);
-
-		texture_ = texture_3d_.GLTexture();
-
-		width_ = texture_3d_.Width(level);
-		height_ = texture_3d.Height(level);
-		format_ = texture_3d.Format();
-	}
-
-	OGLTexture3DRenderView::~OGLTexture3DRenderView()
-	{
-		if (copy_to_tex_ == 2)
-		{
-			glDeleteTextures(1, &texture_2d_);
-		}
-	}
-
-	void OGLTexture3DRenderView::ClearColor(const Color & color)
-	{
-		assert(fbo_ != 0);
-		this->DoClear(GL_COLOR_BUFFER_BIT, color, 0, 0);
-	}
-
-	void OGLTexture3DRenderView::Discard()
-	{
-		this->DoDiscardColor();
-	}
-
-	void OGLTexture3DRenderView::OnAttached(FrameBuffer & fb, uint32_t att)
-	{
-		assert(att != ATT_DepthStencil);
-
-		index_ = att - ATT_Color0;
-		
-		OGLRenderEngine &re = *checked_cast<OGLRenderEngine*>(&Context::Instance().RenderEngineInstance());
-		fbo_ = checked_cast<OGLFrameBuffer*>(&fb)->OGLFbo();
-
-		if (copy_to_tex_ == 0)
-		{
-			glNamedFramebufferTexture3DEXT(fbo_, GL_COLOR_ATTACHMENT0, GL_TEXTURE_3D, texture_, level_, slice_);
-
-			GLenum status = glCheckNamedFramebufferStatus(fbo_, GL_FRAMEBUFFER);
-			if (status != GL_FRAMEBUFFER_COMPLETE)
-			{
-				glGenTextures(1, &texture_2d_);
-				re.BindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
-				glTextureImage2DEXT(texture_2d_, GL_TEXTURE_RECTANGLE, 0, GL_RGBA32F,
-					width_, height_, 0, GL_RGBA, GL_FLOAT, nullptr);
-
-				copy_to_tex_ = 2;
-			}
-			else
-			{
-				copy_to_tex_ = 1;
-			}
-		}
-
-		if (copy_to_tex_ == 1)
-		{
-			glNamedFramebufferTexture3DEXT(fbo_, GL_COLOR_ATTACHMENT0 + att - ATT_Color0, GL_TEXTURE_3D, texture_, level_, slice_);
-		}
-		else
-		{
-			assert(copy_to_tex_ == 2);
-			glNamedFramebufferTexture2DEXT(fbo_, GL_COLOR_ATTACHMENT0 + att - ATT_Color0, GL_TEXTURE_RECTANGLE, texture_2d_, 0);
-		}
-	}
-
-	void OGLTexture3DRenderView::OnDetached(FrameBuffer & fb, uint32_t att)
-	{
-		assert(att != ATT_DepthStencil);
-
-		assert(copy_to_tex_ != 0);
-		if (copy_to_tex_ == 1)
-		{
-			glNamedFramebufferTexture3DEXT(fbo_, GL_COLOR_ATTACHMENT0 + att - ATT_Color0, GL_TEXTURE_3D, 0, 0, 0);
-		}
-		else
-		{
-			assert(copy_to_tex_ == 2);
-			glNamedFramebufferTexture2DEXT(fbo_, GL_COLOR_ATTACHMENT0 + att - ATT_Color0, GL_TEXTURE_RECTANGLE, 0, 0);
-			this->CopyToSlice(att);
-		}
-	}
-
-	void OGLTexture3DRenderView::OnUnbind(FrameBuffer & fb, uint32_t att)
-	{
-		assert(copy_to_tex_ != 0);
-		if (copy_to_tex_ == 2)
-			this->CopyToSlice(att);
-	}
-
-	void OGLTexture3DRenderView::CopyToSlice(uint32_t att)
-	{
-		assert(att != ATT_DepthStencil);
-		glNamedFramebufferReadBuffer(fbo_, GL_COLOR_ATTACHMENT0 + att - ATT_Color0);
-		glCopyTextureSubImage3D(texture_, level_, 0, 0, slice_, 0, 0, width_, height_);
-	}
-
-	OGLTextureCubeRenderView::OGLTextureCubeRenderView(Texture & texture_cube, int array_index, CubeFaces face, int level)
+	OGLTextureCubeRenderView::OGLTextureCubeRenderView(Texture & texture_cube, CubeFaces face, int level)
 		: texture_cube_(*checked_cast<OGLTextureCube*>(&texture_cube)),
 		face_(face), level_(level)
 	{
 		assert(TT_Cube == texture_cube.Type());
-		assert(array_index == 0);
 
 		texture_ = texture_cube_.GLTexture();
 
@@ -428,13 +290,12 @@ namespace gleam {
 		format_ = texture_cube_.Format();
 	}
 
-	OGLTextureCubeRenderView::OGLTextureCubeRenderView(Texture& texture_cube, int array_index, int level)
+	OGLTextureCubeRenderView::OGLTextureCubeRenderView(Texture& texture_cube, int level)
 		: texture_cube_(*checked_cast<OGLTextureCube*>(&texture_cube)),
 		face_(static_cast<CubeFaces>(-1)),
 		level_(level)
 	{
 		assert(TT_Cube == texture_cube.Type());
-		assert(0 == array_index);
 
 		texture_ = texture_cube_.GLTexture();
 
@@ -575,8 +436,8 @@ namespace gleam {
 		glReadPixels(0, 0, width_, height_, glformat, gltype, nullptr);
 	}
 
-	OGLDepthStencilRenderView::OGLDepthStencilRenderView(uint32_t width, uint32_t height, ElementFormat format, uint32_t sample_count, uint32_t sample_quality)
-		: target_type_(0), array_index_(0),level_(-1),sample_count_(sample_count), sample_quality_(sample_quality)
+	OGLDepthStencilRenderView::OGLDepthStencilRenderView(uint32_t width, uint32_t height, ElementFormat format, uint32_t sample_count)
+		: target_type_(0), level_(-1),sample_count_(sample_count)
 	{
 		assert(IsDepthFormat(format));
 
@@ -596,12 +457,10 @@ namespace gleam {
 			glNamedRenderbufferStorageMultisample(rbo_, sample_count, internalFormat, width_, height_);
 	}
 
-	OGLDepthStencilRenderView::OGLDepthStencilRenderView(Texture & texture, int array_index, int array_size, int level)
-		: target_type_(checked_cast<OGLTexture*>(&texture)->GLType()),
-		array_index_(array_index), array_size_(array_size), level_(level)
+	OGLDepthStencilRenderView::OGLDepthStencilRenderView(Texture & texture, int level)
+		: target_type_(checked_cast<OGLTexture*>(&texture)->GLType()), level_(level)
 	{
 		assert(TT_2D == texture.Type() || TT_Cube == texture.Type());
-		assert((1 == array_size) || ((0 == array_index) && (static_cast<uint32_t>(array_size) == texture.ArraySize())));
 		assert(IsDepthFormat(texture.Format()));
 
 		width_ = texture.Width(level);
@@ -655,27 +514,13 @@ namespace gleam {
 			}
 			else
 			{
-				if (array_size_ > 1)
+				if (IsDepthFormat(format_))
 				{
-					if (IsDepthFormat(format_))
-					{
-						glNamedFramebufferTexture(fbo_, GL_DEPTH_ATTACHMENT, texture_, level_);
-					}
-					if (IsStencilFormat(format_))
-					{
-						glNamedFramebufferTexture(fbo_, GL_STENCIL_ATTACHMENT, texture_, level_);
-					}
+					glNamedFramebufferTexture(fbo_, GL_DEPTH_ATTACHMENT, texture_, level_);
 				}
-				else
+				if (IsStencilFormat(format_))
 				{
-					if (IsDepthFormat(format_))
-					{
-						glNamedFramebufferTextureLayer(fbo_, GL_DEPTH_ATTACHMENT, texture_, level_, array_index_);
-					}
-					if (IsStencilFormat(format_))
-					{
-						glNamedFramebufferTextureLayer(fbo_, GL_STENCIL_ATTACHMENT, texture_, level_, array_index_);
-					}
+					glNamedFramebufferTexture(fbo_, GL_STENCIL_ATTACHMENT, texture_, level_);
 				}
 			}
 		}
@@ -705,38 +550,23 @@ namespace gleam {
 			}
 			else
 			{
-				if (array_size_ > 1)
+				if (IsDepthFormat(format_))
 				{
-					if (IsDepthFormat(format_))
-					{
-						glNamedFramebufferTexture(fbo_, GL_DEPTH_ATTACHMENT, 0, 0);
-					}
-					if (IsStencilFormat(format_))
-					{
-						glNamedFramebufferTexture(fbo_, GL_STENCIL_ATTACHMENT, 0, 0);
-					}
+					glNamedFramebufferTexture(fbo_, GL_DEPTH_ATTACHMENT, 0, 0);
 				}
-				else
+				if (IsStencilFormat(format_))
 				{
-					if (IsDepthFormat(format_))
-					{
-						glNamedFramebufferTextureLayer(fbo_, GL_DEPTH_ATTACHMENT, 0, 0, 0);
-					}
-					if (IsStencilFormat(format_))
-					{
-						glNamedFramebufferTextureLayer(fbo_, GL_STENCIL_ATTACHMENT, 0, 0, 0);
-					}
+					glNamedFramebufferTexture(fbo_, GL_STENCIL_ATTACHMENT, 0, 0);
 				}
 			}
 		}
 	}
 
-	OGLTextureCubeDepthStencilRenderView::OGLTextureCubeDepthStencilRenderView(Texture & texture_cube, int array_index, CubeFaces face, int level)
+	OGLTextureCubeDepthStencilRenderView::OGLTextureCubeDepthStencilRenderView(Texture & texture_cube, CubeFaces face, int level)
 		: texture_cube_(*checked_cast<OGLTextureCube*>(&texture_cube)), face_(face), level_(level)
 	{
 		assert(TT_Cube == texture_cube.Type());
 		assert(IsDepthFormat(texture_cube.Format()));
-		assert(0 == array_index);
 
 		width_ = texture_cube.Width(level);
 		height_ = texture_cube.Height(level);

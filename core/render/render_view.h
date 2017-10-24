@@ -105,7 +105,7 @@ namespace gleam
 	class OGLTexture1DRenderView : public OGLRenderView
 	{
 	public:
-		OGLTexture1DRenderView(Texture &texture_1d, int array_index, int array_size, int level);
+		OGLTexture1DRenderView(Texture &texture_1d, int level);
 
 		void ClearColor(Color const & clr) override;
 
@@ -116,8 +116,6 @@ namespace gleam
 
 	private:
 		OGLTexture &texture_1d_;
-		int array_index_;
-		int array_size_;
 		int level_;
 	};
 	typedef std::shared_ptr<OGLTexture1DRenderView> OGLTexture1DRenderViewPtr;
@@ -125,7 +123,7 @@ namespace gleam
 	class OGLTexture2DRenderView : public OGLRenderView
 	{
 	public:
-		OGLTexture2DRenderView(Texture &texture_2d, int array_index, int array_size, int level);
+		OGLTexture2DRenderView(Texture &texture_2d, int level);
 
 		void ClearColor(const Color &color) override;
 
@@ -135,43 +133,15 @@ namespace gleam
 		void OnDetached(FrameBuffer& fb, uint32_t att) override;
 	private:
 		OGLTexture2D &texture_2d_;
-		int array_index_;
-		int array_size_;
 		int level_;
 	};
 	typedef std::shared_ptr<OGLTexture2DRenderView> OGLTexture2DRenderViewPtr;
 
-	class OGLTexture3DRenderView : public OGLRenderView
-	{
-	public:
-		OGLTexture3DRenderView(Texture &texture_3d, int array_index, uint32_t slice, int level);
-		~OGLTexture3DRenderView();
-
-		void ClearColor(const Color &color) override;
-
-		void Discard() override;
-
-		void OnAttached(FrameBuffer& fb, uint32_t att) override;
-		void OnDetached(FrameBuffer& fb, uint32_t att) override;
-
-		void OnUnbind(FrameBuffer &fb, uint32_t att) override;
-
-	private:
-		void CopyToSlice(uint32_t att);
-	private:
-		OGLTexture3D &texture_3d_;
-		uint32_t slice_;
-		int level_;
-		int copy_to_tex_;
-		GLuint texture_2d_;
-	};
-	typedef std::shared_ptr<OGLTexture3DRenderView> OGLTexture3DRenderViewPtr;
-
 	class OGLTextureCubeRenderView : public OGLRenderView
 	{
 	public:
-		OGLTextureCubeRenderView(Texture& texture_cube, int array_index, CubeFaces face, int level);
-		OGLTextureCubeRenderView(Texture& texture_cube, int array_index, int level);
+		OGLTextureCubeRenderView(Texture& texture_cube, CubeFaces face, int level);
+		OGLTextureCubeRenderView(Texture& texture_cube, int level);
 
 		void ClearColor(const Color &color) override;
 
@@ -211,8 +181,8 @@ namespace gleam
 	class OGLDepthStencilRenderView : public OGLRenderView
 	{
 	public:
-		OGLDepthStencilRenderView(uint32_t width, uint32_t height, ElementFormat format, uint32_t sample_count, uint32_t sample_quality);
-		OGLDepthStencilRenderView(Texture &texture, int array_index, int array_size, int level);
+		OGLDepthStencilRenderView(uint32_t width, uint32_t height, ElementFormat format, uint32_t sample_count);
+		OGLDepthStencilRenderView(Texture &texture, int level);
 		~OGLDepthStencilRenderView();
 
 		void ClearColor(const Color &color) override;
@@ -224,10 +194,8 @@ namespace gleam
 
 	private:
 		GLenum target_type_;
-		int array_index_;
-		int array_size_;
 		int level_;
-		uint32_t sample_count_, sample_quality_;
+		uint32_t sample_count_;
 		GLuint rbo_;
 	};
 	typedef std::shared_ptr<OGLDepthStencilRenderView> OGLDepthStencilRenderViewPtr;
@@ -235,7 +203,7 @@ namespace gleam
 	class OGLTextureCubeDepthStencilRenderView : public OGLRenderView
 	{
 	public:
-		OGLTextureCubeDepthStencilRenderView(Texture &texture_cube, int array_index, CubeFaces face, int level);
+		OGLTextureCubeDepthStencilRenderView(Texture &texture_cube, CubeFaces face, int level);
 
 		void ClearColor(const Color &color) override;
 
