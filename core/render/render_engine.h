@@ -13,6 +13,7 @@
 #include "element_format.h"
 #include "render_state.h"
 #include "graphics_buffer.h"
+#include <util/array_ref.hpp>
 namespace gleam
 {
 	struct RenderSettings
@@ -40,15 +41,35 @@ namespace gleam
 		const RenderStateObjectPtr &CurrentRenderStateObject() const { return current_render_state_; }
 		const FrameBufferPtr &CurrentFrameBuffer() const { return current_frame_buffer_; }
 
+		SamplerStateObjectPtr MakeSamplerStateObject(const SamplerStateDesc &desc);
 		RenderStateObjectPtr MakeRenderStateObject(const RasterizerStateDesc &raster_state,
 			const DepthStencilStateDesc &depth_stencil_state, const BlendStateDesc &blend_state);
 		virtual ShaderObjectPtr MakeShaderObject() = 0;
 
 		GraphicsBufferPtr MakeVertexBuffer(BufferUsage usage, uint32_t access_hint, uint32_t size_in_byte, void const *init_data, ElementFormat format = EF_Unknown);
 		GraphicsBufferPtr MakeIndexBuffer(BufferUsage usage, uint32_t access_hint, uint32_t size_in_byte, void const *init_data, ElementFormat format = EF_Unknown);
+		GraphicsBufferPtr MakeConstantBuffer(BufferUsage usage, uint32_t access_hint, uint32_t size_in_byte, void const *init_data, ElementFormat fmt = EF_Unknown);
 
 		virtual GraphicsBufferPtr MakeVertexBufferHandler(BufferUsage usage, uint32_t access_hint, uint32_t size_in_byte, ElementFormat format = EF_Unknown) = 0;
 		virtual GraphicsBufferPtr MakeIndexBufferHandler(BufferUsage usage, uint32_t access_hint, uint32_t size_in_byte, ElementFormat format = EF_Unknown) = 0;
+		virtual GraphicsBufferPtr MakeConstantBufferHandler(BufferUsage usage, uint32_t access_hint, uint32_t size_in_byte, ElementFormat format = EF_Unknown) = 0;
+
+		TexturePtr MakeTexture1D(uint32_t width, uint32_t num_mip_maps,
+			ElementFormat format, uint32_t sample_count, uint32_t access_hint,
+			ArrayRef<ElementInitData> init_data = {});
+		TexturePtr MakeTexture2D(uint32_t width, uint32_t height, uint32_t num_mip_maps,
+			ElementFormat format, uint32_t sample_count, uint32_t access_hint,
+			ArrayRef<ElementInitData> init_data = {});
+		TexturePtr MakeTextureCube(uint32_t width, uint32_t num_mip_maps,
+			ElementFormat format, uint32_t sample_count, uint32_t access_hint,
+			ArrayRef<ElementInitData> init_data = {});
+
+		virtual TexturePtr MakeTextureHandler1D(uint32_t width, uint32_t num_mip_maps,
+			ElementFormat format, uint32_t sample_count, uint32_t access_hint) = 0;
+		virtual TexturePtr MakeTextureHandler2D(uint32_t width, uint32_t height, uint32_t num_mip_maps, 
+			ElementFormat format, uint32_t sample_count, uint32_t access_hint) = 0;
+		virtual TexturePtr MakeTextureHandlerCube(uint32_t width, uint32_t num_mip_maps,
+			ElementFormat format, uint32_t sample_count, uint32_t access_hint) = 0;
 
 		virtual RenderLayoutPtr MakeRenderLayout() = 0;
 
@@ -74,6 +95,7 @@ namespace gleam
 
 	private:
 		virtual void DoCreateRenderWindow(const std::string & name, const RenderSettings &settings) = 0;
+		virtual SamplerStateObjectPtr DoMakeSamplerStateObjece(const SamplerStateDesc &desc) = 0;
 		virtual RenderStateObjectPtr DoMakeRenderStateObject(const RasterizerStateDesc &raster_state,
 			const DepthStencilStateDesc &depth_stencil_state, const BlendStateDesc &blend_state) = 0;
 		virtual void DoBindFrameBuffer(const FrameBufferPtr & fb) = 0;
@@ -83,6 +105,7 @@ namespace gleam
 		RenderStateObjectPtr current_render_state_;
 		RenderStateObjectPtr cur_line_render_state_;
 		std::unordered_map<size_t, RenderStateObjectPtr> render_state_pool;
+		std::unordered_map<size_t, SamplerStateObjectPtr> sampler_state_pool_;
 
 		FrameBufferPtr current_frame_buffer_;
 		FrameBufferPtr screen_frame_buffer_;
@@ -101,7 +124,7 @@ namespace gleam
 		OGLRenderEngine();
 		void ActiveTexture(GLenum tex_unit);
 		void BindTexture(GLuint index, GLuint target, GLuint texture, bool force = false);
-		void BindTexture(GLuint first, GLsizei count, const GLuint *targets, const GLuint *textures, bool force = false);
+		void BindTextures(GLuint first, GLsizei count, const GLuint *targets, const GLuint *textures, bool force = false);
 		void BindSampler(GLuint index, GLuint sampler, bool force = false);
 		void BindSamplers(GLuint first, GLsizei count, GLuint const * samplers, bool force = false);
 		void BindBuffer(GLenum target, GLuint buffer, bool force = false);
@@ -112,6 +135,8 @@ namespace gleam
 		void ClearColor(GLfloat r, GLfloat g, GLfloat b, GLfloat a);
 		void ClearDepth(GLfloat depth);
 		void ClearStencil(GLuint stencil);
+
+		void GetBlitFBO(GLuint &src, GLuint &dst) const { src = fbo_blit_src_; dst = fbo_blit_dst_; }
 
 		void UseProgram(GLuint program);
 
@@ -147,10 +172,14 @@ namespace gleam
 		AttribPtr MakeAttrib() override;
 		GraphicsBufferPtr MakeVertexBufferHandler(BufferUsage usage, uint32_t access_hint, uint32_t size_in_byte, ElementFormat format = EF_Unknown) override;
 		GraphicsBufferPtr MakeIndexBufferHandler(BufferUsage usage, uint32_t access_hint, uint32_t size_in_byte, ElementFormat format = EF_Unknown) override;
-
+		GraphicsBufferPtr MakeConstantBufferHandler(BufferUsage usage, uint32_t access_hint, uint32_t size_in_byte, ElementFormat format = EF_Unknown) override;
+		TexturePtr MakeTextureHandler1D(uint32_t width, uint32_t num_mip_maps, ElementFormat format, uint32_t sample_count, uint32_t access_hint) override;
+		TexturePtr MakeTextureHandler2D(uint32_t width, uint32_t height, uint32_t num_mip_maps, ElementFormat format, uint32_t sample_count, uint32_t access_hint) override;
+		TexturePtr MakeTextureHandlerCube(uint32_t width, uint32_t num_mip_maps, ElementFormat format, uint32_t sample_count, uint32_t access_hint) override;
 
 	private:
 		void DoCreateRenderWindow(const std::string & name, const RenderSettings &settings);
+		SamplerStateObjectPtr DoMakeSamplerStateObjece(const SamplerStateDesc &desc) override;
 		RenderStateObjectPtr DoMakeRenderStateObject(const RasterizerStateDesc &raster_state,
 			const DepthStencilStateDesc &depth_stencil_state, const BlendStateDesc &blend_state) override;
 
@@ -186,6 +215,9 @@ namespace gleam
 		uint32_t num_primitives_just_rendered_;
 		uint32_t num_vertices_just_rendered_;
 		uint32_t num_draws_just_called_;
+
+		GLuint fbo_blit_src_;
+		GLuint fbo_blit_dst_;
 	};
 }
 

@@ -7,6 +7,7 @@
 #include <assimp/cimport.h>
 #include <assimp/postprocess.h>
 #include <render/material.h>
+#include <render/texture.h>
 namespace gleam {
 
 	class ModelLoadingDesc : public ResLoadingDesc
@@ -229,11 +230,9 @@ namespace gleam {
 		{
 			if (!mtl_->tex_names[i].empty())
 			{
-				// Load Texture
+				textures_[i] = LoadTexture(mtl_->tex_names[i], EAH_GPU_Read | EAH_Immutable);
 			}
 		}
-
-
 	}
 
 	Model::Model(const std::string & name)

@@ -12,6 +12,7 @@
 #include <gleam.h>
 #include <boost/noncopyable.hpp>
 #include "render_effect.h"
+#include "material.h"
 namespace gleam
 {
 	class Renderable : boost::noncopyable
@@ -19,15 +20,15 @@ namespace gleam
 	public:
 		virtual void ModelMatrix(const glm::mat4 &model);
 
-		virtual bool ResourceReady() const { return true; }
-
 		virtual const RenderEffectPtr &GetRenderEffect() const { return effect_; }
 		virtual RenderTechnique *GetRenderTechnique() const { return technique_; }
 		virtual RenderLayout &GetRenderLayout() const = 0;
 
+		virtual void BindRenderTechnique(const RenderEffectPtr &effect, RenderTechnique *tech);
+
 		virtual void AddToRenderQueue();
 
-		virtual void OnRenderBegin() { }
+		virtual void OnRenderBegin();
 		virtual void OnRenderEnd() { }
 		virtual void Render();
 
@@ -58,7 +59,18 @@ namespace gleam
 		std::vector<RenderablePtr> subrenderables_;
 
 		UniformPtr mvp_;
+		UniformPtr albedo_;
+		UniformPtr albedo_tex_;
+		UniformPtr metalness_;
+		UniformPtr metalness_tex_;
+		UniformPtr glossiness_;
+		UniformPtr glossiness_tex_;
+		UniformPtr emissive_;
+		UniformPtr emissive_tex_;
+		UniformPtr normal_tex_;
+		UniformPtr height_tex_;
 
+		std::array<TexturePtr, TS_NumTextureSlots> textures_;
 		MaterialPtr mtl_;
 	};
 

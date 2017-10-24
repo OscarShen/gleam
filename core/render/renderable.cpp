@@ -14,9 +14,50 @@ namespace gleam {
 	{
 		model_matrix_ = model;
 	}
+	void Renderable::BindRenderTechnique(const RenderEffectPtr & effect, RenderTechnique * tech)
+	{
+		this->effect_ = effect;
+		this->technique_ = tech;
+
+		ShaderObject &shader = *tech->GetShaderObject(*effect);
+		mvp_ = shader.GetUniformByName("mvp");
+		albedo_ = shader.GetUniformByName("albedo_color");
+		albedo_tex_ = shader.GetSamplerByName("albedo_tex");
+		metalness_ = shader.GetUniformByName("metalness_color");
+		metalness_tex_ = shader.GetSamplerByName("metalness_tex");
+		glossiness_ = shader.GetUniformByName("glossiness_color");
+		glossiness_tex_ = shader.GetSamplerByName("glossiness_tex");
+		emissive_ = shader.GetUniformByName("emissive_color");
+		emissive_tex_ = shader.GetSamplerByName("emissive_tex");
+		normal_tex_ = shader.GetSamplerByName("normal_tex");
+		height_tex_ = shader.GetSamplerByName("height_tex");
+	}
 	void Renderable::AddToRenderQueue()
 	{
 		Context::Instance().SceneManagerInstance().AddRenderable(this);
+	}
+	void Renderable::OnRenderBegin()
+	{
+		if (albedo_)
+			*albedo_ = mtl_ ? mtl_->albedo : glm::vec4(0, 0, 0, 1);
+		if (albedo_tex_)
+			*albedo_tex_ = textures_[TS_Albedo];
+		if (metalness_)
+			*metalness_ = mtl_ ? mtl_->metalness : 0;
+		if (metalness_tex_)
+			*metalness_tex_ = textures_[TS_Metalness];
+		if (glossiness_)
+			*glossiness_ = glm::clamp(mtl_ ? mtl_->glossiness : 0, 1e-6f, 0.999f);
+		if (glossiness_tex_)
+			*glossiness_tex_ = textures_[TS_Glossiness];
+		if (emissive_)
+			*emissive_ = mtl_ ? mtl_->emissive : glm::vec3(0);
+		if (emissive_tex_)
+			*emissive_tex_ = textures_[TS_Emissive];
+		if (normal_tex_)
+			*normal_tex_ = textures_[TS_Normal];
+		if (height_tex_)
+			*height_tex_ = textures_[TS_Height];
 	}
 	void Renderable::Render()
 	{

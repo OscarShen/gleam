@@ -27,9 +27,9 @@ namespace gleam {
 	}
 	void OGLRenderEngine::BindTexture(GLuint index, GLuint target, GLuint texture, bool force)
 	{
-		this->BindTexture(index, 1, &target, &texture, force);
+		this->BindTextures(index, 1, &target, &texture, force);
 	}
-	void OGLRenderEngine::BindTexture(GLuint first, GLsizei count, const GLuint * targets, const GLuint * textures, bool force)
+	void OGLRenderEngine::BindTextures(GLuint first, GLsizei count, const GLuint * targets, const GLuint * textures, bool force)
 	{
 		if (first + count > binded_targets_.size())
 		{
@@ -726,6 +726,26 @@ namespace gleam {
 		return std::make_shared<OGLGraphicsBuffer>(usage, access_hint, GL_ELEMENT_ARRAY_BUFFER, size_in_byte, format);
 	}
 
+	GraphicsBufferPtr OGLRenderEngine::MakeConstantBufferHandler(BufferUsage usage, uint32_t access_hint, uint32_t size_in_byte, ElementFormat format)
+	{
+		return std::make_shared<OGLGraphicsBuffer>(usage, access_hint, GL_UNIFORM_BUFFER, size_in_byte, format);
+	}
+
+	TexturePtr OGLRenderEngine::MakeTextureHandler1D(uint32_t width, uint32_t num_mip_maps, ElementFormat format, uint32_t sample_count, uint32_t access_hint)
+	{
+		return std::make_shared<OGLTexture1D>(width, num_mip_maps, format, sample_count, access_hint);
+	}
+
+	TexturePtr OGLRenderEngine::MakeTextureHandler2D(uint32_t width, uint32_t height, uint32_t num_mip_maps, ElementFormat format, uint32_t sample_count, uint32_t access_hint)
+	{
+		return std::make_shared<OGLTexture2D>(width, height, num_mip_maps, format, sample_count, access_hint);
+	}
+
+	TexturePtr OGLRenderEngine::MakeTextureHandlerCube(uint32_t width, uint32_t num_mip_maps, ElementFormat format, uint32_t sample_count, uint32_t access_hint)
+	{
+		return std::make_shared<OGLTextureCube>(width, num_mip_maps, format, sample_count, access_hint);
+	}
+
 	void OGLRenderEngine::DoCreateRenderWindow(const std::string & name, const RenderSettings & settings)
 	{
 		win = std::make_shared<GLFWWnd>(name, settings.width, settings.height);
@@ -735,6 +755,16 @@ namespace gleam {
 		win_fb->Attach(ATT_DepthStencil, std::make_shared<OGLDefaultColorRenderView>(win->Width(), win->Height(), settings.depth_stencil_format));
 
 		RenderEngine::BindFrameBuffer(win_fb);
+		glGenFramebuffers(1, &fbo_blit_src_);
+		glGenFramebuffers(1, &fbo_blit_dst_);
+
+
+		// init render state
+		glEnable(GL_DEPTH_TEST);
+	}
+	SamplerStateObjectPtr OGLRenderEngine::DoMakeSamplerStateObjece(const SamplerStateDesc & desc)
+	{
+		return std::make_shared<OGLSamplerStateObject>(desc);
 	}
 	RenderStateObjectPtr OGLRenderEngine::DoMakeRenderStateObject(const RasterizerStateDesc & raster_state, const DepthStencilStateDesc & depth_stencil_state, const BlendStateDesc & blend_state)
 	{
@@ -845,6 +875,26 @@ namespace gleam {
 	{
 		this->DoRender(effect, tech, layout);
 	}
+	SamplerStateObjectPtr RenderEngine::MakeSamplerStateObject(const SamplerStateDesc & desc)
+	{
+		SamplerStateObjectPtr sampler_state;
+
+		char const * desc_begin = reinterpret_cast<char const *>(&desc);
+		char const * desc_end = desc_begin + sizeof(desc);
+
+		size_t seed = HashRange(desc_begin, desc_end);
+		auto iter = sampler_state_pool_.find(seed);
+		if (iter == sampler_state_pool_.end())
+		{
+			sampler_state = this->DoMakeSamplerStateObjece(desc);
+			sampler_state_pool_.emplace(seed, sampler_state);
+		}
+		else
+		{
+			sampler_state = iter->second;
+		}
+		return sampler_state;
+	}
 	RenderStateObjectPtr RenderEngine::MakeRenderStateObject(const RasterizerStateDesc & raster_state, const DepthStencilStateDesc & depth_stencil_state, const BlendStateDesc & blend_state)
 	{
 		RenderStateObjectPtr render_state;
@@ -881,6 +931,12 @@ namespace gleam {
 	GraphicsBufferPtr RenderEngine::MakeIndexBuffer(BufferUsage usage, uint32_t access_hint, uint32_t size_in_byte, void const * init_data, ElementFormat format)
 	{
 		GraphicsBufferPtr buffer = this->MakeIndexBufferHandler(usage, access_hint, size_in_byte, format);
+		buffer->CreateResource(init_data);
+		return buffer;
+	}
+	GraphicsBufferPtr RenderEngine::MakeConstantBuffer(BufferUsage usage, uint32_t access_hint, uint32_t size_in_byte, void const * init_data, ElementFormat format)
+	{
+		GraphicsBufferPtr buffer = this->MakeConstantBufferHandler(usage, access_hint, size_in_byte, format);
 		buffer->CreateResource(init_data);
 		return buffer;
 	}
@@ -947,5 +1003,23 @@ namespace gleam {
 	void RenderEngine::SwapBuffer()
 	{
 		win->SwapBuffers();
+	}
+	TexturePtr RenderEngine::MakeTexture1D(uint32_t width, uint32_t num_mip_maps, ElementFormat format, uint32_t sample_count, uint32_t access_hint, ArrayRef<ElementInitData> init_data)
+	{
+		TexturePtr texture = this->MakeTextureHandler1D(width, num_mip_maps, format, sample_count, access_hint);
+		texture->CreateResource(init_data);
+		return texture;
+	}
+	TexturePtr RenderEngine::MakeTexture2D(uint32_t width, uint32_t height, uint32_t num_mip_maps, ElementFormat format, uint32_t sample_count, uint32_t access_hint, ArrayRef<ElementInitData> init_data)
+	{
+		TexturePtr texture = this->MakeTextureHandler2D(width, height, num_mip_maps, format, sample_count, access_hint);
+		texture->CreateResource(init_data);
+		return texture;
+	}
+	TexturePtr RenderEngine::MakeTextureCube(uint32_t width, uint32_t num_mip_maps, ElementFormat format, uint32_t sample_count, uint32_t access_hint, ArrayRef<ElementInitData> init_data)
+	{
+		TexturePtr texture = this->MakeTextureHandlerCube(width, num_mip_maps, format, sample_count, access_hint);
+		texture->CreateResource(init_data);
+		return texture;
 	}
 }
