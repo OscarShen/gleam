@@ -72,24 +72,6 @@ void main()
     </code>
   </shader>
 
-  <shader type="fragment_shader" name="HelperFS">
-    <uniform type="vec4" name="color"/>
-    <code>
-      <![CDATA[
-#version 450 core
-
-out vec4 out_Color;
-
-uniform vec4 color;
-
-void main()
-{
-  out_Color = color;
-}
-		]]>
-    </code>
-  </shader>
-
   <shader type="vertex_shader" name="HelperVS">
     <attrib  name="pos" usage="position"/>
     <uniform type="mat4" name="mvp"/>
@@ -110,6 +92,73 @@ void main()
     </code>
   </shader>
 
+  <shader type="fragment_shader" name="HelperFS">
+    <uniform type="vec4" name="color"/>
+    <code>
+      <![CDATA[
+#version 450 core
+
+out vec4 out_Color;
+
+uniform vec4 color;
+
+void main()
+{
+  out_Color = color;
+}
+		]]>
+    </code>
+  </shader>
+
+  <shader type="vertex_shader" name="TexVS">
+    <attrib  name="pos" usage="position"/>
+    <attrib  name="texCoord" usage="texture_coord"/>
+    <uniform type="mat4" name="mvp"/>
+    <code>
+      <![CDATA[
+#version 450 core
+      
+in vec3 pos;
+in vec2 texCoord;
+
+uniform mat4 mvp;
+
+out vec2 TexCoord;
+      
+void main()
+{
+	gl_Position = mvp * vec4(pos, 1.0f);
+  TexCoord = texCoord;
+}
+      ]]>
+    </code>
+  </shader>
+
+  <shader type="fragment_shader" name="TexFS">
+    <uniform type="sampler" name="albedo_tex">
+      <state name="filtering" value="min_mag_linear_mip_nearest"/>
+      <state name="address_u" value="clamp"/>
+      <state name="address_v" value="clamp"/>
+    </uniform>
+    <code>
+      <![CDATA[
+#version 450 core
+
+in vec2 TexCoord;
+
+uniform sampler2D albedo_tex;
+
+out vec4 Color;
+
+void main()
+{
+  Color = texture(albedo_tex, TexCoord);
+  Color.a = 1.0f;
+}
+		]]>
+    </code>
+  </shader>
+
   <technique name="LineTec">
     <state name="polygon_mode" value="line"/>
     <state name="cull_mode" value="none"/>
@@ -124,6 +173,14 @@ void main()
 
     <state name="vertex_shader" value="HelperVS"/>
     <state name="fragment_shader" value="HelperFS"/>
+  </technique>
+
+  <technique name="TexTec">
+    <state name="cull_mode" value="none"/>
+    <state name="depth_enable" value="true"/>
+
+    <state name="vertex_shader" value="TexVS"/>
+    <state name="fragment_shader" value="TexFS"/>
   </technique>
 </effect>
 

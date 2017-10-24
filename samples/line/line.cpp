@@ -9,6 +9,7 @@
 #include <render/camera_controller.h>
 #include <render/mesh.h>
 #include <glm/gtc/matrix_transform.hpp>
+#include <render/texture.h>
 using namespace gleam;
 
 class RenderPolygon : public Mesh
@@ -17,11 +18,11 @@ public:
 	RenderPolygon(const std::string &name, const ModelPtr &model)
 		: Mesh(name, model)
 	{
-		this->effect_ = LoadRenderEffect("renderable.xml");
-		this->technique_ = effect_->GetTechniqueByName("HelperTec");
+		RenderEffectPtr effect = LoadRenderEffect("renderable.xml");
+		RenderTechnique *technique = effect->GetTechniqueByName("HelperTec");
+		this->BindRenderTechnique(effect, technique);
 		ShaderObject &shader = *technique_->GetShaderObject(*effect_);
 		*(shader.GetUniformByName("color")) = glm::vec4(1.0f, 0, 0, 1.0f);
-		mvp_ = shader.GetUniformByName("mvp");
 	}
 
 	void OnRenderBegin() override
@@ -32,7 +33,6 @@ public:
 		glm::mat4 mvp = framework.ActiveCamera().ProjViewMatrix() * model_matrix_;
 		*mvp_ = mvp;
 	}
-
 };
 
 class LineFramework : public Framework3D
@@ -40,7 +40,9 @@ class LineFramework : public Framework3D
 public:
 	LineFramework()
 		: Framework3D("Line")
-	{}
+	{
+		ResLoader::Instance().AddPath("../../resource/common/teapot");
+	}
 protected:
 	void OnCreate() override
 	{
@@ -83,6 +85,7 @@ private:
 	//FirstPersonCameraController controller;
 };
 
+#define LineAPP
 #ifdef LineAPP
 void main()
 {
