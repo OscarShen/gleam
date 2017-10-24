@@ -4,7 +4,7 @@
 #include <scene/scene_manager.h>
 namespace gleam {
 	SceneObject::SceneObject(uint32_t attrib)
-		: attrib_(attrib), parent_(nullptr), renderable_resource_ready_(false),
+		: attrib_(attrib), parent_(nullptr), 
 			model_(glm::mat4()), abs_model_(glm::mat4())
 	{
 	}
@@ -96,7 +96,6 @@ namespace gleam {
 		: SceneObject(attrib)
 	{
 		renderable_ = renderable;
-		renderable_resource_ready_ = renderable_->ResourceReady();
 		this->OnAttachRenderable(false);
 	}
 	void SceneObjectHelper::OnAttachRenderable(bool add_to_scene)

@@ -59,7 +59,6 @@ namespace gleam
 		std::vector<SceneObjectPtr> children_;
 
 		RenderablePtr renderable_;
-		bool renderable_resource_ready_;
 		std::vector<VertexElement> instance_format_;
 
 		glm::mat4 model_;

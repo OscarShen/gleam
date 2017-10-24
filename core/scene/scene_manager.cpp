@@ -104,24 +104,21 @@ namespace gleam {
 
 	void SceneManager::AddRenderable(Renderable * renderable)
 	{
-		if (renderable->ResourceReady())
+		const RenderTechnique *technique = renderable->GetRenderTechnique();
+		assert(technique);
+		bool found = false;
+		for (auto &items : render_queue_)
 		{
-			const RenderTechnique *technique = renderable->GetRenderTechnique();
-			assert(technique);
-			bool found = false;
-			for (auto &items : render_queue_)
+			if (items.first == technique)
 			{
-				if (items.first == technique)
-				{
-					items.second.push_back(renderable);
-					found = true;
-					break;
-				}
+				items.second.push_back(renderable);
+				found = true;
+				break;
 			}
-			if (!found)
-			{
-				render_queue_.emplace_back(technique, std::vector<Renderable*>(1, renderable));
-			}
+		}
+		if (!found)
+		{
+			render_queue_.emplace_back(technique, std::vector<Renderable*>(1, renderable));
 		}
 	}
 	void SceneManager::ClearCamera()
