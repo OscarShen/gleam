@@ -177,7 +177,6 @@ void main()
 
   <technique name="TexTec">
     <state name="cull_mode" value="none"/>
-    <state name="depth_enable" value="true"/>
 
     <state name="vertex_shader" value="TexVS"/>
     <state name="fragment_shader" value="TexFS"/>
