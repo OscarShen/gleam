@@ -78,6 +78,7 @@ namespace gleam
 
 	private:
 		std::string name_;
+		std::unordered_map<std::string, std::string> shader_header_codes_;
 		std::array<std::unordered_map<std::string, std::string>, ST_NumShaderTypes> shader_codes_;
 		std::array<std::unordered_map<std::string, std::vector<UniformPtr>>, ST_NumShaderTypes> shader_uniforms_;
 		std::array<std::unordered_map<std::string, std::vector<UniformBufferPtr>>, ST_NumShaderTypes> shader_uniform_buffer_;

@@ -134,12 +134,14 @@ namespace gleam
 			std::unique_ptr<TiXmlDocument> include_doc = std::make_unique<TiXmlDocument>(include_names[i].c_str());
 			include_doc->LoadFile();
 			CHECK_INFO(!include_doc->Error(), include_doc->ErrorDesc());
-			TiXmlElement *include_root = doc->RootElement();
+			TiXmlElement *include_root = include_doc->RootElement();
 			CHECK_INFO(include_root, "xml root node is null pointer : " << include_names[i]);
 
 			LoadResource(include_root);
+			include_doc->Clear();
 		}
 		LoadResource(root);
+		doc->Clear();
 	}
 	void RenderEffect::RecursiveIncludeNode(TiXmlElement * root, std::vector<std::string>& include_names)
 	{
@@ -169,6 +171,7 @@ namespace gleam
 			{
 				include_names.push_back(include_name);
 			}
+			doc->Clear();
 		}
 	}
 	void RenderEffect::LoadResource(TiXmlElement * root)
@@ -177,22 +180,48 @@ namespace gleam
 		for (TiXmlElement *shader_node = root->FirstChildElement("shader");
 			shader_node; shader_node = shader_node->NextSiblingElement("shader"))
 		{
-			std::string shader_type_str = shader_node->Attribute("type");
-			ShaderType shader_type;
-			ShaderTypeFromString(shader_type, shader_type_str);
-			assert(shader_type != ST_NumShaderTypes);
-
 			std::string name = shader_node->Attribute("name");
 			assert(!name.empty());
+			std::string shader_type_str = shader_node->Attribute("type");
+			
+			if (shader_type_str == "header")
+			{
+				TiXmlElement *code_node = shader_node->FirstChildElement("code");
+				std::string code = code_node->GetText();
+				assert(!code.empty());
+				if (shader_header_codes_.find(name) == shader_header_codes_.end())
+				{
+					shader_header_codes_.emplace(std::make_pair(name, code));
+				}
+				continue;
+			}
+
+
+			ShaderType shader_type;
+			ShaderTypeFromString(shader_type, shader_type_str);
+
 
 			TiXmlElement *code_node = shader_node->FirstChildElement("code");
-			const char *code_char = code_node->GetText();
-			assert(code_char);
-			auto iter = shader_codes_[shader_type].find(name);
+			std::string code = code_node->GetText();
 
-			WARNING(iter == shader_codes_[shader_type].end(), "already have the same code : " << name);
-			shader_codes_[shader_type].emplace(std::make_pair(name, code_char));
+			const char *header_char = shader_node->Attribute("header");
+			if (header_char)
+			{
+				auto it = shader_header_codes_.find(header_char);
+				assert(it != shader_header_codes_.end());
+				const std::string &header = it->second;
+				code = std::string("#version 450 core\n\n") + header + "\n\n" + code;
+			}
+			else
+			{
+				code = std::string("#version 450 core\n\n") + code;
+			}
 
+			assert(!code.empty());
+			if (shader_codes_[shader_type].find(name) == shader_codes_[shader_type].end())
+			{
+				shader_codes_[shader_type].emplace(std::make_pair(name, code));
+			}
 			for (TiXmlElement *uniform_node = shader_node->FirstChildElement("uniform");
 				uniform_node; uniform_node = uniform_node->NextSiblingElement("uniform"))
 			{
