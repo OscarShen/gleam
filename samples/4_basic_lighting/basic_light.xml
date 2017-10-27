@@ -1,0 +1,97 @@
+<?xml version='1.0'?>
+
+<effect>
+  <include name="lighting.xml"/>
+  <shader type="vertex_shader" name="BasicLightVS">
+    <attrib  name="pos" usage="position"/>
+    <attrib  name="normal" usage="normal"/>
+    <uniform type="mat4" name="model"/>
+    <uniform type="mat4" name="proj_view"/>
+
+    <code>
+      <![CDATA[
+in vec3 pos;
+in vec3 normal;
+
+uniform mat4 model;
+uniform mat4 proj_view;
+
+out vec3 WorldPos;
+out vec3 Normal;
+
+void main()
+{
+  WorldPos = vec3(model * vec4(pos, 1.0f));
+  Normal = transpose(inverse(mat3(model))) * normal;
+  
+  gl_Position = proj_view * vec4(WorldPos, 1.0f);
+}
+      ]]>
+    </code>
+  </shader>
+
+  <shader type="fragment_shader" name="BasicLightFS">
+    <header  name="LightingFunc"/>
+    <uniform type="vec3" name="light_color"/>
+    <uniform type="vec3" name="diff_color"/>
+    <uniform type="vec3" name="light_pos"/>
+    <code>
+      <![CDATA[
+in vec3 WorldPos;
+in vec3 Normal;
+
+uniform vec3 light_pos;
+
+uniform vec3 light_color;
+uniform vec3 diff_color;
+
+out vec4 OutColor;
+
+void main() {
+  vec3 light_vec = normalize(light_pos - WorldPos);
+  vec3 normal_vec = normalize(Normal);
+  OutColor = vec4(light_color * CalcBRDFShading(diff_color, light_vec, normal_vec), 1.0f);
+}
+		]]>
+    </code>
+  </shader>
+  
+    <shader type="vertex_shader" name="ColorVS">
+    <attrib type="vec3" name="pos" usage="position"/>
+    <uniform type="mat4" name="mvp"/>
+    <code>
+      <![CDATA[
+in vec3 pos;
+
+uniform mat4 mvp;
+
+void main()
+{
+  gl_Position = mvp * vec4(pos, 1.0f);
+}
+      ]]>
+    </code>
+  </shader>
+  
+  <shader type="fragment_shader" name="ColorFS">
+    <code>
+      <![CDATA[
+out vec4 OutColor;
+void main() {
+  OutColor = vec4(1.0f, 1.0f, 1.0f, 1.0f);
+}
+      ]]>
+    </code>
+  </shader>
+
+  <technique name="BasicLight">
+    <state name="vertex_shader" value="BasicLightVS"/>
+    <state name="fragment_shader" value="BasicLightFS"/>
+  </technique>
+
+  <technique name="Lamp">
+    <state name="vertex_shader" value="ColorVS"/>
+    <state name="fragment_shader" value="ColorFS"/>
+  </technique>
+</effect>
+

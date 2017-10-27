@@ -1,0 +1,17 @@
+<?xml version='1.0'?>
+
+<effect>
+
+  <shader type="header" name="LightingFunc">
+    <code>
+      <![CDATA[
+// diffuse only
+vec3 CalcBRDFShading(vec3 c_diff, vec3 l, vec3 n)
+{
+	return max(c_diff * dot(n, l), 0);
+}
+      ]]>
+    </code>
+  </shader>
+</effect>
+

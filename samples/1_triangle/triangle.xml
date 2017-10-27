@@ -6,8 +6,6 @@
     <attrib name="pos" usage="position"/>
     <code>
       <![CDATA[
-#version 450 core
-      
 in vec4 pos;
       
 void main()
@@ -21,8 +19,6 @@ void main()
 	<shader type="fragment_shader" name="TriangleFS">
     <code>
 		<![CDATA[
-#version 450 core
-
 out vec4 outcolor;
 
 void main()

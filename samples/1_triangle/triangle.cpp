@@ -49,7 +49,6 @@ namespace gleam {
 	}
 }
 
-#define TriangleAPP
 #ifdef TriangleAPP
 
 int main()
