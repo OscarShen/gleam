@@ -183,7 +183,7 @@ namespace gleam
 			std::string name = shader_node->Attribute("name");
 			assert(!name.empty());
 			std::string shader_type_str = shader_node->Attribute("type");
-			
+
 			if (shader_type_str == "header")
 			{
 				TiXmlElement *code_node = shader_node->FirstChildElement("code");
@@ -195,29 +195,24 @@ namespace gleam
 				}
 				continue;
 			}
-
+			
+			std::string code("#version 450 core\n\n");
+			for (TiXmlElement *header_node = shader_node->FirstChildElement("header"); header_node;
+				header_node = header_node->NextSiblingElement("header"))
+			{
+				const char *header_char = header_node->Attribute("name");
+				auto it = shader_header_codes_.find(header_char);
+				assert(it != shader_header_codes_.end());
+				code += (it->second + "\n\n");
+			}
 
 			ShaderType shader_type;
 			ShaderTypeFromString(shader_type, shader_type_str);
 
-
 			TiXmlElement *code_node = shader_node->FirstChildElement("code");
-			std::string code = code_node->GetText();
+			assert(code_node);
+			code += code_node->GetText();
 
-			const char *header_char = shader_node->Attribute("header");
-			if (header_char)
-			{
-				auto it = shader_header_codes_.find(header_char);
-				assert(it != shader_header_codes_.end());
-				const std::string &header = it->second;
-				code = std::string("#version 450 core\n\n") + header + "\n\n" + code;
-			}
-			else
-			{
-				code = std::string("#version 450 core\n\n") + code;
-			}
-
-			assert(!code.empty());
 			if (shader_codes_[shader_type].find(name) == shader_codes_[shader_type].end())
 			{
 				shader_codes_[shader_type].emplace(std::make_pair(name, code));
