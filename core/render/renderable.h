@@ -59,6 +59,8 @@ namespace gleam
 		std::vector<RenderablePtr> subrenderables_;
 
 		UniformPtr mvp_;
+		UniformPtr proj_view_;
+		UniformPtr model_;
 		UniformPtr albedo_;
 		UniformPtr albedo_tex_;
 		UniformPtr metalness_;
