@@ -52,7 +52,7 @@ namespace gleam
 
 		int32_t mtl_id_;
 
-		std::weak_ptr<Model> model_;
+		std::weak_ptr<Model> model_ptr_;
 	};
 
 	class Model : public Renderable
@@ -71,6 +71,8 @@ namespace gleam
 		size_t NumMaterials() const { return materials_.size(); }
 		MaterialPtr &GetMaterial(int32_t index) { return materials_[index]; }
 		const MaterialPtr &GetMaterial(int32_t index) const { return materials_[index]; }
+
+		void ModelMatrix(const glm::mat4 &model) override;
 
 		void AddToRenderQueue() override;
 

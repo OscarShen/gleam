@@ -188,7 +188,7 @@ namespace gleam {
 	};
 
 	Mesh::Mesh(const std::string & name, const ModelPtr & model)
-		:model_(model), name_(name)
+		:model_ptr_(model), name_(name), mtl_id_(-1)
 	{
 		layout_ = Context::Instance().RenderEngineInstance().MakeRenderLayout();
 		layout_->TopologyType(TT_TriangleList);
@@ -223,14 +223,16 @@ namespace gleam {
 
 	void Mesh::DoLoadMeshInfo()
 	{
-		ModelPtr model = model_.lock();
-		mtl_ = model->GetMaterial(this->MaterialID());
+		if (this->MaterialID() >= 0) {
+			ModelPtr model = model_ptr_.lock();
+			mtl_ = model->GetMaterial(this->MaterialID()); 
 
-		for (size_t i = 0; i < TS_NumTextureSlots; ++i)
-		{
-			if (!mtl_->tex_names[i].empty())
+			for (size_t i = 0; i < TS_NumTextureSlots; ++i)
 			{
-				textures_[i] = LoadTexture(mtl_->tex_names[i], EAH_GPU_Read | EAH_Immutable);
+				if (!mtl_->tex_names[i].empty())
+				{
+					textures_[i] = LoadTexture(mtl_->tex_names[i], EAH_GPU_Read | EAH_Immutable);
+				}
 			}
 		}
 	}
@@ -258,6 +260,14 @@ namespace gleam {
 		for (const auto &mesh : subrenderables_)
 		{
 			mesh->OnRenderEnd();
+		}
+	}
+
+	void Model::ModelMatrix(const glm::mat4 & model)
+	{
+		for (const auto &mesh : subrenderables_)
+		{
+			checked_pointer_cast<Mesh>(mesh)->ModelMatrix(model);
 		}
 	}
 
