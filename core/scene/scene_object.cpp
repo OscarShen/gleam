@@ -88,6 +88,21 @@ namespace gleam {
 	{
 		return instance_format_;
 	}
+	void SceneObject::BindUpdateFunc(const std::function<void(SceneObject&, float, float)>& func)
+	{
+		update_func_ = func;
+	}
+	void SceneObject::Update(float app_time, float elapsed_time)
+	{
+		if (update_func_)
+		{
+			update_func_(*this, app_time, elapsed_time);
+			if (attrib_ & SOA_Moveable)
+			{
+				this->UpdateAbsModelMatrix();
+			}
+		}
+	}
 	SceneObjectHelper::SceneObjectHelper(uint32_t attrib)
 		: SceneObject(attrib)
 	{

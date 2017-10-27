@@ -52,6 +52,9 @@ namespace gleam
 		const std::vector<VertexElement> &InstanceFormat() const;
 		const void *InstanceData() const { return nullptr; }
 
+		void BindUpdateFunc(const std::function<void(SceneObject&, float, float)> &func);
+		virtual void Update(float app_time, float elapsed_time);
+
 	protected:
 		uint32_t attrib_;
 
@@ -63,6 +66,8 @@ namespace gleam
 
 		glm::mat4 model_;
 		glm::mat4 abs_model_;
+
+		std::function<void(SceneObject&, float, float)> update_func_;
 	};
 
 	class SceneObjectHelper : public SceneObject

@@ -136,10 +136,20 @@ namespace gleam {
 	}
 	void SceneManager::Update()
 	{
+		Framework3D &app = Context::Instance().FrameworkInstance();
+		const float app_time = app.AppTime();
+		const float frame_time = app.FrameTime();
+
 		RenderEngine &re = Context::Instance().RenderEngineInstance();
 		re.BeginFrame();
 
 		this->FlushScene();
+
+		std::vector<SceneObjectPtr> added_scene_objs;
+		for (const SceneObjectPtr &obj : scene_objs_)
+		{
+			obj->Update(app_time, frame_time);
+		}
 
 		re.EndFrame();
 	}
