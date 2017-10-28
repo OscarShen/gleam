@@ -21,7 +21,7 @@
 #include <glm/glm.hpp>
 
 namespace gleam {
-#define CHECK_INFO(x, str) if(!(x)) { std::cout << str << "\n\t|file: "<< __FILE__<<",line: " << __LINE__<<std::endl;}
+#define CHECK_INFO(x, str) if(!(x)) { std::cout << str << "\n\t|file: "<< __FILE__<<",line: " << __LINE__<<std::endl; assert(false); }
 #define WARNING(x, str) if(!(x)) { std::cout << "warning : " << str << "\n\t|file: "<< __FILE__<<",line: " << __LINE__<<std::endl;}
 
 

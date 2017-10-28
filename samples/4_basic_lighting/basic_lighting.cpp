@@ -25,6 +25,7 @@ public:
 		pos_.x = std::sin(app_time) * 3.0f;
 		pos_.z = std::cos(app_time) * 3.0f;
 		so.ModelMatrix(glm::translate(glm::mat4(), pos_));
+		so.ModelMatrixDirty(true);
 	}
 
 private:
@@ -42,21 +43,23 @@ public:
 		this->BindRenderTechnique(effect, technique);
 		ShaderObject &shader = *technique->GetShaderObject(*effect);
 		*(shader.GetUniformByName("light_color")) = glm::vec3(1.0f);
-		*(shader.GetUniformByName("diff_color")) = glm::vec3(1.0f, 0.5f, 0.31f);
 		light_pos_ = shader.GetUniformByName("light_pos");
+		eye_pos_ = shader.GetUniformByName("eye_pos");
 	}
 
 	void OnRenderBegin() override
 	{
 		Renderable::OnRenderBegin();
-		Framework3D &framework = Context::Instance().FrameworkInstance();
+		Camera &camera = Context::Instance().FrameworkInstance().ActiveCamera();
 
-		const glm::mat4 &proj_view = framework.ActiveCamera().ProjViewMatrix();
+		const glm::mat4 &proj_view = camera.ProjViewMatrix();
 		*proj_view_ = proj_view;
 		*model_ = model_matrix_;
+		*eye_pos_ =  camera.EyePos();
 	}
 
 	UniformPtr light_pos_;
+	UniformPtr eye_pos_;
 };
 
 class RenderLamp : public Mesh
@@ -85,7 +88,6 @@ public:
 	BasicLightingFramework()
 		: Framework3D("Line")
 	{
-		lamp_update_ = std::make_shared<LampUpdateObject>();
 		ResLoader::Instance().AddPath("../../samples/4_basic_lighting");
 	}
 protected:
@@ -149,10 +151,17 @@ protected:
 			VertexElement(VEU_Position, 0, EF_BGR32F), EAH_GPU_Read);
 		box_mesh[0]->AddVertexStream(normals.data(), static_cast<uint32_t>(sizeof(normals[0]) * normals.size()),
 			VertexElement(VEU_Normal, 0, EF_BGR32F), EAH_GPU_Read);
+		box_mesh[0]->MaterialID(0);
 
-		box_mesh[0]->LoadMeshInfo();
 
 		box->AssignSubrenderable(box_mesh.begin(), box_mesh.end());
+		box->NumMaterials(1);
+		box->GetMaterial(0) = std::make_shared<Material>();
+		box->GetMaterial(0)->albedo = glm::vec4(0.799102738f, 0.496932995f, 0.048171824f, 1.0f);
+		box->GetMaterial(0)->metalness = 0.1f;
+		box->GetMaterial(0)->glossiness = 0.3f;
+
+		box_mesh[0]->LoadMeshInfo();
 
 		ModelPtr lamp = std::make_shared<Model>("Model");
 		std::vector<MeshPtr> lamp_mesh(1);
@@ -167,22 +176,23 @@ protected:
 		lamp_mesh[0]->LoadMeshInfo();
 		lamp->AssignSubrenderable(lamp_mesh.begin(), lamp_mesh.end());
 
-		so_box_ = std::make_shared<SceneObjectHelper>(box, SOA_Cullable | SOA_Moveable);
+		so_box_ = std::make_shared<SceneObjectHelper>(box, SOA_Cullable);
 		so_box_->BindUpdateFunc([&](SceneObject &so, float, float)
 		{
 			const glm::vec3 &trans = so_lamp_->ModelMatrix()[3];
 			*checked_pointer_cast<RenderBox>(so.GetRenderable()->Subrenderable(0))->light_pos_ = trans;
 		});
+
 		so_box_->AddToSceneManager();
 		so_lamp_ = std::make_shared<SceneObjectHelper>(lamp, SOA_Cullable | SOA_Moveable);
-		so_lamp_->BindUpdateFunc(*lamp_update_);
+		so_lamp_->BindUpdateFunc(LampUpdateObject());
 		so_lamp_->AddToSceneManager();
 
-		this->LookAt(glm::vec3(5.0f, 5.0f, 5.0f), glm::vec3());
+		this->LookAt(glm::vec3(0.0f, 0.0f, 5.0f), glm::vec3());
 		this->Proj(0.1f, 100.0f);
 
 		controller.AttachCamera(this->ActiveCamera());
-		controller.SetScalers(0.01f, 0.05f);
+		controller.SetScalers(0.01f, 0.5f);
 	}
 
 private:
@@ -200,11 +210,10 @@ private:
 	SceneObjectHelperPtr so_box_;
 	SceneObjectHelperPtr so_lamp_;
 
-	std::shared_ptr<LampUpdateObject> lamp_update_;
-
 	FirstPersonCameraController controller;
 };
 
+#define BasicLightAPP
 #ifdef BasicLightAPP
 void main()
 {

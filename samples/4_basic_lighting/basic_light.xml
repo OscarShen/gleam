@@ -22,7 +22,7 @@ out vec3 Normal;
 void main()
 {
   WorldPos = vec3(model * vec4(pos, 1.0f));
-  Normal = transpose(inverse(mat3(model))) * normal;
+  Normal = normalize(transpose(inverse(mat3(model))) * normal);
   
   gl_Position = proj_view * vec4(WorldPos, 1.0f);
 }
@@ -33,24 +33,36 @@ void main()
   <shader type="fragment_shader" name="BasicLightFS">
     <header  name="LightingFunc"/>
     <uniform type="vec3" name="light_color"/>
-    <uniform type="vec3" name="diff_color"/>
     <uniform type="vec3" name="light_pos"/>
+    <uniform type="vec3" name="eye_pos"/>
+    <uniform type="vec4" name="albedo_color"/>
+    <uniform type="float" name="glossiness_color"/>
+    <uniform type="float" name="metalness_color"/>
     <code>
       <![CDATA[
 in vec3 WorldPos;
 in vec3 Normal;
 
 uniform vec3 light_pos;
+uniform vec3 eye_pos;
 
 uniform vec3 light_color;
-uniform vec3 diff_color;
+uniform vec4 albedo_color;
+uniform float glossiness_color;
+uniform float metalness_color;
 
 out vec4 OutColor;
 
 void main() {
   vec3 light_vec = normalize(light_pos - WorldPos);
-  vec3 normal_vec = normalize(Normal);
-  OutColor = vec4(light_color * CalcBRDFShading(diff_color, light_vec, normal_vec), 1.0f);
+  vec3 eye_vec = normalize(eye_pos - WorldPos);
+  vec3 halfway_vec = normalize(light_vec + eye_vec);
+
+  vec3 c_diff = DiffuseColor(albedo_color.xyz, metalness_color);
+  vec3 c_spec = SpecularColor(albedo_color.xyz, metalness_color);
+  float shininess = Glossiness2Shininess(glossiness_color);
+  
+  OutColor = vec4(light_color * CalcBRDFShading(c_diff, c_spec, shininess, light_vec, halfway_vec, Normal), 1.0f);
 }
 		]]>
     </code>
