@@ -40,7 +40,9 @@ namespace gleam {
 		void RegisterToInputEngine();
 
 	private:
-		glm::quat rot_;
+		glm::vec2 rot_pitch_;
+		glm::vec2 rot_yaw_;
+		glm::vec2 rot_roll_;
 		glm::quat inv_rot_;
 	};
 

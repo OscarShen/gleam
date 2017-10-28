@@ -30,8 +30,17 @@ namespace gleam {
 	}
 	void FirstPersonCameraController::AttachCamera(Camera & camera)
 	{
-		rot_ = glm::toQuat(camera.ViewMatrix());
-		inv_rot_ = glm::inverse(rot_);
+		glm::quat rot = glm::toQuat(camera.ViewMatrix());
+		inv_rot_ = glm::inverse(rot);
+
+		auto sincos = [](float x, float &sin, float &cos)
+		{
+			sin = std::sin(x);
+			cos = std::cos(x);
+		};
+		sincos(glm::pitch(rot), rot_pitch_.x, rot_pitch_.y);
+		sincos(glm::yaw(rot), rot_yaw_.x, rot_yaw_.y);
+		sincos(glm::roll(rot), rot_roll_.x, rot_roll_.y);
 
 		camera_ = &camera;
 	}
@@ -56,16 +65,37 @@ namespace gleam {
 			yaw *= -rotationScaler_ * 0.5f;
 			roll *= -rotationScaler_ * 0.5f;
 
-			glm::quat related_quat = glm::rotate(glm::quat(), yaw, camera_->UpVec());
-			related_quat = glm::rotate(related_quat, pitch, camera_->RightVec());
+			auto sincos = [](float x, float &sin, float &cos)
+			{
+				sin = std::sin(x);
+				cos = std::cos(x);
+			};
 
-			rot_ = rot_ * related_quat;
+			glm::vec2 delta_pitch, delta_yaw_, delta_roll;
+			sincos(yaw, delta_yaw_.x, delta_yaw_.y);
+			sincos(pitch, delta_pitch.x, delta_pitch.y);
+			sincos(roll, delta_roll.x, delta_roll.y);
 
-			inv_rot_ = glm::inverse(rot_);
+			rot_pitch_ = glm::vec2(
+				rot_pitch_.x * delta_pitch.y + rot_pitch_.y * delta_pitch.x,
+				rot_pitch_.y * delta_pitch.y - rot_pitch_.x * delta_pitch.x);
+			rot_yaw_ = glm::vec2(
+				rot_yaw_.x * delta_yaw_.y + rot_yaw_.y * delta_yaw_.x,
+				rot_yaw_.y * delta_yaw_.y - rot_yaw_.x * delta_yaw_.x);
+			rot_roll_ = glm::vec2(
+				rot_roll_.x * delta_roll.y + rot_roll_.y * delta_roll.x,
+				rot_roll_.y * delta_roll.y - rot_roll_.x * delta_roll.x);
+
+			glm::quat quat_pitch(rot_pitch_.y, rot_pitch_.x, 0, 0);
+			glm::quat quat_yaw(rot_yaw_.y, 0, rot_yaw_.x, 0);
+			glm::quat quat_roll(rot_roll_.y, 0, 0, rot_roll_.x);
+
+			inv_rot_ = glm::inverse(quat_yaw * quat_pitch * quat_roll);
 
 			glm::vec3 forward_vec = glm::rotate(inv_rot_, glm::vec3(0, 0, -1));
+			glm::vec3 up_vec = glm::rotate(inv_rot_, glm::vec3(0, 1, 0));
 
-			camera_->ViewParams(camera_->EyePos(), camera_->EyePos() + forward_vec * camera_->LookAtDist(), glm::vec3(0, 1, 0));
+			camera_->ViewParams(camera_->EyePos(), camera_->EyePos() + forward_vec * camera_->LookAtDist(), up_vec);
 		}
 	}
 	void FirstPersonCameraController::RegisterToInputEngine()
