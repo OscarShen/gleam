@@ -40,6 +40,7 @@ namespace gleam {
 	}
 	void Renderable::OnRenderBegin()
 	{
+		// TODO : Add all this in a uniform buffer
 		if (albedo_)
 			*albedo_ = mtl_ ? mtl_->albedo : glm::vec4(0, 0, 0, 1);
 		if (albedo_tex_)

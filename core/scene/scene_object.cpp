@@ -4,7 +4,7 @@
 #include <scene/scene_manager.h>
 namespace gleam {
 	SceneObject::SceneObject(uint32_t attrib)
-		: attrib_(attrib), parent_(nullptr), 
+		: attrib_(attrib), parent_(nullptr), model_matrix_dirty_(true),
 			model_(glm::mat4()), abs_model_(glm::mat4())
 	{
 	}
@@ -59,6 +59,7 @@ namespace gleam {
 		if (renderable_)
 		{
 			renderable_->ModelMatrix(abs_model_);
+			this->ModelMatrixDirty(false);
 		}
 	}
 	void SceneObject::OnAttachRenderable(bool add_to_scene)
@@ -97,8 +98,7 @@ namespace gleam {
 		if (update_func_)
 		{
 			update_func_(*this, app_time, elapsed_time);
-			if (attrib_ & SOA_Moveable)
-			{
+			if (this->ModelMatrixDirty()) {
 				this->UpdateAbsModelMatrix();
 			}
 		}

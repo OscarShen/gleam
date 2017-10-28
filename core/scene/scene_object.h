@@ -55,6 +55,9 @@ namespace gleam
 		void BindUpdateFunc(const std::function<void(SceneObject&, float, float)> &func);
 		virtual void Update(float app_time, float elapsed_time);
 
+		void ModelMatrixDirty(bool dirty) { model_matrix_dirty_ = dirty; }
+		bool ModelMatrixDirty() const { return model_matrix_dirty_; }
+
 	protected:
 		uint32_t attrib_;
 
@@ -68,6 +71,8 @@ namespace gleam
 		glm::mat4 abs_model_;
 
 		std::function<void(SceneObject&, float, float)> update_func_;
+
+		bool model_matrix_dirty_;
 	};
 
 	class SceneObjectHelper : public SceneObject
