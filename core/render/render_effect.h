@@ -75,6 +75,7 @@ namespace gleam
 	private:
 		void RecursiveIncludeNode(TiXmlElement *root, std::vector<std::string> &include_names);
 		void LoadResource(TiXmlElement *root);
+		void LoadSampler(TiXmlElement *sampler_node, SamplerStateDesc &sampler_desc);
 
 	private:
 		std::string name_;

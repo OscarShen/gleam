@@ -99,9 +99,9 @@ namespace gleam {
 
 	struct TextureBind
 	{
-		TexturePtr texture;
-		SamplerStateObjectPtr sampler_state;
-		GLuint unit;
+		TexturePtr texture; // 运行时自定义绑定
+		SamplerStateObjectPtr sampler_state; // 在effect读取shader时明确状态
+		GLuint texture_unit; // 在effect读取shader时明确状态
 	};
 
 	class OGLUniformSampler : public OGLUniformTemplate<TextureBind>

@@ -228,96 +228,41 @@ namespace gleam
 				assert(!uniform_name.empty());
 
 				UniformPtr uniform = re.MakeUniform(uniform_type);
+				uniform->Name(uniform_name);
 
-				assert(uniform);
 				if (uniform_type == UT_Sampler)
 				{
-					uniform->Name(uniform_name);
-					SamplerStateDesc desc;
-
-					for (TiXmlElement *state_node = uniform_node->FirstChildElement("state");
-						state_node; state_node = state_node->NextSiblingElement("state"))
+					auto &samplers = shader_samplers[shader_type][name];
+					const char *sampler_copy_name = uniform_node->Attribute("copy"); // a sampler can be bound to many texture unit
+					if (sampler_copy_name)
 					{
-						std::string type = state_node->Attribute("name");
-						if (type == "filtering")
+						// TODO : use hash instead
+						std::string copy_name(sampler_copy_name);
+						for (size_t i = 0; i < samplers.size(); ++i)
 						{
-							std::string value = state_node->Attribute("value");
-							TextureFilterOpFromString(desc.filter, value);
-						}
-						else if (type == "address_u")
-						{
-							std::string value = state_node->Attribute("value");
-							TextureAddressingModeFromString(desc.addr_mode_u, value);
-						}
-						else if (type == "address_v")
-						{
-							std::string value = state_node->Attribute("value");
-							TextureAddressingModeFromString(desc.addr_mode_v, value);
-						}
-						else if (type == "address_w")
-						{
-							std::string value = state_node->Attribute("value");
-							TextureAddressingModeFromString(desc.addr_mode_w, value);
-						}
-						else if (type == "max_anisotropy")
-						{
-							std::string value = state_node->Attribute("value");
-							desc.max_anisotropy = boost::lexical_cast<uint8_t>(value);
-						}
-						else if (type == "min_lod")
-						{
-							std::string value = state_node->Attribute("value");
-							desc.min_lod = boost::lexical_cast<float>(value);
-						}
-						else if (type == "max_lod")
-						{
-							std::string value = state_node->Attribute("value");
-							desc.max_lod = boost::lexical_cast<float>(value);
-						}
-						else if (type == "mip_map_lod_bias")
-						{
-							std::string value = state_node->Attribute("value");
-							desc.mip_map_lod_bias = boost::lexical_cast<float>(value);
-						}
-						else if (type == "cmp_func")
-						{
-							std::string value = state_node->Attribute("value");
-							CompareFunctionFromString(desc.cmp_func, value);
-						}
-						else if (type == "border_color")
-						{
-							const char *attr = state_node->Attribute("r");
-							if (attr)
+							if (samplers[i]->Name() == sampler_copy_name)
 							{
-								desc.border_color.r = boost::lexical_cast<float>(attr);
-							}
-							attr = state_node->Attribute("g");
-							if (attr)
-							{
-								desc.border_color.g = boost::lexical_cast<float>(attr);
-							}
-							attr = state_node->Attribute("b");
-							if (attr)
-							{
-								desc.border_color.b = boost::lexical_cast<float>(attr);
-							}
-							attr = state_node->Attribute("a");
-							if (attr)
-							{
-								desc.border_color.a = boost::lexical_cast<float>(attr);
+								UniformPtr sampler = samplers[i]->CopyResource();
+								sampler->Name(uniform_name);
+								*sampler = static_cast<uint32_t>(samplers.size());
+								samplers.push_back(sampler);
+								break;
 							}
 						}
-						else
-							CHECK_INFO(false, "Invalid sampler state name : " << uniform_name);
 					}
+					else
+					{
+						SamplerStateDesc desc;
+						LoadSampler(uniform_node, desc);
 
-					SamplerStateObjectPtr sampler_state = re.MakeSamplerStateObject(desc);
-					*uniform = sampler_state;
-					shader_samplers[shader_type][name].push_back(uniform);
+						SamplerStateObjectPtr sampler_state = re.MakeSamplerStateObject(desc);
+						*uniform = sampler_state;
+						*uniform = static_cast<uint32_t>(samplers.size());
+						samplers.push_back(uniform);
+					}
 				}
 				else
 				{
-					uniform->Name(uniform_name);
 					shader_uniforms_[shader_type][name].push_back(uniform);
 				}
 			}
@@ -366,6 +311,84 @@ namespace gleam
 
 			techniques_.push_back(technique);
 			techniques_.back()->Load(*this, technique_node);
+		}
+	}
+	void RenderEffect::LoadSampler(TiXmlElement * sampler_node, SamplerStateDesc & desc)
+	{
+		for (TiXmlElement *state_node = sampler_node->FirstChildElement("state");
+			state_node; state_node = state_node->NextSiblingElement("state"))
+		{
+			std::string type = state_node->Attribute("name");
+			if (type == "filtering")
+			{
+				std::string value = state_node->Attribute("value");
+				TextureFilterOpFromString(desc.filter, value);
+			}
+			else if (type == "address_u")
+			{
+				std::string value = state_node->Attribute("value");
+				TextureAddressingModeFromString(desc.addr_mode_u, value);
+			}
+			else if (type == "address_v")
+			{
+				std::string value = state_node->Attribute("value");
+				TextureAddressingModeFromString(desc.addr_mode_v, value);
+			}
+			else if (type == "address_w")
+			{
+				std::string value = state_node->Attribute("value");
+				TextureAddressingModeFromString(desc.addr_mode_w, value);
+			}
+			else if (type == "max_anisotropy")
+			{
+				std::string value = state_node->Attribute("value");
+				desc.max_anisotropy = boost::lexical_cast<uint8_t>(value);
+			}
+			else if (type == "min_lod")
+			{
+				std::string value = state_node->Attribute("value");
+				desc.min_lod = boost::lexical_cast<float>(value);
+			}
+			else if (type == "max_lod")
+			{
+				std::string value = state_node->Attribute("value");
+				desc.max_lod = boost::lexical_cast<float>(value);
+			}
+			else if (type == "mip_map_lod_bias")
+			{
+				std::string value = state_node->Attribute("value");
+				desc.mip_map_lod_bias = boost::lexical_cast<float>(value);
+			}
+			else if (type == "cmp_func")
+			{
+				std::string value = state_node->Attribute("value");
+				CompareFunctionFromString(desc.cmp_func, value);
+			}
+			else if (type == "border_color")
+			{
+				const char *attr = state_node->Attribute("r");
+				if (attr)
+				{
+					desc.border_color.r = boost::lexical_cast<float>(attr);
+				}
+				attr = state_node->Attribute("g");
+				if (attr)
+				{
+					desc.border_color.g = boost::lexical_cast<float>(attr);
+				}
+				attr = state_node->Attribute("b");
+				if (attr)
+				{
+					desc.border_color.b = boost::lexical_cast<float>(attr);
+				}
+				attr = state_node->Attribute("a");
+				if (attr)
+				{
+					desc.border_color.a = boost::lexical_cast<float>(attr);
+				}
+			}
+			else
+				CHECK_INFO(false, "Invalid sampler state name : " << type);
 		}
 	}
 	void RenderTechnique::Name(const std::string & name)

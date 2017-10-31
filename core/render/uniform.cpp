@@ -103,20 +103,20 @@ namespace gleam {
 	Uniform & OGLUniformSampler::operator=(const uint32_t & value)
 	{
 		GLuint unit = static_cast<GLuint>(value);
-		if (data_.unit != unit)
+		if (data_.texture_unit != unit)
 		{
 			dirty_ = true;
-			data_.unit = unit;
+			data_.texture_unit = unit;
 		}
 		return *this;
 	}
 	Uniform & OGLUniformSampler::operator=(const int32_t & value)
 	{
 		GLuint unit = static_cast<GLuint>(value);
-		if (data_.unit != unit)
+		if (data_.texture_unit != unit)
 		{
 			dirty_ = true;
-			data_.unit = unit;
+			data_.texture_unit = unit;
 		}
 		return *this;
 	}
@@ -126,8 +126,8 @@ namespace gleam {
 		{
 			OGLTexture &gl_texture = *checked_pointer_cast<OGLTexture>(data_.texture);
 			OGLSamplerStateObject &gl_sampler_state = *checked_pointer_cast<OGLSamplerStateObject>(data_.sampler_state);
-			glBindTextureUnit(data_.unit, gl_texture.GLTexture());
-			glBindSampler(data_.unit, gl_sampler_state.GLSampler());
+			glBindTextureUnit(data_.texture_unit, gl_texture.GLTexture());
+			glBindSampler(data_.texture_unit, gl_sampler_state.GLSampler());
 			dirty_ = false;
 		}
 	}
