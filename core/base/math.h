@@ -43,7 +43,6 @@ namespace gleam {
 			<= std::numeric_limits<float>::epsilon());
 	}
 
-
 	// Quaternion
 	template <typename T>
 	glm::tquat<T> unit_axis_to_unit_axis(glm::tvec3<T> const & from, glm::tvec3<T> const & to) noexcept
@@ -72,6 +71,133 @@ namespace gleam {
 	glm::tquat<T> axis_to_axis(glm::tvec3<T> const & from, glm::tvec3<T> const & to) noexcept
 	{
 		return unit_axis_to_unit_axis(glm::normalize(from), glm::normalize(to));
+	}
+
+	template <typename NormalIterator, typename IndexIterator, typename PositionIterator>
+	inline void
+		compute_normal(NormalIterator normalBegin,
+			IndexIterator indicesBegin, IndexIterator indicesEnd,
+			PositionIterator xyzsBegin, PositionIterator xyzsEnd) noexcept
+	{
+		typedef typename std::iterator_traits<PositionIterator>::value_type position_type;
+		typedef typename std::iterator_traits<NormalIterator>::value_type normal_type;
+		typedef typename position_type::value_type value_type;
+
+		NormalIterator normalEnd = normalBegin;
+		std::advance(normalEnd, std::distance(xyzsBegin, xyzsEnd));
+		std::fill(normalBegin, normalEnd, normal_type(0));
+
+		for (IndexIterator iter = indicesBegin; iter != indicesEnd; iter += 3)
+		{
+			uint32_t const v0Index = *(iter + 0);
+			uint32_t const v1Index = *(iter + 1);
+			uint32_t const v2Index = *(iter + 2);
+
+			position_type const & v0(*(xyzsBegin + v0Index));
+			position_type const & v1(*(xyzsBegin + v1Index));
+			position_type const & v2(*(xyzsBegin + v2Index));
+
+			glm::tvec3<value_type> v03(v0.x, v0.y, v0.z);
+			glm::tvec3<value_type> v13(v1.x, v1.y, v1.z);
+			glm::tvec3<value_type> v23(v2.x, v2.y, v2.z);
+
+			glm::tvec3<value_type> vec(glm::cross(v13 - v03, v23 - v03));
+
+			*(normalBegin + v0Index) += vec;
+			*(normalBegin + v1Index) += vec;
+			*(normalBegin + v2Index) += vec;
+		}
+
+		for (NormalIterator iter = normalBegin; iter != normalEnd; ++iter)
+		{
+			*iter = glm::normalize(*iter);
+		}
+	}
+
+	template <typename TangentIterator, typename BitangentIterator,
+		typename IndexIterator, typename PositionIterator, typename TexCoordIterator, typename NormalIterator>
+		inline void
+		compute_tangent(TangentIterator targentsBegin, BitangentIterator binormsBegin,
+			IndexIterator indicesBegin, IndexIterator indicesEnd,
+			PositionIterator xyzsBegin, PositionIterator xyzsEnd,
+			TexCoordIterator texsBegin, NormalIterator normalsBegin) noexcept
+	{
+		typedef typename std::iterator_traits<PositionIterator>::value_type position_type;
+		typedef typename std::iterator_traits<TexCoordIterator>::value_type texcoord_type;
+		typedef typename std::iterator_traits<TangentIterator>::value_type tangent_type;
+		typedef typename std::iterator_traits<BitangentIterator>::value_type bitangent_type;
+		typedef typename std::iterator_traits<NormalIterator>::value_type normal_type;
+		typedef typename position_type::value_type value_type;
+
+		int const num = static_cast<int>(std::distance(xyzsBegin, xyzsEnd));
+
+		for (int i = 0; i < num; ++i)
+		{
+			*(targentsBegin + i) = tangent_type(0);
+			*(binormsBegin + i) = bitangent_type(0);
+		}
+
+		for (IndexIterator iter = indicesBegin; iter != indicesEnd; iter += 3)
+		{
+			uint32_t const v0Index = *(iter + 0);
+			uint32_t const v1Index = *(iter + 1);
+			uint32_t const v2Index = *(iter + 2);
+
+			position_type const & v0XYZ(*(xyzsBegin + v0Index));
+			position_type const & v1XYZ(*(xyzsBegin + v1Index));
+			position_type const & v2XYZ(*(xyzsBegin + v2Index));
+
+			glm::tvec3<value_type> v1v0 = v1XYZ - v0XYZ;
+			glm::tvec3<value_type> v2v0 = v2XYZ - v0XYZ;
+
+			texcoord_type const & v0Tex(*(texsBegin + v0Index));
+			texcoord_type const & v1Tex(*(texsBegin + v1Index));
+			texcoord_type const & v2Tex(*(texsBegin + v2Index));
+
+			value_type s1 = v1Tex.x - v0Tex.x;
+			value_type t1 = v1Tex.y - v0Tex.y;
+
+			value_type s2 = v2Tex.x - v0Tex.x;
+			value_type t2 = v2Tex.y - v0Tex.y;
+
+			value_type denominator = s1 * t2 - s2 * t1;
+			glm::tvec3<value_type> tangent, bitangent;
+			if (std::abs(denominator) < std::numeric_limits<value_type>::epsilon())
+			{
+				tangent = glm::tvec3<value_type>(1, 0, 0);
+				bitangent = glm::tvec3<value_type>(0, 1, 0);
+			}
+			else
+			{
+				tangent = (t2 * v1v0 - t1 * v2v0) / denominator;
+				bitangent = (s1 * v2v0 - s2 * v1v0) / denominator;
+			}
+
+			tangent_type t = glm::tvec3<value_type>(tangent.x, tangent.y, tangent.z);
+
+			*(targentsBegin + v0Index) += t;
+			*(binormsBegin + v0Index) += bitangent;
+
+			*(targentsBegin + v1Index) += t;
+			*(binormsBegin + v1Index) += bitangent;
+
+			*(targentsBegin + v2Index) += t;
+			*(binormsBegin + v2Index) += bitangent;
+		}
+
+		for (int i = 0; i < num; ++i)
+		{
+			tangent_type t(*(targentsBegin + i));
+			glm::tvec3<value_type> tangent(t.x, t.y, t.z);
+			bitangent_type bitangent(*(binormsBegin + i));
+			normal_type normal(*(normalsBegin + i));
+
+			// Gram-Schmidt orthogonalize
+			tangent = glm::normalize(tangent - normal * dot(tangent, normal));
+
+			*(targentsBegin + i) = glm::tvec3<value_type>(tangent.x, tangent.y, tangent.z);
+			*(binormsBegin + i) = glm::cross(normal, tangent);
+		}
 	}
 }
 
