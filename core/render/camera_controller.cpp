@@ -6,6 +6,7 @@
 #include <base/window.h>
 #include <base/context.h>
 #include <GLFW/glfw3.h>
+#include <base/math.h>
 namespace gleam {
 
 	CameraController::CameraController()
@@ -33,11 +34,6 @@ namespace gleam {
 		glm::quat rot = glm::toQuat(camera.ViewMatrix());
 		inv_rot_ = glm::inverse(rot);
 
-		auto sincos = [](float x, float &sin, float &cos)
-		{
-			sin = std::sin(x);
-			cos = std::cos(x);
-		};
 		sincos(glm::pitch(rot), rot_pitch_.x, rot_pitch_.y);
 		sincos(glm::yaw(rot), rot_yaw_.x, rot_yaw_.y);
 		sincos(glm::roll(rot), rot_roll_.x, rot_roll_.y);
@@ -64,12 +60,6 @@ namespace gleam {
 			pitch *= -rotationScaler_ * 0.5f;
 			yaw *= -rotationScaler_ * 0.5f;
 			roll *= -rotationScaler_ * 0.5f;
-
-			auto sincos = [](float x, float &sin, float &cos)
-			{
-				sin = std::sin(x);
-				cos = std::cos(x);
-			};
 
 			glm::vec2 delta_pitch, delta_yaw_, delta_roll;
 			sincos(yaw, delta_yaw_.x, delta_yaw_.y);

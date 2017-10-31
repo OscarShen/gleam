@@ -25,7 +25,7 @@ namespace gleam {
 	{
 		if (!init()) {
 			std::cout << "GLFW Initial failed!" << std::endl;
-			exit(-1);
+			assert(false);
 		}
 		else {
 			running_ = true;

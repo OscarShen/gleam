@@ -16,14 +16,14 @@ class LampUpdateObject
 {
 public:
 	LampUpdateObject()
-		: pos_(glm::vec3(0,3.0f,0))
+		: pos_(glm::vec3(0,1.5f,0))
 	{
 	}
 
 	void operator()(SceneObject &so, float app_time, float)
 	{
-		pos_.x = std::sin(app_time) * 3.0f;
-		pos_.z = std::cos(app_time) * 3.0f;
+		pos_.x = std::sin(app_time) * 2.0f;
+		pos_.z = std::cos(app_time) * 2.0f;
 		so.ModelMatrix(glm::translate(glm::mat4(), pos_));
 		so.ModelMatrixDirty(true);
 	}
@@ -210,10 +210,9 @@ private:
 	SceneObjectHelperPtr so_box_;
 	SceneObjectHelperPtr so_lamp_;
 
-	FirstPersonCameraController controller;
+	TrackballCameraController controller;
 };
 
-#define BasicLightAPP
 #ifdef BasicLightAPP
 void main()
 {
