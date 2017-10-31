@@ -61,6 +61,7 @@ namespace gleam
 		virtual void ModelMatrix(const glm::mat4 &model);
 
 		const glm::vec3 &Falloff() const { return falloff_; }
+		void Falloff(const glm::vec3 &fall_off);
 
 		virtual const CameraPtr &SMCamera(uint32_t index) const;
 

@@ -78,6 +78,12 @@ namespace gleam {
 		pos_ = glm::vec3(model[3]) /* / model[3][3] */;
 	}
 
+	void Light::Falloff(const glm::vec3 & fall_off)
+	{
+		falloff_ = fall_off;
+		this->Range(-1);
+	}
+
 	const CameraPtr & Light::SMCamera(uint32_t index) const
 	{
 		static const CameraPtr ret;
