@@ -1,6 +1,7 @@
 #define _SCL_SECURE_NO_WARNINGS
 #include "mesh.h"
 #include <base/context.h>
+#include <base/framework.h>
 #include <render/render_engine.h>
 #include <util/hash.h>
 #include <assimp/scene.h>
@@ -8,6 +9,9 @@
 #include <assimp/postprocess.h>
 #include <render/material.h>
 #include <render/texture.h>
+#include <base/bbox.h>
+#include "camera.h"
+#include "light.h"
 namespace gleam {
 
 	class ModelLoadingDesc : public ResLoadingDesc
@@ -35,7 +39,7 @@ namespace gleam {
 			std::string res_name;
 			uint32_t access_hint;
 			std::shared_ptr<ModelData> model_data;
-			std::shared_ptr<Model> model; 
+			std::shared_ptr<Model> model;
 			std::function<ModelPtr(const std::string &)> CreateModelFunc;
 			std::function<MeshPtr(const std::string &, const ModelPtr &)> CreateMeshFunc;
 		};
@@ -225,7 +229,7 @@ namespace gleam {
 	{
 		if (this->MaterialID() >= 0) {
 			ModelPtr model = model_ptr_.lock();
-			mtl_ = model->GetMaterial(this->MaterialID()); 
+			mtl_ = model->GetMaterial(this->MaterialID());
 
 			for (size_t i = 0; i < TS_NumTextureSlots; ++i)
 			{
@@ -265,6 +269,7 @@ namespace gleam {
 
 	void Model::ModelMatrix(const glm::mat4 & model)
 	{
+		this->model_matrix_ = model;
 		for (const auto &mesh : subrenderables_)
 		{
 			checked_pointer_cast<Mesh>(mesh)->ModelMatrix(model);
@@ -458,12 +463,12 @@ namespace gleam {
 		assert(has_normal && has_tangent && has_bitangent);
 		for (decltype(mesh->mNumVertices) i = 0; i < mesh->mNumVertices; ++i)
 		{
-			// Assimp will generate normals, uvCoords, tangents, binormal if these aren't contained in model file...
+			// Assimp will generate normals, uvCoords, tangents, bitangent if these aren't contained in model file...
 			aMesh->vertices.emplace_back(mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z);
 			aMesh->normals.emplace_back(mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z);
 			aMesh->tangents.emplace_back(mesh->mTangents[i].x, mesh->mTangents[i].y, mesh->mTangents[i].z);
 			aMesh->bitangents.emplace_back(mesh->mBitangents[i].x, mesh->mBitangents[i].y, mesh->mBitangents[i].z);
-			if(has_texCoord)
+			if (has_texCoord)
 				aMesh->texCoords.emplace_back(mesh->mTextureCoords[0][i].x, mesh->mTextureCoords[0][i].y);
 		}
 
@@ -509,9 +514,9 @@ namespace gleam {
 
 		const aiScene *scene = aiImportFile(file_name.c_str(), aiProcess_CalcTangentSpace | aiProcess_GenSmoothNormals |
 			aiProcess_JoinIdenticalVertices | aiProcess_Triangulate);
-		
+
 		CHECK_INFO(scene, aiGetErrorString());
-		
+
 		std::vector<AssimpMesh> meshes;
 		std::vector<AssimpMaterial> materials;
 		ProcessNode(scene->mRootNode, scene, meshes);
@@ -558,22 +563,22 @@ namespace gleam {
 			merged_buff[i].resize(all_num_vertices * merged_ves[i].NumFormatBytes());
 		}
 
-		uint8_t *cur_vertices   = merged_buff[0].data();
-		uint8_t *cur_normals    = merged_buff[1].data();
-		uint8_t *cur_tangents	= merged_buff[2].data();
+		uint8_t *cur_vertices = merged_buff[0].data();
+		uint8_t *cur_normals = merged_buff[1].data();
+		uint8_t *cur_tangents = merged_buff[2].data();
 		uint8_t *cur_bitangents = merged_buff[3].data();
-		uint8_t *cur_texCoords  = merged_buff[4].data();
+		uint8_t *cur_texCoords = merged_buff[4].data();
 		for (size_t i = 0; i < meshes.size(); ++i)
 		{
 			size_t stride = meshes[i].vertices.size();
-			std::copy((uint8_t*)meshes[i].vertices.data(),		(uint8_t*)(&meshes[i].vertices.back() + 1),		cur_vertices);
-			std::copy((uint8_t*)meshes[i].normals.data(),		(uint8_t*)(&meshes[i].normals.back() + 1),		cur_normals);
-			std::copy((uint8_t*)meshes[i].tangents.data(),		(uint8_t*)(&meshes[i].tangents.back() + 1),		cur_tangents);
-			std::copy((uint8_t*)meshes[i].bitangents.data(),	(uint8_t*)(&meshes[i].bitangents.back() + 1),	cur_bitangents);
-			cur_vertices	+=	stride * merged_ves[0].NumFormatBytes();
-			cur_normals		+=	stride * merged_ves[1].NumFormatBytes();
-			cur_tangents	+=	stride * merged_ves[2].NumFormatBytes();
-			cur_bitangents	+=	stride * merged_ves[3].NumFormatBytes();
+			std::copy((uint8_t*)meshes[i].vertices.data(), (uint8_t*)(&meshes[i].vertices.back() + 1), cur_vertices);
+			std::copy((uint8_t*)meshes[i].normals.data(), (uint8_t*)(&meshes[i].normals.back() + 1), cur_normals);
+			std::copy((uint8_t*)meshes[i].tangents.data(), (uint8_t*)(&meshes[i].tangents.back() + 1), cur_tangents);
+			std::copy((uint8_t*)meshes[i].bitangents.data(), (uint8_t*)(&meshes[i].bitangents.back() + 1), cur_bitangents);
+			cur_vertices += stride * merged_ves[0].NumFormatBytes();
+			cur_normals += stride * merged_ves[1].NumFormatBytes();
+			cur_tangents += stride * merged_ves[2].NumFormatBytes();
+			cur_bitangents += stride * merged_ves[3].NumFormatBytes();
 			if (has_texCoord)
 			{
 				std::copy((uint8_t*)meshes[i].texCoords.data(), (uint8_t*)(&meshes[i].texCoords.back() + 1), cur_texCoords);
@@ -632,5 +637,55 @@ namespace gleam {
 	ModelPtr LoadModel(const std::string & name, uint32_t access_hint, std::function<ModelPtr(const std::string &)> create_model_func, std::function<MeshPtr(const std::string &, const ModelPtr &)> create_mesh_func)
 	{
 		return ResLoader::Instance().QueryT<Model>(std::make_shared<ModelLoadingDesc>(name, access_hint, create_model_func, create_mesh_func));
+	}
+	RenderableLightPolygon::RenderableLightPolygon()
+	{
+		RenderEngine &re = Context::Instance().RenderEngineInstance();
+
+		effect_ = LoadRenderEffect("renderable.xml");
+		technique_ = effect_->GetTechniqueByName("LightPolygon");
+		OBBox box(convert_to_obbox(AABBox(glm::vec3(-1), glm::vec3(1))));
+		const auto &shader = technique_->GetShaderObject(*effect_);
+		*shader->GetUniformByName("v0") = box.Corner(0);
+		*shader->GetUniformByName("v1") = box.Corner(1);
+		*shader->GetUniformByName("v2") = box.Corner(2);
+		*shader->GetUniformByName("v3") = box.Corner(3);
+		*shader->GetUniformByName("v4") = box.Corner(4);
+		*shader->GetUniformByName("v5") = box.Corner(5);
+		*shader->GetUniformByName("v6") = box.Corner(6);
+		*shader->GetUniformByName("v7") = box.Corner(7);
+		*shader->GetUniformByName("color") = glm::vec4(1.0f);
+		mvp_ = shader->GetUniformByName("mvp");
+
+		float vertices[] =
+		{
+			0,1,2,3,4,5,6,7
+		};
+
+		uint16_t indices[] =
+		{
+			0, 2, 3, 3, 1, 0,
+			5, 7, 6, 6, 4, 5,
+			4, 0, 1, 1, 5, 4,
+			4, 6, 2, 2, 0, 4,
+			2, 6, 7, 7, 3, 2,
+			1, 3, 7, 7, 5, 1
+		};
+
+		layout_ = re.MakeRenderLayout();
+		layout_->TopologyType(TT_TriangleList);
+
+		GraphicsBufferPtr vb = re.MakeVertexBuffer(BU_Static, EAH_GPU_Read | EAH_Immutable, sizeof(vertices), vertices);
+		layout_->BindVertexStream(vb, VertexElement(VEU_Position, 0, EF_R32F));
+
+		GraphicsBufferPtr ib = re.MakeIndexBuffer(BU_Static, EAH_GPU_Read | EAH_Immutable, sizeof(indices), indices);
+		layout_->BindIndexStream(ib, EF_R16UI);
+	}
+	void RenderableLightPolygon::OnRenderBegin()
+	{
+		Framework3D &framework = Context::Instance().FrameworkInstance();
+
+		glm::mat4 mvp = framework.ActiveCamera().ProjViewMatrix() * model_matrix_;
+		*mvp_ = mvp;
 	}
 }

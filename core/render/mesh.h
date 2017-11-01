@@ -87,6 +87,24 @@ namespace gleam
 		std::vector<MaterialPtr> materials_;
 	};
 
+	class RenderableLightPolygon : public RenderableHelper
+	{
+	public:
+		RenderableLightPolygon();
+
+		void OnRenderBegin() override;
+
+	private:
+		UniformPtr v0_;
+		UniformPtr v1_;
+		UniformPtr v2_;
+		UniformPtr v3_;
+		UniformPtr v4_;
+		UniformPtr v5_;
+		UniformPtr v6_;
+		UniformPtr v7_;
+	};
+
 	template <typename T>
 	struct CreateMeshFunc
 	{
