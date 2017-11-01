@@ -1,7 +1,10 @@
 #include "scene_object.h"
 #include <render/renderable.h>
+#include <render/mesh.h>
 #include <base/context.h>
 #include <scene/scene_manager.h>
+#include <glm/gtx/matrix_decompose.hpp>
+#include <render/light.h>
 namespace gleam {
 	SceneObject::SceneObject(uint32_t attrib)
 		: attrib_(attrib), parent_(nullptr), model_matrix_dirty_(true),
@@ -130,5 +133,27 @@ namespace gleam {
 				}
 			}
 		}
+	}
+	SceneObjectLightPolygon::SceneObjectLightPolygon(const LightPtr & light)
+		: SceneObjectHelper(SOA_Cullable | SOA_Moveable | SOA_NotCastShadow),
+		light_(light)
+	{
+		renderable_ = std::make_shared<RenderableLightPolygon>();
+	}
+	void SceneObjectLightPolygon::Scale(const glm::vec3 & scale)
+	{
+		this->scale_matrix_ = glm::scale(glm::mat4(), scale);
+	}
+	void SceneObjectLightPolygon::Update(float, float)
+	{
+		model_ = glm::translate(glm::mat4(), light_->Position()) *
+			glm::mat4_cast(light_->Rotation()) * scale_matrix_;
+
+		if (light_->Type() == LT_Spot)
+		{
+			// TODO : Add spot light
+		}
+
+		renderable_->ModelMatrix(model_);
 	}
 }

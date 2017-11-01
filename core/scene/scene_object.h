@@ -83,6 +83,21 @@ namespace gleam
 
 		virtual void OnAttachRenderable(bool add_to_scene) override;
 	};
+
+	class SceneObjectLightPolygon : public SceneObjectHelper
+	{
+	public:
+		explicit SceneObjectLightPolygon(const LightPtr & light);
+
+		void Scale(const glm::vec3 &scale);
+
+		void Update(float, float) override;
+
+	private:
+		LightPtr light_;
+
+		glm::mat4 scale_matrix_;
+	};
 }
 
 #endif // !GLEAM_SCENE_OBJECT_H_
