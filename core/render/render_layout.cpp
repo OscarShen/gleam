@@ -386,7 +386,7 @@ namespace gleam {
 			usage = VEU_TextureCoord;
 		else if (name == "tangent")
 			usage = VEU_Tangent;
-		else if (name == "binormal")
+		else if (name == "bitangent")
 			usage = VEU_Binormal;
 		else
 			CHECK_INFO(false, "Invalid vertex element usage : " << name);

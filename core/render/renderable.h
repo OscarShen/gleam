@@ -19,6 +19,7 @@ namespace gleam
 	{
 	public:
 		virtual void ModelMatrix(const glm::mat4 &model);
+		const glm::mat4 &ModelMatrix() const { return model_matrix_; }
 
 		virtual const RenderEffectPtr &GetRenderEffect() const { return effect_; }
 		virtual RenderTechnique *GetRenderTechnique() const { return technique_; }

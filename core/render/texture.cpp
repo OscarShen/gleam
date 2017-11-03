@@ -871,6 +871,7 @@ namespace gleam {
 	bool LoadTexture(const std::string & name, TextureType &type, uint32_t & width, uint32_t & height, ElementFormat & format, std::vector<ElementInitData> &init_data, std::vector<uint8_t>& data)
 	{
 		std::string file_name = ResLoader::Instance().Locate(name);
+		CHECK_INFO(!file_name.empty(), "can't locate file : " << name);
 		if (!file_name.empty()) // TT_1D, TT2D
 		{
 			int w, h, c;

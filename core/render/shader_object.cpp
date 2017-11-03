@@ -36,7 +36,7 @@ namespace gleam {
 		glGetShaderiv(gl_shader, GL_COMPILE_STATUS, &compiled);
 		if (!compiled)
 		{
-			CHECK_INFO(false, "Error when compiling GLSL...");
+			WARNING(false, "Error when compiling GLSL...");
 
 			GLint len = 0;
 			glGetShaderiv(gl_shader, GL_INFO_LOG_LENGTH, &len);
