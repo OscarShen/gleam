@@ -42,6 +42,14 @@ vec3 CalcBRDFShading(vec3 c_diff, vec3 c_spec, float shininess, vec3 l, vec3 h, 
   return max((c_diff + SpecularTerm(c_spec, l, h, n, shininess)) * dot(n, l), 0);
 }
 
+float AttenuationTerm(vec3 light_pos, vec3 pos, vec3 atten)
+{
+  vec3 view_vec = light_pos - pos;
+  float d2 = dot(view_vec, view_vec);
+  float d = sqrt(d2);
+  return 1 / dot(atten, vec3(1, d, d2));
+}
+
 // Metalness
 vec3 DiffuseColor(vec3 albedo, float metalness)
 {

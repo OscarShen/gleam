@@ -6,6 +6,7 @@
 #include <base/framework.h>
 #include <util/hash.h>
 #include <render/camera.h>
+#include <render/light.h>
 namespace gleam {
 	SceneManager::SceneManager()
 		: small_obj_threshold_(0),update_elapsed_(0)
@@ -145,11 +146,19 @@ namespace gleam {
 
 		this->FlushScene();
 
+		// TODO : The objects needs to be deleted after the end of life
+
 		std::vector<SceneObjectPtr> added_scene_objs;
 		for (const SceneObjectPtr &obj : scene_objs_)
 		{
 			obj->Update(app_time, frame_time);
 		}
+
+		for (const LightPtr &light : lights_)
+		{
+			light->Update(app_time, frame_time);
+		}
+
 
 		re.EndFrame();
 	}

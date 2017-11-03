@@ -83,6 +83,8 @@ namespace gleam {
 	struct Material;
 	typedef std::shared_ptr<Material> MaterialPtr;
 
+	struct SamplerStateDesc;
+
 	template <typename T>
 	class AABBox_T;
 	typedef AABBox_T<float> AABBox;

@@ -76,20 +76,13 @@ void main()
 
     <code>
       <![CDATA[
-vec4 cccc(mat4 mvp, vec3 pos)
-{
-  return mvp * vec4(pos, 1.0f);
-}
-      
-      
 in vec3 pos;
 
 uniform mat4 mvp;
       
 void main()
 {
-  gl_Position = cccc(mvp, pos);
-	//gl_Position = mvp * vec4(pos, 1.0f);
+	gl_Position = mvp * vec4(pos, 1.0f);
 }
       ]]>
     </code>
@@ -169,6 +162,13 @@ void main()
     <state name="cull_mode" value="none"/>
 
     <state name="vertex_shader" value="HelperVS"/>
+    <state name="fragment_shader" value="HelperFS"/>
+  </technique>
+
+  <technique name="LightPolygon">
+    <state name="cull_mode" value="none"/>
+
+    <state name="vertex_shader" value="PrimitiveVS"/>
     <state name="fragment_shader" value="HelperFS"/>
   </technique>
 
