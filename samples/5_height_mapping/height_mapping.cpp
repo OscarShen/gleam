@@ -29,7 +29,6 @@ public:
 		*(shader->GetSamplerByName("diffuse_tex")) = LoadTexture("stonewallDiffuse.tga", EAH_GPU_Read | EAH_Immutable);
 		*(shader->GetSamplerByName("normal_tex")) = LoadTexture("stonewallNormal.tga", EAH_GPU_Read | EAH_Immutable);
 		*(shader->GetSamplerByName("height_tex")) = LoadTexture("stonewallDepth.tga", EAH_GPU_Read | EAH_Immutable);
-		*(shader->GetUniformByName("light_color")) = glm::vec3(2.0f);
 		light_falloff_ = shader->GetUniformByName("light_falloff");
 		light_pos_ = shader->GetUniformByName("light_pos");
 		light_color_ = shader->GetUniformByName("light_color");
@@ -174,8 +173,8 @@ private:
 
 		light_ = std::make_shared<PointLight>();
 		light_->Attrib(0);
-		light_->Color(glm::vec3(2, 2, 2));
-		light_->Falloff(glm::vec3(0.2, 0.5, 0.2));
+		light_->Color(glm::vec3(3));
+		light_->Falloff(glm::vec3(1, 0.7, 1.25));
 		light_->Position(glm::vec3(2, 0, 2));
 		light_->BindUpdateFunc(PointLightUpdate());
 		light_->AddToSceneManager();
@@ -200,7 +199,7 @@ private:
 		re.CurrentFrameBuffer()->Clear(CBM_Color | CBM_Depth, clear_color, 1.0f, 0);
 
 		checked_pointer_cast<PolygonObject>(polygon_)->LightPos(light_->Position());
-		//checked_pointer_cast<PolygonObject>(polygon_)->LightColor(light_->Color());
+		checked_pointer_cast<PolygonObject>(polygon_)->LightColor(light_->Color());
 		checked_pointer_cast<PolygonObject>(polygon_)->LightFalloff(light_->Falloff());
 
 		return UR_NeedFlush | UR_Finished;
@@ -215,12 +214,12 @@ private:
 	LightPtr light_;
 };
 
-
+#ifdef HEIGHT_MAPPING_ADD
 int main()
 {
 	HeightMapping app;
 	app.Create();
 	app.Run();
-	glCheckError();
 }
+#endif // HEIGHT_MAPPING_ADD
 
