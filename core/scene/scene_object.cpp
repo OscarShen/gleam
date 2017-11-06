@@ -156,4 +156,12 @@ namespace gleam {
 
 		renderable_->ModelMatrix(model_);
 	}
+	SceneObjectSkybox::SceneObjectSkybox(uint32_t attrib)
+		: SceneObjectHelper(std::make_shared<RenderableSkybox>(), attrib | SOA_NotCastShadow)
+	{
+	}
+	void SceneObjectSkybox::CubeMap(const TexturePtr & cubemap)
+	{
+		checked_pointer_cast<RenderableSkybox>(renderable_)->CubeMap(cubemap);
+	}
 }

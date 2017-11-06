@@ -113,6 +113,23 @@ namespace gleam
 		UniformPtr v6_;
 		UniformPtr v7_;
 	};
+
+	class RenderableSkybox : public RenderableHelper
+	{
+	public:
+		RenderableSkybox();
+
+		void BindRenderTechnique(const RenderEffectPtr &effect, RenderTechnique *tech) override;
+
+		void CubeMap(const TexturePtr &cubemap) { *skybox_tex_ = cubemap; }
+
+		void OnRenderBegin();
+
+	protected:
+		UniformPtr skybox_tex_;
+
+		UniformPtr inv_mvp_;
+	};
 }
 
 #endif // !GLEAM_RENDER_RENDERABLE_H_

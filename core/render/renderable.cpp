@@ -249,4 +249,41 @@ namespace gleam {
 		GraphicsBufferPtr ib = re.MakeIndexBuffer(BU_Static, EAH_GPU_Read | EAH_Immutable, sizeof(indices), indices);
 		layout_->BindIndexStream(ib, EF_R16UI);
 	}
+	RenderableSkybox::RenderableSkybox()
+	{
+		RenderEngine &re = Context::Instance().RenderEngineInstance();
+
+		RenderEffectPtr effect = LoadRenderEffect("skybox.xml");
+		this->BindRenderTechnique(effect, effect->GetTechniqueByName("SkyBox"));
+
+		glm::vec3 pos[] =
+		{
+			glm::vec3(1.0f, 1.0f, 1.0f),
+			glm::vec3(1.0f, -1.0f, 1.0f),
+			glm::vec3(-1.0f, 1.0f, 1.0f),
+			glm::vec3(-1.0f, -1.0f, 1.0f),
+		};
+
+		layout_ = re.MakeRenderLayout();
+		layout_->TopologyType(TT_TriangleStrip);
+
+		GraphicsBufferPtr buffer = re.MakeVertexBuffer(BU_Static, EAH_GPU_Read | EAH_Immutable, sizeof(pos), pos);
+		layout_->BindVertexStream(buffer, VertexElement(VEU_Position, 0, EF_BGR32F));
+	}
+	void RenderableSkybox::BindRenderTechnique(const RenderEffectPtr & effect, RenderTechnique * tech)
+	{
+		effect_ = effect;
+		technique_ = tech;
+
+
+	}
+	void RenderableSkybox::OnRenderBegin()
+	{
+		Framework3D &app = Context::Instance().FrameworkInstance();
+		const Camera &camera = app.ActiveCamera();
+
+		glm::mat4 view_mat = camera.ViewMatrix();
+		view_mat[3] = glm::vec4(0, 0, 0, 1);
+		*inv_mvp_ = glm::inverse(camera.ProjMatrix() * view_mat); // without translation
+	}
 }
