@@ -258,14 +258,51 @@ namespace gleam {
 
 		glm::vec3 pos[] =
 		{
-			glm::vec3(1.0f, 1.0f, 1.0f),
-			glm::vec3(1.0f, -1.0f, 1.0f),
-			glm::vec3(-1.0f, 1.0f, 1.0f),
-			glm::vec3(-1.0f, -1.0f, 1.0f),
+			glm::vec3(-1.0f,  1.0f, -1.0f ),
+			glm::vec3(-1.0f, -1.0f, -1.0f ),
+			glm::vec3(1.0f, -1.0f, -1.0f ),
+			glm::vec3(1.0f, -1.0f, -1.0f ),
+			glm::vec3(1.0f,  1.0f, -1.0f ),
+			glm::vec3(-1.0f,  1.0f, -1.0f ),
+
+			glm::vec3(-1.0f, -1.0f,  1.0f ),
+			glm::vec3(-1.0f, -1.0f, -1.0f ),
+			glm::vec3(-1.0f,  1.0f, -1.0f ),
+			glm::vec3(-1.0f,  1.0f, -1.0f ),
+			glm::vec3(-1.0f,  1.0f,  1.0f ),
+			glm::vec3(-1.0f, -1.0f,  1.0f ),
+
+			glm::vec3(1.0f, -1.0f, -1.0f ),
+			glm::vec3(1.0f, -1.0f,  1.0f ),
+			glm::vec3(1.0f,  1.0f,  1.0f ),
+			glm::vec3(1.0f,  1.0f,  1.0f ),
+			glm::vec3(1.0f,  1.0f, -1.0f ),
+			glm::vec3(1.0f, -1.0f, -1.0f ),
+
+			glm::vec3(-1.0f, -1.0f,  1.0f ),
+			glm::vec3(-1.0f,  1.0f,  1.0f ),
+			glm::vec3(1.0f,  1.0f,  1.0f ),
+			glm::vec3(1.0f,  1.0f,  1.0f ),
+			glm::vec3(1.0f, -1.0f,  1.0f ),
+			glm::vec3(-1.0f, -1.0f,  1.0f ),
+
+			glm::vec3(-1.0f,  1.0f, -1.0f ),
+			glm::vec3(1.0f,  1.0f, -1.0f ),
+			glm::vec3(1.0f,  1.0f,  1.0f),
+			glm::vec3(1.0f,  1.0f,  1.0f ),
+			glm::vec3(-1.0f,  1.0f,  1.0f ),
+			glm::vec3(-1.0f,  1.0f, -1.0f ),
+
+			glm::vec3(-1.0f, -1.0f, -1.0f ),
+			glm::vec3(-1.0f, -1.0f,  1.0f ),
+			glm::vec3(1.0f, -1.0f, -1.0f ),
+			glm::vec3(1.0f, -1.0f, -1.0f ),
+			glm::vec3(-1.0f, -1.0f,  1.0f ),
+			glm::vec3(1.0f, -1.0f,  1.0f  )
 		};
 
 		layout_ = re.MakeRenderLayout();
-		layout_->TopologyType(TT_TriangleStrip);
+		layout_->TopologyType(TT_TriangleList);
 
 		GraphicsBufferPtr buffer = re.MakeVertexBuffer(BU_Static, EAH_GPU_Read | EAH_Immutable, sizeof(pos), pos);
 		layout_->BindVertexStream(buffer, VertexElement(VEU_Position, 0, EF_BGR32F));
@@ -275,7 +312,9 @@ namespace gleam {
 		effect_ = effect;
 		technique_ = tech;
 
-
+		auto &shader = technique_->GetShaderObject(*effect_);
+		skybox_tex_ = shader->GetSamplerByName("skybox_tex");
+		inv_mvp_ = shader->GetUniformByName("mvp");
 	}
 	void RenderableSkybox::OnRenderBegin()
 	{
@@ -284,6 +323,6 @@ namespace gleam {
 
 		glm::mat4 view_mat = camera.ViewMatrix();
 		view_mat[3] = glm::vec4(0, 0, 0, 1);
-		*inv_mvp_ = glm::inverse(camera.ProjMatrix() * view_mat); // without translation
+		*inv_mvp_ = camera.ProjMatrix() * view_mat; // without translation
 	}
 }

@@ -127,7 +127,6 @@ namespace gleam
 
 	protected:
 		UniformPtr skybox_tex_;
-
 		UniformPtr inv_mvp_;
 	};
 }

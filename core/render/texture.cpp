@@ -61,13 +61,13 @@ namespace gleam {
 			switch (tex_data.type)
 			{
 			case TT_1D:
-				texture_desc.texture = re.MakeTextureHandler1D(tex_data.width, 0, tex_data.format, 1, texture_desc.access_hint);
+				texture_desc.texture = re.MakeTexture1D(tex_data.width, 0, tex_data.format, 1, texture_desc.access_hint, tex_data.init_data);
 				break;
 			case TT_2D:
 				texture_desc.texture = re.MakeTexture2D(tex_data.width, tex_data.height, 0, tex_data.format, 1, texture_desc.access_hint, tex_data.init_data);
 				break;
 			case TT_Cube:
-				texture_desc.texture = re.MakeTextureHandlerCube(tex_data.width, 0, tex_data.format, 1, texture_desc.access_hint);
+				texture_desc.texture = re.MakeTextureCube(tex_data.width, 0, tex_data.format, 1, texture_desc.access_hint, tex_data.init_data);
 				break;
 			default:
 				CHECK_INFO(false, "Invalid texture type : " << tex_data.type);
@@ -337,14 +337,10 @@ namespace gleam {
 		{
 			glNamedBufferData(pbo_, mipmap_start_offset_.back(), nullptr, GL_STREAM_COPY);
 
-			glTextureStorage1D(texture_, num_mip_maps_, glinternalformat, this->Width(0));
+			glBindTexture(target_type_, texture_);
+			glTexImage1D(target_type_, 0, glinternalformat, width_, 0, glformat, gltype, init_data.empty() ? nullptr : init_data[0].data);
+			glGenerateTextureMipmap(texture_);
 			glTextureParameteri(texture_, GL_TEXTURE_MAX_LEVEL, num_mip_maps_ - 1);
-
-			for (uint32_t level = 0; level < num_mip_maps_; ++level)
-			{
-				const uint32_t w = this->Width(level);
-				glTextureSubImage1D(texture_, level, 0, w, glformat, gltype, init_data.empty() ? nullptr : init_data[level].data);
-			}
 		}
 		else
 		{
@@ -721,21 +717,15 @@ namespace gleam {
 		GLenum gltype;
 		OGLMapping::MappingFormat(glinternalFormat, glformat, gltype, format_);
 
-		glTextureParameteri(texture_, GL_TEXTURE_MAX_LEVEL, num_mip_maps_ - 1);
-		glTextureStorage2D(texture_, num_mip_maps_, glinternalFormat, width_, width_);
-
-		OGLRenderEngine& re = *checked_cast<OGLRenderEngine*>(&Context::Instance().RenderEngineInstance());
-		glBufferData(pbo_, mipmap_start_offset_.back() * 6, nullptr, GL_STREAM_COPY);
-
-		for (int face = 0; face < 6; ++face)
+		glNamedBufferData(pbo_, mipmap_start_offset_.back() * 6, nullptr, GL_STREAM_COPY);
+		glBindTexture(target_type_, texture_);
+		for (int i = 0; i < 6; ++i)
 		{
-			for (uint32_t level = 0; level < num_mip_maps_; ++level)
-			{
-				const uint32_t s = this->Width(level);
-
-				glTextureSubImage3D(texture_, level, 0, 0, face, s, s, 1, glformat, gltype, init_data.empty() ? nullptr : init_data[face * num_mip_maps_ + level].data);
-			}
+			glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, glinternalFormat, width_, width_, 0,
+				glformat, gltype, init_data.empty() ? nullptr : init_data[i].data);
 		}
+		glGenerateMipmap(target_type_);
+		glTextureParameteri(texture_, GL_TEXTURE_MAX_LEVEL, num_mip_maps_ - 1);
 	}
 	void OGLTextureCube::CopyToTexture(Texture & target)
 	{
@@ -871,7 +861,6 @@ namespace gleam {
 	bool LoadTexture(const std::string & name, TextureType &type, uint32_t & width, uint32_t & height, ElementFormat & format, std::vector<ElementInitData> &init_data, std::vector<uint8_t>& data)
 	{
 		std::string file_name = ResLoader::Instance().Locate(name);
-		CHECK_INFO(!file_name.empty(), "can't locate file : " << name);
 		if (!file_name.empty()) // TT_1D, TT2D
 		{
 			int w, h, c;
@@ -995,6 +984,7 @@ namespace gleam {
 
 				if (i == 0)
 				{
+					type = TT_Cube;
 					data.resize(slice_pitch * 6);
 					init_data.resize(6);
 				}
