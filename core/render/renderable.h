@@ -61,7 +61,11 @@ namespace gleam
 
 		UniformPtr mvp_;
 		UniformPtr proj_view_;
+		UniformPtr view_model_;
+		UniformPtr view_;
 		UniformPtr model_;
+		UniformPtr eye_pos_;
+
 		UniformPtr albedo_;
 		UniformPtr albedo_tex_;
 		UniformPtr metalness_;

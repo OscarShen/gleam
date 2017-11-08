@@ -1,0 +1,100 @@
+<?xml version='1.0'?>
+
+<effect>
+  <include name="lighting.xml"/>
+  <shader type="vertex_shader" name="RefractVS">
+    <header  name="LightingFunc"/>
+    <attrib  name="pos" usage="position"/>
+    <attrib  name="normal" usage="normal"/>
+    <uniform type="mat4" name="proj_view"/>
+    <uniform type="mat4" name="model"/>
+    <uniform type="vec3" name="eye_pos"/>
+    <uniform type="vec3" name="eta"/>
+    <code>
+      <![CDATA[
+in vec3 pos;
+in vec3 normal;
+
+uniform mat4 proj_view;
+uniform mat4 model;
+uniform vec3 eye_pos;
+uniform vec3 eta;
+
+out vec3 pass_normal;
+out vec3 pass_reflected;
+out vec3 pass_view;
+out float pass_fresnelterm;
+out vec3 pass_eta;
+
+void main()
+{
+  vec4 world_pos = model * vec4(pos, 1.0f);
+  gl_Position = proj_view * world_pos;
+  
+  pass_normal = (model * vec4(normal, 1.0f)).xyz;
+  pass_normal = normalize(pass_normal);
+  
+  pass_view = normalize(eye_pos - world_pos.xyz);
+  
+  pass_fresnelterm = FresnelTerm(pass_view, pass_normal, vec3(0.0977f)).x;
+  
+  pass_reflected = reflect(-pass_view, pass_normal);
+  pass_eta = eta;
+}
+      ]]>
+    </code>
+  </shader>
+
+  <shader type="fragment_shader" name="RefractFS">
+    <header  name="LightingFunc"/>
+    <uniform type="sampler" name="env_map">
+      <state name="filtering" value="min_mag_linear_mip_nearest"/>
+      <state name="address_u" value="clamp"/>
+      <state name="address_v" value="clamp"/>
+      <state name="address_w" value="clamp"/>
+    </uniform>
+    <code>
+      <![CDATA[
+in vec3 pass_reflected;
+in vec3 pass_normal;
+in vec3 pass_view;
+in float pass_fresnelterm;
+in vec3 pass_eta;
+
+uniform samplerCube env_map;
+
+out vec4 out_color;
+
+void main()
+{
+ // pass_normal = normalize(pass_normal);
+ // pass_view = normalize(pass_view);
+  vec3 reflect_color = texture(env_map, pass_reflected).xyz;
+  
+  mat3 refract_vec;
+  refract_vec[0] = refract(-pass_view, pass_normal, pass_eta.r);
+  refract_vec[1] = refract(-normalize(pass_view), pass_normal, pass_eta.g);
+  refract_vec[2] = refract(-pass_view, pass_normal, pass_eta.b);
+  
+  vec3 refract_color;
+  refract_color.r = texture(env_map, refract_vec[0]).r;
+  refract_color.g = texture(env_map, refract_vec[1]).g;
+  refract_color.b = texture(env_map, refract_vec[2]).b;
+  
+  out_color =  vec4(mix(refract_color, reflect_color, pass_fresnelterm), 1);
+}
+      
+		]]>
+    </code>
+  </shader>
+
+  <technique name="Refract">
+    <state name="cull_mode" value="none"/>
+    <state name="depth_enable" value="1"/>
+		<state name="depth_func" value="less_equal"/>
+    
+    <state name="vertex_shader" value="RefractVS"/>
+    <state name="fragment_shader" value="RefractFS"/>
+  </technique>
+</effect>
+

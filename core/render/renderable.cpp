@@ -22,7 +22,11 @@ namespace gleam {
 		ShaderObject &shader = *tech->GetShaderObject(*effect);
 		mvp_ = shader.GetUniformByName("mvp");
 		proj_view_ = shader.GetUniformByName("proj_view");
+		view_model_ = shader.GetUniformByName("view_model");
+		view_ = shader.GetUniformByName("view");
 		model_ = shader.GetUniformByName("model");
+		eye_pos_ = shader.GetUniformByName("eye_pos");
+
 		albedo_ = shader.GetUniformByName("albedo_color");
 		albedo_tex_ = shader.GetSamplerByName("albedo_tex");
 		metalness_ = shader.GetUniformByName("metalness_color");
