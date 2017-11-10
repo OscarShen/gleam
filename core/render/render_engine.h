@@ -77,6 +77,13 @@ namespace gleam
 		virtual UniformBufferPtr MakeUniformBuffer() = 0;
 		virtual AttribPtr MakeAttrib() = 0;
 
+		virtual FrameBufferPtr MakeFrameBuffer() = 0;
+		virtual RenderViewPtr Make1DRenderView(Texture& texture, int level) = 0;
+		virtual RenderViewPtr Make2DRenderView(Texture& texture, int level) = 0;
+		virtual RenderViewPtr Make2DRenderView(Texture& texture, CubeFaces face, int level) = 0;
+		virtual RenderViewPtr MakeCubeRenderView(Texture& texture, int level) = 0;
+
+
 		virtual void BeginFrame();
 		virtual void EndFrame();
 
@@ -158,6 +165,14 @@ namespace gleam
 		void UniformMatrix4fv(GLint location, GLsizei count, GLboolean transpose, GLfloat const * value);
 
 		void EnableFramebufferSRGB(bool srgb);
+
+		FrameBufferPtr MakeFrameBuffer() override;
+
+		FrameBufferPtr MakeFrameBuffer() override;
+		RenderViewPtr Make1DRenderView(Texture& texture, int level) override;
+		RenderViewPtr Make2DRenderView(Texture& texture, int level) override;
+		RenderViewPtr Make2DRenderView(Texture& texture, CubeFaces face, int level) override;
+		RenderViewPtr MakeCubeRenderView(Texture& texture, int level) override;
 
 		void BindFrameBuffer(GLuint fbo, bool force = false);
 		GLuint BindFrameBuffer() const;

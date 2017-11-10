@@ -637,6 +637,31 @@ namespace gleam {
 		}
 	}
 
+	FrameBufferPtr OGLRenderEngine::MakeFrameBuffer()
+	{
+		return std::make_shared<OGLFrameBuffer>(true);
+	}
+
+	RenderViewPtr OGLRenderEngine::Make1DRenderView(Texture & texture, int level)
+	{
+		return std::make_shared<OGLTexture1DRenderView>(texture, level);
+	}
+
+	RenderViewPtr OGLRenderEngine::Make2DRenderView(Texture & texture, int level)
+	{
+		return std::make_shared<OGLTexture2DRenderView>(texture, level);
+	}
+
+	RenderViewPtr OGLRenderEngine::Make2DRenderView(Texture & texture, CubeFaces face, int level)
+	{
+		return std::make_shared<OGLTextureCubeRenderView>(texture, face, level);
+	}
+
+	RenderViewPtr OGLRenderEngine::MakeCubeRenderView(Texture & texture, int level)
+	{
+		return std::make_shared<OGLTextureCubeRenderView>(texture, level);
+	}
+
 	void OGLRenderEngine::BindFrameBuffer(GLuint fbo, bool force)
 	{
 		if (force || (cur_fbo_ != fbo))
