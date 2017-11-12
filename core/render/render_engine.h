@@ -13,6 +13,7 @@
 #include "element_format.h"
 #include "render_state.h"
 #include "graphics_buffer.h"
+#include "texture.h"
 #include <util/array_ref.hpp>
 namespace gleam
 {
@@ -83,6 +84,12 @@ namespace gleam
 		virtual RenderViewPtr Make2DRenderView(Texture& texture, CubeFaces face, int level) = 0;
 		virtual RenderViewPtr MakeCubeRenderView(Texture& texture, int level) = 0;
 
+		virtual RenderViewPtr Make1DDepthStencilRenderView(Texture& texture, int level) = 0;
+		virtual RenderViewPtr Make2DDepthStencilRenderView(Texture& texture, int level) = 0;
+		virtual RenderViewPtr Make2DDepthStencilRenderView(Texture& texture, CubeFaces face, int level) = 0;
+		virtual RenderViewPtr MakeCubeDepthStencilRenderView(Texture& texture, int level) = 0;
+
+		virtual RenderViewPtr Make2DDepthStencilRenderView(uint32_t width, uint32_t height, ElementFormat format, uint32_t sample_count) = 0;
 
 		virtual void BeginFrame();
 		virtual void EndFrame();
@@ -167,12 +174,17 @@ namespace gleam
 		void EnableFramebufferSRGB(bool srgb);
 
 		FrameBufferPtr MakeFrameBuffer() override;
-
-		FrameBufferPtr MakeFrameBuffer() override;
 		RenderViewPtr Make1DRenderView(Texture& texture, int level) override;
 		RenderViewPtr Make2DRenderView(Texture& texture, int level) override;
 		RenderViewPtr Make2DRenderView(Texture& texture, CubeFaces face, int level) override;
 		RenderViewPtr MakeCubeRenderView(Texture& texture, int level) override;
+
+		RenderViewPtr Make1DDepthStencilRenderView(Texture& texture, int level) override;
+		RenderViewPtr Make2DDepthStencilRenderView(Texture& texture, int level) override;
+		RenderViewPtr Make2DDepthStencilRenderView(Texture& texture, CubeFaces face, int level) override;
+		RenderViewPtr MakeCubeDepthStencilRenderView(Texture& texture, int level) override;
+
+		RenderViewPtr Make2DDepthStencilRenderView(uint32_t width, uint32_t height, ElementFormat format, uint32_t sample_count) override;
 
 		void BindFrameBuffer(GLuint fbo, bool force = false);
 		GLuint BindFrameBuffer() const;

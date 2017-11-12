@@ -267,8 +267,6 @@ namespace gleam
 	bool LoadTexture(const std::string &name, TextureType &type, uint32_t &width, uint32_t &height,
 		ElementFormat &format, std::vector<ElementInitData> &init_data, std::vector<uint8_t> &data);
 
-	template std::pair<glm::vec3, glm::vec3> CubeMapViewVector(CubeFaces face);
-
 	template<typename T>
 	std::pair<glm::tvec3<T>, glm::tvec3<T>> CubeMapViewVector(CubeFaces face)
 	{

@@ -662,6 +662,31 @@ namespace gleam {
 		return std::make_shared<OGLTextureCubeRenderView>(texture, level);
 	}
 
+	RenderViewPtr OGLRenderEngine::Make1DDepthStencilRenderView(Texture & texture, int level)
+	{
+		return this->Make2DDepthStencilRenderView(texture, level);
+	}
+
+	RenderViewPtr OGLRenderEngine::Make2DDepthStencilRenderView(Texture & texture, int level)
+	{
+		return std::make_shared<OGLDepthStencilRenderView>(texture, level);
+	}
+
+	RenderViewPtr OGLRenderEngine::Make2DDepthStencilRenderView(Texture & texture, CubeFaces face, int level)
+	{
+		return std::make_shared<OGLTextureCubeDepthStencilRenderView>(texture, face, level);
+	}
+
+	RenderViewPtr OGLRenderEngine::MakeCubeDepthStencilRenderView(Texture & texture, int level)
+	{
+		return std::make_shared<OGLDepthStencilRenderView>(texture, level);
+	}
+
+	RenderViewPtr OGLRenderEngine::Make2DDepthStencilRenderView(uint32_t width, uint32_t height, ElementFormat format, uint32_t sample_count)
+	{
+		return std::make_shared<OGLDepthStencilRenderView>(width, height, format, sample_count);
+	}
+
 	void OGLRenderEngine::BindFrameBuffer(GLuint fbo, bool force)
 	{
 		if (force || (cur_fbo_ != fbo))
@@ -1019,7 +1044,7 @@ namespace gleam {
 	}
 	const FrameBufferPtr & RenderEngine::DefaultFrameBuffer() const
 	{
-		return current_frame_buffer_;
+		return screen_frame_buffer_;
 	}
 	bool RenderEngine::Quit()
 	{
