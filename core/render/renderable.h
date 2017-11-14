@@ -13,6 +13,7 @@
 #include <boost/noncopyable.hpp>
 #include "render_effect.h"
 #include "material.h"
+#include <base/bbox.h>
 namespace gleam
 {
 	class Renderable : boost::noncopyable
@@ -132,6 +133,28 @@ namespace gleam
 	protected:
 		UniformPtr skybox_tex_;
 		UniformPtr inv_mvp_;
+	};
+
+	class RenderablePlane : public RenderableHelper
+	{
+	public:
+		RenderablePlane(float length, float width, int length_segs, int width_segs,
+			bool has_tex_coord);
+
+	protected:
+		AABBox pos_aabb_;
+	};
+
+	class RenderableTerrain : public RenderablePlane
+	{
+	public:
+		explicit RenderableTerrain(const TexturePtr &height_map, const TexturePtr &normal_map,
+			int length, int width, int length_seg, int width_seg);
+
+		void OnRenderBegin() override;
+
+	private:
+		UniformPtr inv_far_;
 	};
 }
 

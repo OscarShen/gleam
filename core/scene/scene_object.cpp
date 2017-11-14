@@ -164,4 +164,9 @@ namespace gleam {
 	{
 		checked_pointer_cast<RenderableSkybox>(renderable_)->CubeMap(cubemap);
 	}
+	SceneObjectTerrain::SceneObjectTerrain(const TexturePtr & height_map, const TexturePtr & normal_map, int length, int width, int length_seg, int width_seg)
+		: SceneObjectHelper(std::make_shared<RenderableTerrain>(height_map, normal_map,
+			length, width, length_seg, width_seg), SOA_Cullable)
+	{
+	}
 }

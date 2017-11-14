@@ -329,4 +329,107 @@ namespace gleam {
 		view_mat[3] = glm::vec4(0, 0, 0, 1);
 		*inv_mvp_ = camera.ProjMatrix() * view_mat; // without translation
 	}
+	RenderablePlane::RenderablePlane(float length, float width, int length_segs, int width_segs, bool has_tex_coord)
+		: RenderableHelper()
+	{
+		RenderEngine &re = Context::Instance().RenderEngineInstance();
+		layout_ = re.MakeRenderLayout();
+		layout_->TopologyType(TT_TriangleList);
+		
+		std::vector<int16_t> positions;
+		for (int y = 0; y < width_segs + 1; ++y)
+		{
+			for (int x = 0; x < length_segs + 1; ++x)
+			{
+				glm::vec3 pos(
+					static_cast<float>(x) / length_segs,
+					1 - static_cast<float>(y) / width_segs,
+					0.5f);
+				int16_t s_pos[3]=
+				{
+					static_cast<int16_t>(glm::clamp<int32_t>(static_cast<int32_t>(pos.x * 65535 - 32768), -32768, 32767)),
+					static_cast<int16_t>(glm::clamp<int32_t>(static_cast<int32_t>(pos.y * 65535 - 32768), -32768, 32767)),
+					static_cast<int16_t>(glm::clamp<int32_t>(static_cast<int32_t>(pos.z * 65535 - 32768), -32768, 32767)),
+				};
+
+				positions.push_back(s_pos[0]);
+				positions.push_back(s_pos[1]);
+				positions.push_back(s_pos[2]);
+			}
+		}
+
+		GraphicsBufferPtr pos_buffer = re.MakeVertexBuffer(BU_Static, EAH_GPU_Read | EAH_Immutable,
+			static_cast<uint32_t>(sizeof(positions[0]) * positions.size()), positions.data());
+		layout_->BindVertexStream(pos_buffer, VertexElement(VEU_Position, 0, EF_SIGNED_BGR16));
+
+		if (has_tex_coord)
+		{
+			std::vector<int16_t> tex_coords;
+			for (int y = 0; y < width_segs + 1; ++y)
+			{
+				for (int x = 0; x < length_segs + 1; ++x)
+				{
+					glm::vec3 tex_coord(static_cast<float>(x) / length_segs * 0.5f + 0.5f,
+						static_cast<float>(y) / width_segs * 0.5f + 0.5f, 0.5f);
+					int16_t s_tc[2] =
+					{
+						static_cast<int16_t>(glm::clamp<int32_t>(static_cast<int32_t>(tex_coord.x * 65535 - 32768), -32768, 32767)),
+						static_cast<int16_t>(glm::clamp<int32_t>(static_cast<int32_t>(tex_coord.y * 65535 - 32768), -32768, 32767)),
+					};
+
+					tex_coords.push_back(s_tc[0]);
+					tex_coords.push_back(s_tc[1]);
+				}
+			}
+
+			GraphicsBufferPtr tex_vb = re.MakeVertexBuffer(BU_Static, EAH_GPU_Read | EAH_Immutable,
+				static_cast<uint32_t>(tex_coords.size() * sizeof(tex_coords[0])), tex_coords.data());
+			layout_->BindVertexStream(tex_vb, VertexElement(VEU_TextureCoord, 0, EF_SIGNED_GR16));
+		}
+
+		std::vector<uint16_t> indices;
+		for (int y = 0; y < width_segs; ++y)
+		{
+			for (int x = 0; x < length_segs; ++x)
+			{
+				indices.push_back(static_cast<uint16_t>((y + 0) * (length_segs + 1) + (x + 0)));
+				indices.push_back(static_cast<uint16_t>((y + 0) * (length_segs + 1) + (x + 1)));
+				indices.push_back(static_cast<uint16_t>((y + 1) * (length_segs + 1) + (x + 1)));
+				   
+				indices.push_back(static_cast<uint16_t>((y + 1) * (length_segs + 1) + (x + 1)));
+				indices.push_back(static_cast<uint16_t>((y + 1) * (length_segs + 1) + (x + 0)));
+				indices.push_back(static_cast<uint16_t>((y + 0) * (length_segs + 1) + (x + 0)));
+			}
+		}
+
+		GraphicsBufferPtr index_buffer = re.MakeIndexBuffer(BU_Static, EAH_GPU_Read | EAH_Immutable,
+			static_cast<uint32_t>(indices.size() * sizeof(indices[0])), indices.data());
+		layout_->BindIndexStream(index_buffer, EF_R16UI);
+
+		pos_aabb_ = AABBox(glm::vec3(-length / 2, -width / 2, 0), glm::vec3(+length / 2, +width / 2, 0));
+	}
+	RenderableTerrain::RenderableTerrain(const TexturePtr & height_map, const TexturePtr & normal_map, int length, int width, int length_seg, int width_seg)
+		: RenderablePlane(length, width, length_seg, width_seg, true)
+	{
+		effect_ = LoadRenderEffect("Terrain.xml");
+		technique_ = effect_->GetTechniqueByName("Terrain");
+		
+		const ShaderObjectPtr &shader = technique_->GetShaderObject(*effect_);
+		*(shader->GetSamplerByName("grass_tex")) = LoadTexture("grass.png", EAH_GPU_Read | EAH_Immutable);
+		*(shader->GetSamplerByName("height_tex")) = height_map;
+		*(shader->GetSamplerByName("normal_tex")) = normal_map;
+		*(shader->GetUniformByName("center")) = pos_aabb_.Center();
+		*(shader->GetUniformByName("extent")) = pos_aabb_.HalfSize();
+
+		mvp_ = shader->GetUniformByName("mvp");
+		inv_far_ = shader->GetUniformByName("inv_far");
+	}
+
+	void RenderableTerrain::OnRenderBegin()
+	{
+		const Camera &camera = Context::Instance().FrameworkInstance().ActiveCamera();
+		*mvp_ = camera.ProjViewMatrix();
+		*inv_far_ = 1 / camera.FarPlane();
+	}
+
 }

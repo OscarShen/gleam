@@ -1,0 +1,86 @@
+<?xml version='1.0'?>
+
+<effect>
+  <shader type="vertex_shader" name="TerrainVS">
+    <attrib  name="pos" usage="position"/>
+    <attrib  name="tex_coord" usage="texture_coord"/>
+    <uniform type="mat4" name="mvp"/>
+    <uniform type="vec3" name="center"/>
+    <uniform type="vec3" name="extent"/>
+    <uniform type="sampler" name="height_tex">
+      <state name="filtering" value="min_mag_mip_nearest"/>
+      <state name="address_u" value="clamp"/>
+      <state name="address_v" value="clamp"/>
+    </uniform>
+    <code>
+      <![CDATA[
+in vec3 pos;
+in vec2 tex_coord;
+
+uniform mat4 mvp;
+
+uniform vec3 center;
+uniform vec3 extent;
+
+uniform sampler2D height_tex;
+
+out vec4 pass_texCoord;
+out float pass_depth;
+
+void main()
+{
+  gl_Position = vec4(pos * extent + center, 1);
+  
+  pass_texCoord.xy = vec2(tex_coord.x, 1 - tex_coord.y);
+  pass_texCoord.zw = pass_texCoord.xy * 8;
+  
+  gl_Position.y += texture(height_tex, pass_texCoord.xy).r;
+  
+  gl_Position = mvp * gl_Position;
+  pass_depth = gl_Position.w;
+}
+      ]]>
+    </code>
+  </shader>
+
+  <shader type="fragment_shader" name="TerrainFS">
+    <uniform type="sampler" name="normal_tex">
+      <state name="filtering" value="min_mag_linear_mip_nearest"/>
+      <state name="address_u" value="clamp"/>
+      <state name="address_v" value="clamp"/>
+    </uniform>
+    <uniform type="sampler" name="grass_tex">
+      <state name="filtering" value="min_mag_mip_linear"/>
+      <state name="address_u" value="wrap"/>
+      <state name="address_v" value="wrap"/>
+    </uniform>
+    <uniform type="float" name="inv_far"/>
+    <code>
+      <![CDATA[
+in vec4 pass_texCoord;
+in float pass_depth;
+
+uniform sampler2D normal_tex;
+uniform sampler2D grass_tex;
+uniform float inv_far;
+
+const vec3 LightDir = vec3(0, 10, 3);
+
+out vec4 out_color;
+
+void main()
+{
+  vec3 normal = normalize( texture(normal_tex, pass_texCoord.xy).xyz);
+  out_color = vec4(texture(grass_tex, pass_texCoord.zw).rgb * 
+    dot(normalize(LightDir), normal), pass_depth * inv_far);
+}
+      ]]>
+    </code>
+  </shader>
+
+  <technique name="Terrain">
+      <state name="vertex_shader" value="TerrainVS"/>
+      <state name="fragment_shader" value="TerrainFS"/>
+  </technique>
+  
+</effect>

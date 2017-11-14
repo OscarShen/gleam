@@ -106,6 +106,13 @@ namespace gleam
 
 		void CubeMap(const TexturePtr &cubemap);
 	};
+
+	class SceneObjectTerrain : public SceneObjectHelper
+	{
+	public:
+		SceneObjectTerrain(const TexturePtr &height_map, const TexturePtr &normal_map,
+			int length, int width, int length_seg, int width_seg);
+	};
 }
 
 #endif // !GLEAM_SCENE_OBJECT_H_

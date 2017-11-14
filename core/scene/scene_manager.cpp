@@ -181,7 +181,6 @@ namespace gleam {
 		const float app_time = app.AppTime();
 		const float frame_time = app.FrameTime();
 
-		Camera &camera = app.ActiveCamera();
 		const auto &scene_objs = scene_objs_;
 
 		for (const auto &obj : scene_objs)
