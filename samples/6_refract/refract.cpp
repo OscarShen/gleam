@@ -107,9 +107,11 @@ private:
 	TrackballCameraController controller_;
 };
 
+#ifdef REFRACT_APP
 int main()
 {
 	Refract app;
 	app.Create();
 	app.Run();
 }
+#endif // REFRACT_APP
