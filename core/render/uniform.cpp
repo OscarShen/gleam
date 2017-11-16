@@ -259,6 +259,8 @@ namespace gleam {
 		if (dirty_)
 		{
 			glUniformBlockBinding(program_, index_, bind_point_);
+			glBindBufferBase(GL_UNIFORM_BUFFER, bind_point_,
+				checked_pointer_cast<OGLGraphicsBuffer>(data_)->GLvbo());
 			dirty_ = false;
 		}
 	}

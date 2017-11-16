@@ -143,6 +143,7 @@ namespace gleam {
 	void OGLFrameBuffer::OnBind()
 	{
 		OGLRenderEngine &re = *checked_cast<OGLRenderEngine*>(&Context::Instance().RenderEngineInstance());
+		re.BindFrameBuffer(fbo_);
 		if (fbo_ != 0)
 		{
 			assert(GL_FRAMEBUFFER_COMPLETE == glCheckNamedFramebufferStatus(fbo_, GL_FRAMEBUFFER));
