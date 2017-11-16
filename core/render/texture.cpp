@@ -178,6 +178,20 @@ namespace gleam {
 		else
 			glGenRenderbuffers(1, &texture_);
 	}
+	OGLTexture::~OGLTexture()
+	{
+		OGLRenderEngine &re = *checked_cast<OGLRenderEngine*>(&Context::Instance().RenderEngineInstance());
+		re.DeleteBuffers(1, &pbo_);
+
+		if (sample_count_ <= 1)
+		{
+			glDeleteTextures(1, &texture_);
+		}
+		else
+		{
+			glDeleteRenderbuffers(1, &texture_);
+		}
+	}
 	void OGLTexture::Map1D(uint32_t level, TextureMapAccess access, uint32_t x_offset, uint32_t width, void *& data)
 	{
 		CHECK_INFO(false, "no impl");
@@ -531,7 +545,8 @@ namespace gleam {
 
 			glBindTexture(target_type_, texture_);
 			glTexImage2D(target_type_, 0, glinternalformat, width_, height_, 0, glformat, gltype, init_data.empty() ? nullptr : init_data[0].data);
-			glGenerateTextureMipmap(texture_);
+			if (num_mip_maps_ != 1)
+				glGenerateTextureMipmap(texture_);
 			glTextureParameteri(texture_, GL_TEXTURE_MAX_LEVEL, num_mip_maps_ - 1);
 		}
 		else
@@ -864,7 +879,7 @@ namespace gleam {
 		if (!file_name.empty()) // TT_1D, TT2D
 		{
 			int w, h, c;
-			uint8_t *image = stbi_load(file_name.c_str(), &w, &h, &c, 0);
+			uint16_t *image = stbi_load_16(file_name.c_str(), &w, &h, &c, 0);
 
 			if (!image)
 			{
@@ -885,23 +900,23 @@ namespace gleam {
 			switch (c)
 			{
 			case 1:
-				format = EF_R8;
+				format = EF_R16;
 				break;
 			case 2:
-				format = EF_GR8;
+				format = EF_GR16;
 				break;
 			case 3:
-				format = EF_BGR8;
+				format = EF_BGR16;
 				break;
 			case 4:
-				format = EF_ABGR8;
+				format = EF_ABGR16;
 				break;
 			default:
 				WARNING(false, "unknow texture format");
 				break;
 			}
 
-			uint32_t row_pitch = width * c, slice_pitch = row_pitch * height;
+			uint32_t row_pitch = width * c * 2, slice_pitch = row_pitch * height;
 			data.resize(slice_pitch);
 
 			init_data.resize(1);
@@ -909,7 +924,7 @@ namespace gleam {
 			init_data[0].row_pitch = row_pitch;
 			init_data[0].slice_pitch = slice_pitch;
 
-			std::copy_n(image, slice_pitch, (uint8_t *)init_data[0].data);
+			std::copy_n((uint8_t*)image, slice_pitch, (uint8_t *)init_data[0].data);
 
 			return true;
 		}

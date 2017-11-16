@@ -135,6 +135,7 @@ namespace gleam
 	{
 	public:
 		OGLTexture(TextureType type, uint32_t sample_count, uint32_t access_hint);
+		~OGLTexture() override;
 
 		GLuint GLTexture() const { return texture_; }
 		GLenum GLType() const { return target_type_; }
