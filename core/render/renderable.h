@@ -138,23 +138,27 @@ namespace gleam
 	class RenderablePlane : public RenderableHelper
 	{
 	public:
-		RenderablePlane(float length, float width, int length_segs, int width_segs,
+		RenderablePlane(float width, float height, int width_segs, int height_segs,
 			bool has_tex_coord);
 
 	protected:
 		AABBox pos_aabb_;
 	};
 
-	class RenderableTerrain : public RenderablePlane
+	class RenderableHeightToNormal : public RenderablePlane
 	{
 	public:
-		explicit RenderableTerrain(const TexturePtr &height_map, const TexturePtr &normal_map,
-			int length, int width, int length_seg, int width_seg);
+		RenderableHeightToNormal(const TexturePtr &height_tex, int dz);
+
+		void Render() override;
 
 		void OnRenderBegin() override;
 
 	private:
-		UniformPtr inv_far_;
+		TexturePtr height_tex_;
+		TexturePtr normal_tex_;
+
+		FrameBufferPtr fbo_;
 	};
 }
 

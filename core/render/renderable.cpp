@@ -8,7 +8,11 @@
 #include "render_effect.h"
 #include <base/bbox.h>
 #include <base/framework.h>
+#include "frame_buffer.h"
+#include "view_port.h"
 #include "camera.h"
+#include "render_view.h"
+#include "ogl_util.h"
 namespace gleam {
 	void Renderable::ModelMatrix(const glm::mat4 & model)
 	{
@@ -329,107 +333,117 @@ namespace gleam {
 		view_mat[3] = glm::vec4(0, 0, 0, 1);
 		*inv_mvp_ = camera.ProjMatrix() * view_mat; // without translation
 	}
-	RenderablePlane::RenderablePlane(float length, float width, int length_segs, int width_segs, bool has_tex_coord)
+	RenderablePlane::RenderablePlane(float width, float height, int width_segs, int height_segs, bool has_tex_coord)
 		: RenderableHelper()
 	{
 		RenderEngine &re = Context::Instance().RenderEngineInstance();
 		layout_ = re.MakeRenderLayout();
 		layout_->TopologyType(TT_TriangleList);
 		
-		std::vector<int16_t> positions;
-		for (int y = 0; y < width_segs + 1; ++y)
+		std::vector<glm::vec3> positions;
+		for (int z = 0; z < height_segs + 1; ++z)
 		{
-			for (int x = 0; x < length_segs + 1; ++x)
+			for (int x = 0; x < width_segs + 1; ++x)
 			{
-				glm::vec3 pos(
-					static_cast<float>(x) / length_segs,
-					1 - static_cast<float>(y) / width_segs,
-					0.5f);
-				int16_t s_pos[3]=
-				{
-					static_cast<int16_t>(glm::clamp<int32_t>(static_cast<int32_t>(pos.x * 65535 - 32768), -32768, 32767)),
-					static_cast<int16_t>(glm::clamp<int32_t>(static_cast<int32_t>(pos.y * 65535 - 32768), -32768, 32767)),
-					static_cast<int16_t>(glm::clamp<int32_t>(static_cast<int32_t>(pos.z * 65535 - 32768), -32768, 32767)),
-				};
-
-				positions.push_back(s_pos[0]);
-				positions.push_back(s_pos[1]);
-				positions.push_back(s_pos[2]);
+				positions.push_back(glm::vec3(
+					2.0f * x / width_segs - 1.0f,
+					0,
+					1.0f - 2.0f * z / height_segs));
 			}
 		}
 
 		GraphicsBufferPtr pos_buffer = re.MakeVertexBuffer(BU_Static, EAH_GPU_Read | EAH_Immutable,
 			static_cast<uint32_t>(sizeof(positions[0]) * positions.size()), positions.data());
-		layout_->BindVertexStream(pos_buffer, VertexElement(VEU_Position, 0, EF_SIGNED_BGR16));
+		layout_->BindVertexStream(pos_buffer, VertexElement(VEU_Position, 0, EF_BGR32F));
 
 		if (has_tex_coord)
 		{
-			std::vector<int16_t> tex_coords;
-			for (int y = 0; y < width_segs + 1; ++y)
+			std::vector<glm::vec2> tex_coords;
+			for (int y = 0; y < height_segs + 1; ++y)
 			{
-				for (int x = 0; x < length_segs + 1; ++x)
+				for (int x = 0; x < width_segs + 1; ++x)
 				{
-					glm::vec3 tex_coord(static_cast<float>(x) / length_segs * 0.5f + 0.5f,
-						static_cast<float>(y) / width_segs * 0.5f + 0.5f, 0.5f);
-					int16_t s_tc[2] =
-					{
-						static_cast<int16_t>(glm::clamp<int32_t>(static_cast<int32_t>(tex_coord.x * 65535 - 32768), -32768, 32767)),
-						static_cast<int16_t>(glm::clamp<int32_t>(static_cast<int32_t>(tex_coord.y * 65535 - 32768), -32768, 32767)),
-					};
+					glm::vec2 tex_coord(static_cast<float>(x) / width_segs,
+						static_cast<float>(y) / height_segs);
 
-					tex_coords.push_back(s_tc[0]);
-					tex_coords.push_back(s_tc[1]);
+					tex_coords.push_back(tex_coord);
 				}
 			}
 
 			GraphicsBufferPtr tex_vb = re.MakeVertexBuffer(BU_Static, EAH_GPU_Read | EAH_Immutable,
 				static_cast<uint32_t>(tex_coords.size() * sizeof(tex_coords[0])), tex_coords.data());
-			layout_->BindVertexStream(tex_vb, VertexElement(VEU_TextureCoord, 0, EF_SIGNED_GR16));
+			layout_->BindVertexStream(tex_vb, VertexElement(VEU_TextureCoord, 0, EF_GR32F));
 		}
 
-		std::vector<uint16_t> indices;
-		for (int y = 0; y < width_segs; ++y)
+		std::vector<uint32_t> indices;
+		for (int y = 0; y < height_segs; ++y)
 		{
-			for (int x = 0; x < length_segs; ++x)
+			for (int x = 0; x < width_segs; ++x)
 			{
-				indices.push_back(static_cast<uint16_t>((y + 0) * (length_segs + 1) + (x + 0)));
-				indices.push_back(static_cast<uint16_t>((y + 0) * (length_segs + 1) + (x + 1)));
-				indices.push_back(static_cast<uint16_t>((y + 1) * (length_segs + 1) + (x + 1)));
-				   
-				indices.push_back(static_cast<uint16_t>((y + 1) * (length_segs + 1) + (x + 1)));
-				indices.push_back(static_cast<uint16_t>((y + 1) * (length_segs + 1) + (x + 0)));
-				indices.push_back(static_cast<uint16_t>((y + 0) * (length_segs + 1) + (x + 0)));
+				indices.push_back(static_cast<uint32_t>((y + 0) * (width_segs + 1) + (x + 0)));
+				indices.push_back(static_cast<uint32_t>((y + 0) * (width_segs + 1) + (x + 1)));
+				indices.push_back(static_cast<uint32_t>((y + 1) * (width_segs + 1) + (x + 1)));
+				   										 
+				indices.push_back(static_cast<uint32_t>((y + 1) * (width_segs + 1) + (x + 1)));
+				indices.push_back(static_cast<uint32_t>((y + 1) * (width_segs + 1) + (x + 0)));
+				indices.push_back(static_cast<uint32_t>((y + 0) * (width_segs + 1) + (x + 0)));
 			}
 		}
 
 		GraphicsBufferPtr index_buffer = re.MakeIndexBuffer(BU_Static, EAH_GPU_Read | EAH_Immutable,
 			static_cast<uint32_t>(indices.size() * sizeof(indices[0])), indices.data());
-		layout_->BindIndexStream(index_buffer, EF_R16UI);
+		layout_->BindIndexStream(index_buffer, EF_R32UI);
 
-		pos_aabb_ = AABBox(glm::vec3(-length / 2, -width / 2, 0), glm::vec3(+length / 2, +width / 2, 0));
+		pos_aabb_ = AABBox(glm::vec3(-width / 2, 0, -width / 2), glm::vec3(+height / 2, 0, +height / 2));
 	}
-	RenderableTerrain::RenderableTerrain(const TexturePtr & height_map, const TexturePtr & normal_map, int length, int width, int length_seg, int width_seg)
-		: RenderablePlane(length, width, length_seg, width_seg, true)
+
+	RenderableHeightToNormal::RenderableHeightToNormal(const TexturePtr & height_tex, int dz)
+		: RenderablePlane(height_tex->Width(0), height_tex->Height(0), 1, 1, true),
+		height_tex_(height_tex)
 	{
-		effect_ = LoadRenderEffect("Terrain.xml");
-		technique_ = effect_->GetTechniqueByName("Terrain");
-		
-		const ShaderObjectPtr &shader = technique_->GetShaderObject(*effect_);
-		*(shader->GetSamplerByName("grass_tex")) = LoadTexture("grass.png", EAH_GPU_Read | EAH_Immutable);
-		*(shader->GetSamplerByName("height_tex")) = height_map;
-		*(shader->GetSamplerByName("normal_tex")) = normal_map;
-		*(shader->GetUniformByName("center")) = pos_aabb_.Center();
-		*(shader->GetUniformByName("extent")) = pos_aabb_.HalfSize();
+		RenderEngine &re = Context::Instance().RenderEngineInstance();
 
-		mvp_ = shader->GetUniformByName("mvp");
-		inv_far_ = shader->GetUniformByName("inv_far");
+		effect_ = LoadRenderEffect("Terrain.xml");
+		technique_ = effect_->GetTechniqueByName("HeightToNormalTech");
+
+		const ShaderObjectPtr &shader = technique_->GetShaderObject(*effect_);
+		*(shader->GetSamplerByName("height_tex")) = height_tex;
+		*(shader->GetUniformByName("dz")) = dz;
+		*(shader->GetUniformByName("dimension")) = glm::vec2(height_tex->Width(0), height_tex->Height(0));
+		*(shader->GetUniformByName("pos_center")) = pos_aabb_.Center();
+		*(shader->GetUniformByName("pos_extent")) = pos_aabb_.HalfSize();
+
+		normal_tex_ = re.MakeTexture2D(height_tex_->Width(0), height_tex_->Height(0), 1, EF_BGR8, 1, EAH_GPU_Read | EAH_GPU_Write);
+		fbo_ = re.MakeFrameBuffer();
+		CameraPtr camera = std::make_shared<Camera>();
+		camera->ViewParams(glm::vec3(0, 1, 0), glm::vec3(), glm::vec3(0, 0, -1));
+		camera->ProjOrthoParams(height_tex_->Width(0), height_tex_->Height(0), 0.1, 10);
+		fbo_->GetViewport()->camera = camera;
+
+		RenderViewPtr rv = re.Make2DRenderView(*normal_tex_, 0);
+		fbo_->Attach(ATT_Color0, rv);
 	}
 
-	void RenderableTerrain::OnRenderBegin()
+	void RenderableHeightToNormal::Render()
+	{
+		RenderEngine &re = Context::Instance().RenderEngineInstance();
+		
+		FrameBufferPtr old_fb = re.CurrentFrameBuffer();
+
+		re.BindFrameBuffer(fbo_);
+
+		Renderable::Render();
+
+		re.BindFrameBuffer(old_fb);
+	}
+
+	void RenderableHeightToNormal::OnRenderBegin()
 	{
 		const Camera &camera = Context::Instance().FrameworkInstance().ActiveCamera();
-		*mvp_ = camera.ProjViewMatrix();
-		*inv_far_ = 1 / camera.FarPlane();
+		RenderEngine &re = Context::Instance().RenderEngineInstance();
+		const ShaderObjectPtr &shader = technique_->GetShaderObject(*effect_);
+
+		*(shader->GetUniformByName("mvp")) = camera.ProjViewMatrix();
 	}
 
 }
