@@ -257,7 +257,6 @@ namespace gleam
 
 						SamplerStateObjectPtr sampler_state = re.MakeSamplerStateObject(desc);
 						*uniform = sampler_state;
-						*uniform = static_cast<uint32_t>(samplers.size());
 						samplers.push_back(uniform);
 					}
 				}

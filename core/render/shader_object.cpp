@@ -57,16 +57,27 @@ namespace gleam {
 
 		GLint linked = false;
 		glGetProgramiv(glsl_program_, GL_LINK_STATUS, &linked);
-		CHECK_INFO(linked, "program linked failed...");
+		if (!linked)
+		{
+			GLint len = 0;
+			glGetProgramiv(glsl_program_, GL_INFO_LOG_LENGTH, &len);
+			if (len > 0)
+			{
+				std::vector<char> info(len + 1, 0);
+				glGetProgramInfoLog(glsl_program_, len, &len, info.data());
+				CHECK_INFO(false, "program linked failed : " << info.data());
+			}
+		}
 
 		// get all locations & indices
 		for (const auto &u : uniforms_)
 		{
 			u->StoreUniformLocation(glsl_program_);
 		}
-		for (const auto &s : samplers_)
+		for (size_t i = 0; i < samplers_.size(); ++i)
 		{
-			s->StoreUniformLocation(glsl_program_);
+			*checked_pointer_cast<Uniform>(samplers_[i]) = static_cast<uint32_t>(i);
+			samplers_[i]->StoreUniformLocation(glsl_program_);
 		}
 		for (const auto &ub : uniform_buffers_)
 		{
