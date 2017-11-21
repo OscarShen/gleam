@@ -80,7 +80,7 @@ namespace gleam {
 			glm::quat quat_yaw(rot_yaw_.y, 0, rot_yaw_.x, 0);
 			glm::quat quat_roll(rot_roll_.y, 0, 0, rot_roll_.x);
 
-			inv_rot_ = glm::inverse(quat_yaw * quat_pitch * quat_roll);
+			inv_rot_ = glm::inverse(quat_roll * quat_pitch * quat_yaw);
 
 			glm::vec3 forward_vec = glm::rotate(inv_rot_, glm::vec3(0, 0, -1));
 			glm::vec3 up_vec = glm::rotate(inv_rot_, glm::vec3(0, 1, 0));
