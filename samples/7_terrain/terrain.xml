@@ -5,10 +5,16 @@
     <attrib  name="pos" usage="position"/>
     <attrib  name="tex_coord" usage="texture_coord"/>
     <uniform type="mat4" name="mvp"/>
-    <uniform type="vec3" name="center"/>
-    <uniform type="vec3" name="extent"/>
+    <uniform type="vec3" name="pos_center"/>
+    <uniform type="vec3" name="pos_extent"/>
+    <uniform type="vec2" name="height_tile"/>
     <uniform type="sampler" name="height_tex">
       <state name="filtering" value="min_mag_mip_linear"/>
+      <state name="address_u" value="clamp"/>
+      <state name="address_v" value="clamp"/>
+    </uniform>
+    <uniform type="sampler" name="normal_tex">
+      <state name="filtering" value="min_mag_linear_mip_nearest"/>
       <state name="address_u" value="clamp"/>
       <state name="address_v" value="clamp"/>
     </uniform>
@@ -18,54 +24,228 @@ in vec3 pos;
 in vec2 tex_coord;
 
 uniform mat4 mvp;
-uniform vec3 center;
-uniform vec3 extent;
+uniform vec3 pos_center;
+uniform vec3 pos_extent;
+uniform vec2 height_tile;
 
 uniform sampler2D height_tex;
+uniform sampler2D normal_tex;
+
+out VS_OUT
+{
+  vec4 pass_uv;
+  vec3 pass_normal;
+} vs_out;
 
 void main()
 {
+  vec3 world_pos = pos * pos_extent + pos_center;
+  world_pos.y = textureLod(height_tex, tex_coord, 0).r * 2.0 - 1.0;
+  world_pos.y *= height_tile.x;
   
+  gl_Position = mvp * vec4(world_pos, 1.0f);
+  vs_out.pass_uv.xy = tex_coord;
+  vs_out.pass_uv.wz = tex_coord * height_tile.y;
+  
+  vs_out.pass_normal = textureLod(normal_tex, tex_coord, 0).xyz;
+  vs_out.pass_normal.xy = vs_out.pass_normal.xy * 2.0 - 1.0;
 }
       ]]>
     </code>
   </shader>
 
   <shader type="fragment_shader" name="TerrainFS">
-    <!--<uniform type="sampler" name="normal_tex">
-      <state name="filtering" value="min_mag_linear_mip_nearest"/>
-      <state name="address_u" value="clamp"/>
-      <state name="address_v" value="clamp"/>
-    </uniform>-->
     <uniform type="sampler" name="grass_tex">
       <state name="filtering" value="min_mag_mip_linear"/>
       <state name="address_u" value="wrap"/>
       <state name="address_v" value="wrap"/>
     </uniform>
-    <!--<uniform type="float" name="inv_far"/>-->
+    <uniform type="vec3" name="light_dir"/>
     <code>
       <![CDATA[
-in vec4 pass_texCoord;
-in vec3 pass_normal;
-
 uniform sampler2D grass_tex;
-uniform float inv_far;
+uniform sampler2D normal_tex;
+uniform vec3 light_dir;
 
-const vec3 LightDir = vec3(0, 10, 5);
+in VS_OUT
+{
+  vec4 pass_uv;
+  vec3 pass_normal;
+} fs_in;
 
-out vec4 out_color;
+out vec4 out_Color;
 
 void main()
 {
-
-  vec3 normal = normalize(pass_normal);
-  out_color = vec4(texture(grass_tex, pass_texCoord.zw).rgb * 
-    dot(normalize(LightDir), normal) * 0.0001 + normal, 1.0f);
+  vec3 normal = normalize(fs_in.pass_normal);
+  
+  vec3 ld = normalize(vec3(light_dir.x, -light_dir.z, light_dir.y));  // world space to tangent space
+  
+  out_Color = vec4(texture(grass_tex, fs_in.pass_uv.zw).rgb * dot(ld, normal), 1.0f);
+  //out_Color = out_Color * 0.0001 + vec4(normal, 1.0f);
 }
       ]]>
     </code>
   </shader>
 
+  <shader type="vertex_shader" name="NormalShowVS">
+    <attrib  name="pos" usage="position"/>
+    <attrib  name="tex_coord" usage="texture_coord"/>
+    <uniform type="mat4" name="mvp"/>
+    <uniform type="vec3" name="pos_center"/>
+    <uniform type="vec3" name="pos_extent"/>
+    <uniform type="vec2" name="height_tile"/>
+    <uniform type="sampler" name="height_tex">
+      <state name="filtering" value="min_mag_mip_linear"/>
+      <state name="address_u" value="clamp"/>
+      <state name="address_v" value="clamp"/>
+    </uniform>
+    <uniform type="sampler" name="normal_tex">
+      <state name="filtering" value="min_mag_linear_mip_nearest"/>
+      <state name="address_u" value="clamp"/>
+      <state name="address_v" value="clamp"/>
+    </uniform>
+    <code>
+      <![CDATA[
+in vec3 pos;
+in vec2 tex_coord;
+
+uniform mat4 mvp;
+uniform vec3 pos_center;
+uniform vec3 pos_extent;
+uniform vec2 height_tile;
+
+uniform sampler2D height_tex;
+uniform sampler2D normal_tex;
+
+out VS_OUT
+{
+  vec4 pass_uv;
+  vec3 pass_normal;
+} vs_out;
+
+void main()
+{
+  vec3 world_pos = pos * pos_extent + pos_center;
+  world_pos.y = textureLod(height_tex, tex_coord, 0).r * 2.0 - 1.0;
+  world_pos.y *= height_tile.x;
+  
+  gl_Position = mvp * vec4(world_pos, 1.0f);
+  vs_out.pass_uv.xy = tex_coord;
+  vs_out.pass_uv.wz = tex_coord * height_tile.y;
+  
+  vs_out.pass_normal = textureLod(normal_tex, tex_coord, 0).xyz;
+  vs_out.pass_normal.xy = vs_out.pass_normal.xy * 2.0 - 1.0;
+  vs_out.pass_normal.x = -vs_out.pass_normal.x;
+}
+      ]]>
+    </code>
+  </shader>
+
+  <shader type="fragment_shader" name="NormalShowFS">
+    <uniform type="sampler" name="grass_tex">
+      <state name="filtering" value="min_mag_mip_linear"/>
+      <state name="address_u" value="wrap"/>
+      <state name="address_v" value="wrap"/>
+    </uniform>
+    <uniform type="vec3" name="light_dir"/>
+    <code>
+      <![CDATA[
+uniform sampler2D grass_tex;
+uniform sampler2D normal_tex;
+uniform vec3 light_dir;
+
+in GS_OUT
+{
+  vec4 pass_uv;
+  vec3 pass_normal;
+  float pass_color;
+} fs_in;
+
+out vec4 out_Color;
+
+void main()
+{
+  vec3 normal = normalize(fs_in.pass_normal);
+  
+  vec3 ld = normalize(vec3(light_dir.x, -light_dir.z, light_dir.y));  // world space to tangent space
+  
+  out_Color = vec4(texture(grass_tex, fs_in.pass_uv.zw).rgb * dot(ld, normal), 1.0f);
+  out_Color = out_Color * 0.0001 + vec4(normal, 1.0f);
+
+  if(fs_in.pass_color > 0.5f)
+    out_Color = vec4(1, 1, 0, 1);
+}
+      ]]>
+    </code>
+  </shader>
+
+  <shader type="geometry_shader" name="NormalShowGS">
+    <code>
+      <![CDATA[
+layout (triangles) in;
+layout (triangle_strip, max_vertices = 100) out;
+
+in vec3 pass_normal_gs[];
+
+const float MAGNITUDE = 5.0f;
+
+uniform mat4 mvp;
+
+in VS_OUT
+{
+  vec4 pass_uv;
+  vec3 pass_normal;
+} gs_in[];
+
+out GS_OUT
+{
+  vec4 pass_uv;
+  vec3 pass_normal;
+  float pass_color;
+} gs_out;
+
+void GenerateLine(int index)
+{
+  gl_Position = gl_in[index].gl_Position;
+  gs_out.pass_normal = gs_in[index].pass_normal;
+  gs_out.pass_uv = gs_in[index].pass_uv;
+  gs_out.pass_color = 1;
+  EmitVertex();
+  gl_Position = gl_in[index].gl_Position + mvp * vec4(vec3(gs_in[index].pass_normal.x, gs_in[index].pass_normal.z, -gs_in[index].pass_normal.y ), 0) * MAGNITUDE;
+  gs_out.pass_color = 1;
+  EmitVertex();
+  gl_Position = gl_in[index].gl_Position + vec4(0.1);
+  gs_out.pass_normal = gs_in[index].pass_normal;
+  gs_out.pass_uv = gs_in[index].pass_uv;
+  gs_out.pass_color = 1;
+  EmitVertex();
+  EndPrimitive();
+}
+
+void main()
+{
+  gl_Position = gl_in[0].gl_Position;
+  gs_out.pass_normal = gs_in[0].pass_normal;
+  gs_out.pass_color = 0;
+  EmitVertex();
+  gl_Position = gl_in[1].gl_Position;
+  gs_out.pass_normal = gs_in[1].pass_normal;
+  gs_out.pass_color = 0;
+  EmitVertex();
+  gl_Position = gl_in[2].gl_Position;
+  gs_out.pass_normal = gs_in[2].pass_normal;
+  gs_out.pass_color = 0;
+  EmitVertex();
+  EndPrimitive();
+  
+  GenerateLine(0);
+  GenerateLine(1);
+  GenerateLine(2);
+}
+      ]]>
+    </code>
+  </shader>
 
   <shader type="vertex_shader" name="HeightToNormalVS">
     <attrib  name="pos" usage="position"/>
@@ -162,13 +342,19 @@ void main()
     </code>
   </shader>
 
-  <!--<technique name="Terrain">
+  <technique name="TerrainTech">
     <state name="vertex_shader" value="TerrainVS"/>
-      <state name="fragment_shader" value="TerrainFS"/>
-  </technique>-->
+    <state name="fragment_shader" value="TerrainFS"/>
+  </technique>
+
+  <technique name="TerrainNormalShowTech">
+    <state name="cull_mode" value="none"/>
+    <state name="vertex_shader" value="NormalShowVS"/>
+    <state name="fragment_shader" value="NormalShowFS"/>
+    <state name="geometry_shader" value="NormalShowGS"/>
+  </technique>
 
   <technique name="HeightToNormalTech">
-    <state name="cull_mode" value="none"/>
     <state name="vertex_shader" value="HeightToNormalVS"/>
     <state name="fragment_shader" value="HeightToNormalFS"/>
   </technique>

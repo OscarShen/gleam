@@ -19,7 +19,20 @@ public:
 
 	void OnCreate() override
 	{
+		OBBox box(convert_to_obbox(AABBox(glm::vec3(-0.5f), glm::vec3(0.5f))));
+		Color color(1.0f, 0, 0, 1);
+		box_ = std::make_shared<SceneObjectHelper>(
+			std::make_shared<RenderableBox>(box, color), SOA_Cullable);
+		box_->AddToSceneManager();
 
+		TexturePtr height_tex = LoadTexture("heightmap2.jpg", EAH_GPU_Read | EAH_Immutable);
+		terrain_ = std::make_shared<SceneObjectTerrain>(height_tex, 5120, 5120, 7.0f, 30.0f, 8.0f, SOA_Cullable);
+		terrain_->AddToSceneManager();
+
+		this->LookAt(glm::vec3(0, 0, 40.0f), glm::vec3(0));
+		this->Proj(0.1f, 2000.0f);
+		controller_.AttachCamera(this->ActiveCamera());
+		controller_.SetScalers(0.05f, 10.0f);
 	}
 
 	uint32_t DoUpdate(uint32_t render_index) override
@@ -34,7 +47,7 @@ public:
 
 
 private:
-	TrackballCameraController controller_;
+	FirstPersonCameraController controller_;
 
 	SceneObjectPtr terrain_;
 	SceneObjectPtr box_;

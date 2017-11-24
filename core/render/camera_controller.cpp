@@ -31,12 +31,11 @@ namespace gleam {
 	}
 	void FirstPersonCameraController::AttachCamera(Camera & camera)
 	{
-		glm::quat rot = glm::toQuat(camera.ViewMatrix());
-		inv_rot_ = glm::inverse(rot);
+		rot_ = glm::toQuat(camera.ViewMatrix());
 
-		sincos(glm::pitch(rot), rot_pitch_.x, rot_pitch_.y);
-		sincos(glm::yaw(rot), rot_yaw_.x, rot_yaw_.y);
-		sincos(glm::roll(rot), rot_roll_.x, rot_roll_.y);
+		sincos(glm::pitch(rot_), rot_pitch_.x, rot_pitch_.y);
+		sincos(glm::yaw(rot_), rot_yaw_.x, rot_yaw_.y);
+		sincos(glm::roll(rot_), rot_roll_.x, rot_roll_.y);
 
 		camera_ = &camera;
 	}
@@ -49,7 +48,7 @@ namespace gleam {
 	{
 		if (camera_) {
 			movement = movement * moveScaler_;
-			glm::vec3 new_eye_pos = camera_->EyePos() + glm::rotate(inv_rot_, movement);
+			glm::vec3 new_eye_pos = camera_->EyePos() + glm::rotate(rot_, movement);
 			camera_->ViewParams(new_eye_pos, new_eye_pos + camera_->ForwardVec() * camera_->LookAtDist(),
 				camera_->UpVec());
 		}
@@ -57,9 +56,9 @@ namespace gleam {
 	void FirstPersonCameraController::RotateRelated(float yaw, float pitch, float roll)
 	{
 		if (camera_) {
-			pitch *= -rotationScaler_ * 0.5f;
-			yaw *= -rotationScaler_ * 0.5f;
-			roll *= -rotationScaler_ * 0.5f;
+			pitch *= rotationScaler_ * 0.5f;
+			yaw *=	 rotationScaler_ * 0.5f;
+			roll *=  rotationScaler_ * 0.5f;
 
 			glm::vec2 delta_pitch, delta_yaw_, delta_roll;
 			sincos(yaw, delta_yaw_.x, delta_yaw_.y);
@@ -80,10 +79,10 @@ namespace gleam {
 			glm::quat quat_yaw(rot_yaw_.y, 0, rot_yaw_.x, 0);
 			glm::quat quat_roll(rot_roll_.y, 0, 0, rot_roll_.x);
 
-			inv_rot_ = glm::inverse(quat_roll * quat_pitch * quat_yaw);
+			rot_ = quat_yaw * quat_pitch * quat_roll;
 
-			glm::vec3 forward_vec = glm::rotate(inv_rot_, glm::vec3(0, 0, -1));
-			glm::vec3 up_vec = glm::rotate(inv_rot_, glm::vec3(0, 1, 0));
+			glm::vec3 forward_vec = glm::rotate(rot_, glm::vec3(0, 0, -1));
+			glm::vec3 up_vec = glm::rotate(rot_, glm::vec3(0, 1, 0));
 
 			camera_->ViewParams(camera_->EyePos(), camera_->EyePos() + forward_vec * camera_->LookAtDist(), up_vec);
 		}

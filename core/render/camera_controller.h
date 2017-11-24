@@ -43,7 +43,8 @@ namespace gleam {
 		glm::vec2 rot_pitch_;
 		glm::vec2 rot_yaw_;
 		glm::vec2 rot_roll_;
-		glm::quat inv_rot_;
+		glm::quat rot_;
+		glm::quat camera_quat_;
 	};
 
 	class TrackballCameraController : public CameraController
