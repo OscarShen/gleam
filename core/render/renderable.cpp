@@ -398,7 +398,7 @@ namespace gleam {
 	}
 
 	RenderableHeightToNormal::RenderableHeightToNormal(const TexturePtr & height_tex, float level, float strength)
-		: RenderablePlane(height_tex->Width(0), height_tex->Height(0), 1, 1, true)
+		: RenderablePlane(static_cast<float>(height_tex->Width(0)), static_cast<float>(height_tex->Height(0)), 1, 1, true)
 	{
 		RenderEngine &re = Context::Instance().RenderEngineInstance();
 
@@ -416,7 +416,8 @@ namespace gleam {
 		fbo_ = re.MakeFrameBuffer();
 		CameraPtr camera = std::make_shared<Camera>();
 		camera->ViewParams(glm::vec3(0, 1, 0), glm::vec3(), glm::vec3(0, 0, -1));
-		camera->ProjOrthoParams(height_tex->Width(0), height_tex->Height(0), 0.1, 10);
+		camera->ProjOrthoParams(static_cast<float>(height_tex->Width(0)), 
+			static_cast<float>(height_tex->Height(0)), 0.1f, 10.0f);
 		fbo_->GetViewport()->camera = camera;
 
 		RenderViewPtr rv = re.Make2DRenderView(*normal_tex_, 0);

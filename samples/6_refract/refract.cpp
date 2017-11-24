@@ -74,7 +74,7 @@ public:
 		cube_map_ = LoadTexture("l.png", EAH_GPU_Read | EAH_Immutable);
 
 		refractor_ = std::make_shared<RefractorSceneObject>(cube_map_);
-		refractor_->ModelMatrix(glm::scale(glm::mat4(), glm::vec3(0.02)));
+		refractor_->ModelMatrix(glm::scale(glm::mat4(), glm::vec3(0.02f)));
 		refractor_->AddToSceneManager();
 
 		skybox_ = std::make_shared<SceneObjectSkybox>(0);

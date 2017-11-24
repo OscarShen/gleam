@@ -26,7 +26,7 @@ public:
 		box_->AddToSceneManager();
 
 		TexturePtr height_tex = LoadTexture("heightmap2.jpg", EAH_GPU_Read | EAH_Immutable);
-		terrain_ = std::make_shared<SceneObjectTerrain>(height_tex, 5120, 5120, 7.0f, 30.0f, 8.0f, SOA_Cullable);
+		terrain_ = std::make_shared<SceneObjectTerrain>(height_tex, 5120.0f, 5120.0f, 7.0f, 30.0f, 8.0f, SOA_Cullable);
 		terrain_->AddToSceneManager();
 
 		this->LookAt(glm::vec3(0, 0, 40.0f), glm::vec3(0));
@@ -53,9 +53,11 @@ private:
 	SceneObjectPtr box_;
 };
 
+#ifdef TERRAIN_APP
 int main()
 {
 	TerrainFramework app;
 	app.Create();
 	app.Run();
 }
+#endif // TERRAIN_APP
