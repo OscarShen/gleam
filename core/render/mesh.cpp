@@ -235,7 +235,7 @@ namespace gleam {
 			{
 				if (!mtl_->tex_names[i].empty())
 				{
-					textures_[i] = LoadTexture(mtl_->tex_names[i], EAH_GPU_Read | EAH_Immutable);
+					textures_[i] = LoadTexture2D(mtl_->tex_names[i], EAH_GPU_Read | EAH_Immutable);
 				}
 			}
 		}

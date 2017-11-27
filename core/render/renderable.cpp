@@ -466,7 +466,7 @@ namespace gleam {
 		*(shader->GetUniformByName("height_tile")) = glm::vec2(width / height_tex->Width(0) * 255.0f * strength / std::pow(2.0f, level), tile_size);
 
 		*(shader->GetUniformByName("light_dir")) = glm::vec3(5, 5, 0);
-		*(shader->GetSamplerByName("grass_tex")) = LoadTexture("sand.png", EAH_GPU_Read | EAH_Immutable);
+		*(shader->GetSamplerByName("grass_tex")) = LoadTexture2D("sand.png", EAH_GPU_Read | EAH_Immutable);
 	}
 
 	void RenderableTerrain::OnRenderBegin()

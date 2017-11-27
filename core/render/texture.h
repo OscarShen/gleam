@@ -264,8 +264,14 @@ namespace gleam
 		uint32_t width_;
 	};
 
-	TexturePtr LoadTexture(const std::string &name, uint32_t access_hint);
-	bool LoadTexture(const std::string &name, TextureType &type, uint32_t &width, uint32_t &height,
+	TexturePtr LoadTexture2D(const std::string &name, uint32_t access_hint);
+	bool LoadTexture2D(const std::string &name, TextureType &type, uint32_t &width, uint32_t &height,
+		ElementFormat &format, std::vector<ElementInitData> &init_data, std::vector<uint8_t> &data);
+
+	TexturePtr LoadTextureCube(const std::string &name, uint32_t access_hint);
+	//convert a suitable image from a cubemap cross to a cubemap (returns false for unsuitable images)
+	bool ConvertCrossToCubemap(int width, int height, uint8_t *data_f, std::vector<ElementInitData> &init_data, std::vector<uint8_t> &data);
+	bool LoadTextureCube(const std::string &name, TextureType &type, uint32_t &width, uint32_t &height,
 		ElementFormat &format, std::vector<ElementInitData> &init_data, std::vector<uint8_t> &data);
 
 	template<typename T>

@@ -26,9 +26,9 @@ public:
 
 		auto &shader = technique_->GetShaderObject(*effect_);
 
-		*(shader->GetSamplerByName("diffuse_tex")) = LoadTexture("stonewallDiffuse.tga", EAH_GPU_Read | EAH_Immutable);
-		*(shader->GetSamplerByName("normal_tex")) = LoadTexture("stonewallNormal.tga", EAH_GPU_Read | EAH_Immutable);
-		*(shader->GetSamplerByName("height_tex")) = LoadTexture("stonewallDepth.tga", EAH_GPU_Read | EAH_Immutable);
+		*(shader->GetSamplerByName("diffuse_tex")) = LoadTexture2D("stonewallDiffuse.tga", EAH_GPU_Read | EAH_Immutable);
+		*(shader->GetSamplerByName("normal_tex")) = LoadTexture2D("stonewallNormal.tga", EAH_GPU_Read | EAH_Immutable);
+		*(shader->GetSamplerByName("height_tex")) = LoadTexture2D("stonewallDepth.tga", EAH_GPU_Read | EAH_Immutable);
 		light_falloff_ = shader->GetUniformByName("light_falloff");
 		light_pos_ = shader->GetUniformByName("light_pos");
 		light_color_ = shader->GetUniformByName("light_color");

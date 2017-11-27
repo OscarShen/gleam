@@ -25,7 +25,7 @@ public:
 			std::make_shared<RenderableBox>(box, color), SOA_Cullable);
 		box_->AddToSceneManager();
 
-		TexturePtr height_tex = LoadTexture("heightmap2.jpg", EAH_GPU_Read | EAH_Immutable);
+		TexturePtr height_tex = LoadTexture2D("heightmap2.jpg", EAH_GPU_Read | EAH_Immutable);
 		terrain_ = std::make_shared<SceneObjectTerrain>(height_tex, 5120.0f, 5120.0f, 7.0f, 30.0f, 8.0f, SOA_Cullable);
 		terrain_->AddToSceneManager();
 

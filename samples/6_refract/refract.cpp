@@ -71,7 +71,7 @@ public:
 
 	void OnCreate() override
 	{
-		cube_map_ = LoadTexture("l.png", EAH_GPU_Read | EAH_Immutable);
+		cube_map_ = LoadTextureCube("l.png", EAH_GPU_Read | EAH_Immutable);
 
 		refractor_ = std::make_shared<RefractorSceneObject>(cube_map_);
 		refractor_->ModelMatrix(glm::scale(glm::mat4(), glm::vec3(0.02f)));
@@ -107,6 +107,7 @@ private:
 	TrackballCameraController controller_;
 };
 
+#define REFRACT_APP
 #ifdef REFRACT_APP
 int main()
 {

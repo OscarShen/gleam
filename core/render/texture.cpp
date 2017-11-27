@@ -45,17 +45,47 @@ namespace gleam {
 			return type;
 		}
 
+		void SetTextureType(TextureType type)
+		{
+			texture_desc.texture_data->type = type;
+		}
+
 		void Load() override
 		{
 			TextureDesc::TextureData &tex_data = *texture_desc.texture_data;
 
-			assert(LoadTexture(texture_desc.name,
-				tex_data.type,
-				tex_data.width,
-				tex_data.height,
-				tex_data.format,
-				tex_data.init_data,
-				tex_data.data_block));
+			switch (texture_desc.texture_data->type)
+			{
+			case TT_1D:
+			case TT_2D:
+			{
+				LoadTexture2D(texture_desc.name,
+					tex_data.type,
+					tex_data.width,
+					tex_data.height,
+					tex_data.format,
+					tex_data.init_data,
+					tex_data.data_block);
+			}
+			break;
+			case TT_Cube:
+			{
+				LoadTextureCube(texture_desc.name,
+					tex_data.type,
+					tex_data.width,
+					tex_data.height,
+					tex_data.format,
+					tex_data.init_data,
+					tex_data.data_block);
+			}
+			break;
+
+
+			default:
+				break;
+			}
+
+
 
 			RenderEngine &re = Context::Instance().RenderEngineInstance();
 			switch (tex_data.type)
@@ -869,17 +899,19 @@ namespace gleam {
 		}
 	}
 
-	TexturePtr LoadTexture(const std::string & name, uint32_t access_hint)
+	TexturePtr LoadTexture2D(const std::string & name, uint32_t access_hint)
 	{
-		return ResLoader::Instance().QueryT<Texture>(std::make_shared<TextureLoadingDesc>(name, access_hint));
+		auto tex_desc = std::make_shared<TextureLoadingDesc>(name, access_hint);
+		tex_desc->SetTextureType(TextureType::TT_2D);
+		return ResLoader::Instance().QueryT<Texture>(tex_desc);
 	}
-	bool LoadTexture(const std::string & name, TextureType &type, uint32_t & width, uint32_t & height, ElementFormat & format, std::vector<ElementInitData> &init_data, std::vector<uint8_t>& data)
+	bool LoadTexture2D(const std::string & name, TextureType &type, uint32_t & width, uint32_t & height, ElementFormat & format, std::vector<ElementInitData> &init_data, std::vector<uint8_t>& data)
 	{
 		std::string file_name = ResLoader::Instance().Locate(name);
 		if (!file_name.empty()) // TT_1D, TT2D
 		{
 			int w, h, c;
-			uint16_t *image = stbi_load_16(file_name.c_str(), &w, &h, &c, 0);
+			uint8_t *image = stbi_load(file_name.c_str(), &w, &h, &c, 0);
 
 			if (!image)
 			{
@@ -900,23 +932,23 @@ namespace gleam {
 			switch (c)
 			{
 			case 1:
-				format = EF_R16;
+				format = EF_R8;
 				break;
 			case 2:
-				format = EF_GR16;
+				format = EF_GR8;
 				break;
 			case 3:
-				format = EF_BGR16;
+				format = EF_BGR8;
 				break;
 			case 4:
-				format = EF_ABGR16;
+				format = EF_ABGR8;
 				break;
 			default:
 				WARNING(false, "unknow texture format");
 				break;
 			}
 
-			uint32_t row_pitch = width * c * 2, slice_pitch = row_pitch * height;
+			uint32_t row_pitch = width * c, slice_pitch = row_pitch * height;
 			data.resize(slice_pitch);
 
 			init_data.resize(1);
@@ -926,91 +958,166 @@ namespace gleam {
 
 			std::copy_n((uint8_t*)image, slice_pitch, (uint8_t *)init_data[0].data);
 
+			stbi_image_free(image);
 			return true;
 		}
-		else // TT_Cube
-		{
-			std::function<std::string(int)> func = [](int i) -> std::string
-			{
-				switch (i)
-				{
-				case 0:
-					return "_pos_x";
-				case 1:
-					return "_neg_x";
-				case 2:
-					return "_pos_y";
-				case 3:
-					return "_neg_y";
-				case 4:
-					return "_pos_z";
-				case 5:
-					return "_neg_z";
-				default:
-					assert(false);
-					return "";
-				}
-			};
+		return false;
+	}
+	TexturePtr LoadTextureCube(const std::string & name, uint32_t access_hint)
+	{
+		auto tex_desc = std::make_shared<TextureLoadingDesc>(name, access_hint);
+		tex_desc->SetTextureType(TextureType::TT_Cube);
+		return ResLoader::Instance().QueryT<Texture>(tex_desc);
+	}
+	bool ConvertCrossToCubemap(int width, int height, uint8_t *data_f, std::vector<ElementInitData> &init_data, std::vector<uint8_t> &data)
+	{
+		// only float rgb supported
+		const int element_size = 12;
+		//this function only supports vertical cross format for now (3 wide by 4 high)
+		if ((width / 3 != height / 4) || (width % 3 != 0) || (height % 4 != 0))
+			return false;
 
-			for (int i = 0; i < 6; ++i)
-			{
-				size_t dot_pos = name.find_last_of('.');
-				assert(dot_pos != std::string::npos);
+		int fWidth = width / 3;
+		int fHeight = height / 4;
+		uint32_t row_pitch = fWidth * element_size, slice_pitch = row_pitch * fHeight;
 
-				file_name = name.substr(0, dot_pos) + func(i) + name.substr(dot_pos);
+		data.resize(slice_pitch * 6);
+		init_data.resize(6);
 
-				file_name = ResLoader::Instance().Locate(file_name);
-				if (file_name.empty())
-				{
-					return false;
-				}
+		uint8_t *face = data.data();
+		uint8_t *ptr;
 
-				int w, h, c;
-				uint8_t *image = stbi_load(file_name.c_str(), &w, &h, &c, 0);
+		// positive X
+		ptr = face;
+		for (int j = 0; j<fHeight; j++) {
+			memcpy(ptr, &data_f[((height - (fHeight + j + 1))*width + 2 * fWidth) * element_size], fWidth*element_size);
+			ptr += fWidth*element_size;
+		}
 
-				if (!image)
-				{
-					return false;
-				}
+		// negative X
+		face = ptr;
+		for (int j = 0; j<fHeight; j++) {
+			memcpy(ptr, &data_f[(height - (fHeight + j + 1))*width*element_size], fWidth*element_size);
+			ptr += fWidth*element_size;
+		}
 
-				width = w;
-				height = h;
-				format = EF_Unknown;
-				switch (c)
-				{
-				case 1:
-					format = EF_R8;
-					break;
-				case 2:
-					format = EF_GR8;
-					break;
-				case 3:
-					format = EF_BGR8;
-					break;
-				case 4:
-					format = EF_ABGR8;
-					break;
-				default:
-					WARNING(false, "unknow texture format");
-					break;
-				}
+		// positive Y
+		face = ptr;
+		for (int j = 0; j<fHeight; j++) {
+			memcpy(ptr, &data_f[((4 * fHeight - j - 1)*width + fWidth)*element_size], fWidth*element_size);
+			ptr += fWidth*element_size;
+		}
 
-				uint32_t row_pitch = width * c, slice_pitch = row_pitch * height;
+		// negative Y
+		face = ptr;
+		for (int j = 0; j<fHeight; j++) {
+			memcpy(ptr, &data_f[((2 * fHeight - j - 1)*width + fWidth)*element_size], fWidth*element_size);
+			ptr += fWidth*element_size;
+		}
 
-				if (i == 0)
-				{
-					type = TT_Cube;
-					data.resize(slice_pitch * 6);
-					init_data.resize(6);
-				}
+		// positive Z
+		face = ptr;
+		for (int j = 0; j<fHeight; j++) {
+			memcpy(ptr, &data_f[((height - (fHeight + j + 1))*width + fWidth) * element_size], fWidth*element_size);
+			ptr += fWidth*element_size;
+		}
 
-				init_data[i].data = data.data() + i * slice_pitch;
-				init_data[i].row_pitch = row_pitch;
-				init_data[i].slice_pitch = slice_pitch;
-
-				std::copy_n(image, slice_pitch, (uint8_t *)init_data[i].data);
+		// negative Z
+		face = ptr;
+		for (int j = 0; j<fHeight; j++) {
+			for (int i = 0; i<fWidth; i++) {
+				memcpy(ptr, &data_f[(j*width + 2 * fWidth - (i + 1))*element_size], element_size);
+				ptr += element_size;
 			}
+		}
+
+		for (int i = 0; i < 6; ++i)
+		{
+			init_data[i].data = data.data() + i * slice_pitch;
+			init_data[i].row_pitch = row_pitch;
+			init_data[i].slice_pitch = slice_pitch;
+		}
+
+		return true;
+	}
+	bool LoadTextureCube(const std::string & name, TextureType & type, uint32_t & width, uint32_t & height, ElementFormat & format, std::vector<ElementInitData>& init_data, std::vector<uint8_t>& data)
+	{
+		std::string file_name = ResLoader::Instance().Locate(name);
+		if (!file_name.empty())
+		{
+			// 目前只支持 hdr cubemap
+			assert(name.substr(name.size() - 3) == "hdr" || name.substr(name.size() - 3) == "HDR");
+
+			int w, h, c;
+			stbi_set_flip_vertically_on_load(1);
+			float *image = stbi_loadf(file_name.c_str(), &w, &h, &c, 0);
+			stbi_set_flip_vertically_on_load(0);
+
+			CHECK_INFO(ConvertCrossToCubemap(w, h, (uint8_t*)image, init_data, data), "Load Cube map failed : " << name);
+			stbi_image_free(image);
 			return true;
 		}
+
+		const std::vector<std::string> name_suffix = { "_pos_x", "_neg_x", "_pos_y", "_neg_y", "_pos_z", "_neg_z" };
+
+		for (int i = 0; i < 6; ++i)
+		{
+			size_t dot_pos = name.find_last_of('.');
+			assert(dot_pos != std::string::npos);
+
+			file_name = name.substr(0, dot_pos) + name_suffix[i] + name.substr(dot_pos);
+
+			file_name = ResLoader::Instance().Locate(file_name);
+			if (file_name.empty())
+			{
+				return false;
+			}
+
+			int w, h, c;
+			uint8_t *image = stbi_load(file_name.c_str(), &w, &h, &c, 0);
+
+			if (!image)
+			{
+				return false;
+			}
+
+			width = w;
+			height = h;
+			format = EF_Unknown;
+			switch (c)
+			{
+			case 1:
+				format = EF_R8;
+				break;
+			case 2:
+				format = EF_GR8;
+				break;
+			case 3:
+				format = EF_BGR8;
+				break;
+			case 4:
+				format = EF_ABGR8;
+				break;
+			default:
+				WARNING(false, "unknow texture format");
+				break;
+			}
+
+			uint32_t row_pitch = width * c, slice_pitch = row_pitch * height;
+
+			if (i == 0)
+			{
+				type = TT_Cube;
+				data.resize(slice_pitch * 6);
+				init_data.resize(6);
+			}
+
+			init_data[i].data = data.data() + i * slice_pitch;
+			init_data[i].row_pitch = row_pitch;
+			init_data[i].slice_pitch = slice_pitch;
+
+			std::copy_n(image, slice_pitch, (uint8_t *)init_data[i].data);
+		}
+		return true;
 	}
 }
