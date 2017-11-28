@@ -67,14 +67,14 @@ out vec4 out_color;
 
 void main()
 {
- // pass_normal = normalize(pass_normal);
- // pass_view = normalize(pass_view);
+  vec3 N = normalize(pass_normal);
+  vec3 I = normalize(pass_view);
   vec3 reflect_color = texture(env_map, pass_reflected).xyz;
   
   mat3 refract_vec;
-  refract_vec[0] = refract(-pass_view, pass_normal, pass_eta.r);
-  refract_vec[1] = refract(-normalize(pass_view), pass_normal, pass_eta.g);
-  refract_vec[2] = refract(-pass_view, pass_normal, pass_eta.b);
+  refract_vec[0] = refract(-I, N, pass_eta.r);
+  refract_vec[1] = refract(-I, N, pass_eta.g);
+  refract_vec[2] = refract(-I, N, pass_eta.b);
   
   vec3 refract_color;
   refract_color.r = texture(env_map, refract_vec[0]).r;

@@ -107,7 +107,6 @@ private:
 	TrackballCameraController controller_;
 };
 
-#define REFRACT_APP
 #ifdef REFRACT_APP
 int main()
 {

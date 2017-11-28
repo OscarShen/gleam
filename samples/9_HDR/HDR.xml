@@ -1,0 +1,93 @@
+<?xml version='1.0'?>
+
+<effect>
+  <include name="lighting.xml"/>
+  <shader type="vertex_shader" name="RefractVS">
+    <attrib  name="pos" usage="position"/>
+    <attrib  name="normal" usage="normal"/>
+    <uniform type="mat4" name="proj_view"/>
+    <uniform type="mat4" name="model"/>
+    <uniform type="vec3" name="eye_pos"/>
+    <code>
+      <![CDATA[
+in vec3 pos;
+in vec3 normal;
+
+uniform mat4 proj_view;   
+uniform mat4 model;    
+uniform vec3 eye_pos;
+
+out vec4 Position;
+out vec3 Normal;
+out vec3 IncidentVector;
+void main()
+{
+   vec4 P = model * vec4(pos, 1.0);
+   vec3 N = normalize(mat3(model) * normal);
+   vec3 I = P.xyz - eye_pos;;
+   Position = P;
+   Normal = N;
+   IncidentVector = I;
+   gl_Position = proj_view * P;
+}
+      ]]>
+    </code>
+  </shader>
+
+  <shader type="fragment_shader" name="RefractFS">
+    <header  name="LightingFunc"/>
+    <uniform type="sampler" name="env_map">
+      <state name="filtering" value="min_mag_linear_mip_nearest"/>
+      <state name="address_u" value="clamp"/>
+      <state name="address_v" value="clamp"/>
+      <state name="address_w" value="clamp"/>
+    </uniform>
+    <uniform type="vec3" name="emission"/>
+    <uniform type="vec4" name="color"/>
+    <code>
+      <![CDATA[
+in vec4 Position;
+in vec3 Normal;
+in vec3 IncidentVector;
+
+uniform samplerCube env_map;
+uniform vec3 emission;
+uniform vec4 color;
+
+out vec4 FragColor;
+
+const float eta=0.7;
+const float deta=-0.006;
+
+float my_fresnel(vec3 I, vec3 N, float power,  float scale,  float bias)
+{
+    return bias + (pow(clamp(1.0 - dot(I, N), 0.0, 1.0), power) * scale);
+}
+
+void main()
+{
+    vec3 I = normalize(IncidentVector);
+    vec3 N = normalize(Normal);
+    vec3 R = reflect(I, N);
+    vec3 T1 = refract(I, N, eta);
+	  vec3 T2 = refract(I, N, eta + deta);
+	  vec3 T3 = refract(I, N, eta + 2.0*deta);
+    float fresnel = my_fresnel(-I, N, 4.0, 0.99, 0.1);
+    vec3 Creflect = texture(env_map, R).rgb;
+	  vec3 Crefract;
+    Crefract.r = texture(env_map, T1).r;
+	  Crefract.g = texture(env_map, T2).g;
+	  Crefract.b = texture(env_map, T3).b;
+    Crefract *= color.rgb;
+    FragColor = vec4(mix(Crefract, Creflect, fresnel) + emission, 1.0);
+}
+		]]>
+    </code>
+  </shader>
+
+  <technique name="RefractTech">
+    <state name="vertex_shader" value="RefractVS"/>
+    <state name="fragment_shader" value="RefractFS"/>
+  </technique>
+</effect>
+

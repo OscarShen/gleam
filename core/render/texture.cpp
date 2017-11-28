@@ -1038,6 +1038,9 @@ namespace gleam {
 			init_data[i].slice_pitch = slice_pitch;
 		}
 
+		width = fWidth;
+		height = fHeight;
+
 		return true;
 	}
 	bool LoadTextureCube(const std::string & name, TextureType & type, uint32_t & width, uint32_t & height, ElementFormat & format, std::vector<ElementInitData>& init_data, std::vector<uint8_t>& data)
@@ -1055,6 +1058,13 @@ namespace gleam {
 
 			CHECK_INFO(ConvertCrossToCubemap(w, h, (uint8_t*)image, init_data, data), "Load Cube map failed : " << name);
 			stbi_image_free(image);
+			format = EF_BGR32F;
+			type = TT_Cube;
+
+			// 目前只支持 hdr 高为四倍，宽为三倍
+			width = w / 3;
+			height = h / 4;
+
 			return true;
 		}
 
@@ -1084,6 +1094,7 @@ namespace gleam {
 			width = w;
 			height = h;
 			format = EF_Unknown;
+			type = TT_Cube;
 			switch (c)
 			{
 			case 1:
