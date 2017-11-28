@@ -451,25 +451,32 @@ namespace gleam {
 	{
 		aMesh->name = mesh->mName.C_Str();
 
+		bool has_uv = mesh->mTextureCoords[0] != nullptr;
+
 		aMesh->vertices.reserve(mesh->mNumVertices);
 		aMesh->normals.reserve(mesh->mNumVertices);
-		aMesh->texCoords.reserve(mesh->mNumVertices);
-		aMesh->tangents.reserve(mesh->mNumVertices);
+		if (has_uv)
+		{
+			aMesh->texCoords.reserve(mesh->mNumVertices);
+			aMesh->tangents.reserve(mesh->mNumVertices);
+			aMesh->bitangents.reserve(mesh->mNumVertices);
+		}
 
 		bool has_normal = (mesh->mNormals != nullptr);
 		bool has_tangent = (mesh->mTangents != nullptr);
 		bool has_bitangent = (mesh->mBitangents != nullptr);
-		bool has_texCoord = (mesh->mTextureCoords[0] != nullptr); // only use texCoord0
-		assert(has_normal && has_tangent && has_bitangent);
+		assert(has_normal);
 		for (decltype(mesh->mNumVertices) i = 0; i < mesh->mNumVertices; ++i)
 		{
 			// Assimp will generate normals, uvCoords, tangents, bitangent if these aren't contained in model file...
 			aMesh->vertices.emplace_back(mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z);
 			aMesh->normals.emplace_back(mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z);
-			aMesh->tangents.emplace_back(mesh->mTangents[i].x, mesh->mTangents[i].y, mesh->mTangents[i].z);
-			aMesh->bitangents.emplace_back(mesh->mBitangents[i].x, mesh->mBitangents[i].y, mesh->mBitangents[i].z);
-			if (has_texCoord)
+			if (has_uv)
+			{
+				aMesh->tangents.emplace_back(mesh->mTangents[i].x, mesh->mTangents[i].y, mesh->mTangents[i].z);
+				aMesh->bitangents.emplace_back(mesh->mBitangents[i].x, mesh->mBitangents[i].y, mesh->mBitangents[i].z);
 				aMesh->texCoords.emplace_back(mesh->mTextureCoords[0][i].x, mesh->mTextureCoords[0][i].y);
+			}
 		}
 
 		// triangulate
@@ -524,11 +531,11 @@ namespace gleam {
 
 		assert(meshes.size() > 0);
 
-		bool has_texCoord = meshes[0].texCoords.size() == meshes[0].vertices.size();
-		uint32_t num_merged_ves = 4;
-		if (has_texCoord)
+		bool has_uv = meshes[0].texCoords.size() == meshes[0].vertices.size();
+		uint32_t num_merged_ves = 2;
+		if (has_uv)
 		{
-			++num_merged_ves;
+			num_merged_ves += 3;
 		}
 
 		merged_ves.resize(num_merged_ves);
@@ -538,13 +545,13 @@ namespace gleam {
 		merged_ves[1].usage = VEU_Normal;
 		merged_ves[1].format = EF_BGR32F;
 		merged_ves[1].usage_index = 0;
-		merged_ves[2].usage = VEU_Tangent;
-		merged_ves[2].format = EF_BGR32F;
-		merged_ves[2].usage_index = 0;
-		merged_ves[3].usage = VEU_Binormal;
-		merged_ves[3].format = EF_BGR32F;
-		merged_ves[3].usage_index = 0;
-		if (has_texCoord) {
+		if (has_uv) {
+			merged_ves[2].usage = VEU_Tangent;
+			merged_ves[2].format = EF_BGR32F;
+			merged_ves[2].usage_index = 0;
+			merged_ves[3].usage = VEU_Binormal;
+			merged_ves[3].format = EF_BGR32F;
+			merged_ves[3].usage_index = 0;
 			merged_ves[4].usage = VEU_TextureCoord;
 			merged_ves[4].format = EF_GR32F;
 			merged_ves[4].usage_index = 0;
@@ -565,22 +572,28 @@ namespace gleam {
 
 		uint8_t *cur_vertices = merged_buff[0].data();
 		uint8_t *cur_normals = merged_buff[1].data();
-		uint8_t *cur_tangents = merged_buff[2].data();
-		uint8_t *cur_bitangents = merged_buff[3].data();
-		uint8_t *cur_texCoords = merged_buff[4].data();
+		uint8_t *cur_tangents = nullptr;
+		uint8_t *cur_bitangents = nullptr;
+		uint8_t *cur_texCoords = nullptr;
+		if (has_uv)
+		{
+			cur_tangents = merged_buff[2].data();
+			cur_bitangents = merged_buff[3].data();
+			cur_texCoords = merged_buff[4].data();
+		}
 		for (size_t i = 0; i < meshes.size(); ++i)
 		{
 			size_t stride = meshes[i].vertices.size();
 			std::copy((uint8_t*)meshes[i].vertices.data(), (uint8_t*)(&meshes[i].vertices.back() + 1), cur_vertices);
 			std::copy((uint8_t*)meshes[i].normals.data(), (uint8_t*)(&meshes[i].normals.back() + 1), cur_normals);
-			std::copy((uint8_t*)meshes[i].tangents.data(), (uint8_t*)(&meshes[i].tangents.back() + 1), cur_tangents);
-			std::copy((uint8_t*)meshes[i].bitangents.data(), (uint8_t*)(&meshes[i].bitangents.back() + 1), cur_bitangents);
 			cur_vertices += stride * merged_ves[0].NumFormatBytes();
 			cur_normals += stride * merged_ves[1].NumFormatBytes();
-			cur_tangents += stride * merged_ves[2].NumFormatBytes();
-			cur_bitangents += stride * merged_ves[3].NumFormatBytes();
-			if (has_texCoord)
+			if (has_uv)
 			{
+				std::copy((uint8_t*)meshes[i].tangents.data(), (uint8_t*)(&meshes[i].tangents.back() + 1), cur_tangents);
+				std::copy((uint8_t*)meshes[i].bitangents.data(), (uint8_t*)(&meshes[i].bitangents.back() + 1), cur_bitangents);
+				cur_tangents += stride * merged_ves[2].NumFormatBytes();
+				cur_bitangents += stride * merged_ves[3].NumFormatBytes();
 				std::copy((uint8_t*)meshes[i].texCoords.data(), (uint8_t*)(&meshes[i].texCoords.back() + 1), cur_texCoords);
 				cur_texCoords += stride * merged_ves[4].NumFormatBytes();
 			}
