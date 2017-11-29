@@ -481,4 +481,27 @@ namespace gleam {
 		normal_tex_ = h2n->GetNormalTexture();
 	}
 
+	RenderableDownSample::RenderableDownSample(const FrameBufferPtr & src, const FrameBufferPtr & dst, uint8_t _2x_or_4x)
+		: src_(src), dst_(dst), x_(_2x_or_4x)
+	{
+		assert(x_ == 2 || x_ == 4);
+
+		effect_ = LoadRenderEffect("downsample.xml");
+		if (x_ == 2)
+		{
+			technique_ = effect_->GetTechniqueByName("DownSample2xTech");
+		}
+		else
+		{
+			technique_ = effect_->GetTechniqueByName("DownSample4xTech");
+		}
+	}
+	void RenderableDownSample::Set2xOr4x(uint8_t x)
+	{
+		assert(x == 2 || x == 4);
+		x_ = x;
+	}
+	void RenderableDownSample::OnRenderBegin()
+	{
+	}
 }

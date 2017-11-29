@@ -176,6 +176,24 @@ namespace gleam
 		TexturePtr normal_tex_;
 		TexturePtr height_tex_;
 	};
+
+	class RenderableDownSample : public RenderableHelper
+	{
+	public:
+		RenderableDownSample(const FrameBufferPtr &src, const FrameBufferPtr &dst, uint8_t _2x_or_4x);
+		void SetFrameBuffer(const FrameBufferPtr &src, const FrameBufferPtr &dst) { src_ = src; dst_ = dst; }
+		void Set2xOr4x(uint8_t x);
+
+		void OnRenderBegin() override;
+
+	private:
+		FrameBufferPtr src_;
+		FrameBufferPtr dst_;
+		uint8_t x_;
+
+		RenderTechnique *tech_2x_;
+		RenderTechnique *tech_4x_;
+	};
 }
 
 #endif // !GLEAM_RENDER_RENDERABLE_H_
