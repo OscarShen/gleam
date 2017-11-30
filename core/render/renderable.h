@@ -180,19 +180,24 @@ namespace gleam
 	class RenderableDownSample : public RenderableHelper
 	{
 	public:
-		RenderableDownSample(const FrameBufferPtr &src, const FrameBufferPtr &dst, uint8_t _2x_or_4x);
-		void SetFrameBuffer(const FrameBufferPtr &src, const FrameBufferPtr &dst) { src_ = src; dst_ = dst; }
+		RenderableDownSample(const TexturePtr &src, const TexturePtr &dst, uint8_t _2x_or_4x);
+		void SetTexture(const TexturePtr &src, const TexturePtr &dst);
 		void Set2xOr4x(uint8_t x);
 
 		void OnRenderBegin() override;
 
 	private:
-		FrameBufferPtr src_;
-		FrameBufferPtr dst_;
+		FrameBufferPtr src_fb_;
+		FrameBufferPtr dst_fb_;
+		TexturePtr src_;
+		TexturePtr dst_;
 		uint8_t x_;
 
 		RenderTechnique *tech_2x_;
+		UniformPtr tex_2x_;
 		RenderTechnique *tech_4x_;
+		UniformPtr tex_4x_;
+		UniformPtr twoPixel;
 	};
 }
 

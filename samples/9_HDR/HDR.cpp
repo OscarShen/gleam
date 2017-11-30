@@ -8,120 +8,14 @@
 #include <render/render_engine.h>
 #include <render/frame_buffer.h>
 #include <render/render_view.h>
+#include <render/view_port.h>
 #include <scene/scene_object.h>
+#include <scene/scene_manager.h>
 
 #include <glm/gtc/matrix_transform.hpp>
 #include "HDR.h"
 
 using namespace gleam;
-
-enum MATERIAL_TYPE
-{
-	MATERIAL_MAT = 0x00000001,
-	MATERIAL_REFRACT = 0x00000002,
-	MATERIAL_REFLECT = 0x00000003,
-	MATERIAL_MATTE = 0x00000011,
-	MATERIAL_ALUM = 0x00000013,
-	MATERIAL_SILVER = 0x00000023,
-	MATERIAL_GOLDEN = 0x00000033,
-	MATERIAL_METALIC = 0x00000043,
-	MATERIAL_DIAMOND = 0x00000012,
-	MATERIAL_EMERALD = 0x00000022,
-	MATERIAL_RUBY = 0x00000032,
-};
-
-enum BUFFER_PYRAMID
-{
-	LEVEL_0 = 0,
-	LEVEL_1,
-	LEVEL_2,
-	LEVEL_3,
-	LEVEL_4,
-	LEVEL_5,
-	NUM_LEVEL
-};
-
-class HDRObject : public Mesh
-{
-public:
-	HDRObject(const std::string &name, const ModelPtr &model)
-		: Mesh(name, model)
-	{
-		effect_ = LoadRenderEffect("HDR.xml");
-		//matte_tech_ = effect_->GetTechniqueByName("MatteTech");
-		//reflect_tech_ = effect_->GetTechniqueByName("ReflectTech");
-		refract_tech_ = effect_->GetTechniqueByName("RefractTech");
-		technique_ = refract_tech_;
-
-		// refract
-		auto &refract_shader = refract_tech_->GetShaderObject(*effect_);
-		*(refract_shader->GetUniformByName("color")) = glm::vec4(0.8f, 0.8f, 0.8f, 1.0f);
-		*(refract_shader->GetUniformByName("emission")) = glm::vec3(0);
-	}
-
-	void OnRenderBegin() override
-	{
-		assert(cubemap_);
-		uint32_t material = material_id & 0xF;
-
-		switch (material)
-		{
-		case MATERIAL_MAT:
-			technique_ = matte_tech_;
-			break;
-		case MATERIAL_REFLECT:
-			technique_ = reflect_tech_;
-			break;
-		case MATERIAL_REFRACT:
-			technique_ = refract_tech_;
-		}
-
-		Camera &camera = Context::Instance().FrameworkInstance().ActiveCamera();
-		ShaderObject &shader = *technique_->GetShaderObject(*effect_);
-		*(shader.GetUniformByName("proj_view")) = camera.ProjViewMatrix();
-		*(shader.GetUniformByName("model")) = model_matrix_;
-		*(shader.GetUniformByName("eye_pos")) = camera.EyePos();
-		*(shader.GetSamplerByName("env_map")) = cubemap_;
-	}
-
-	void OnRenderEnd() override
-	{
-
-	}
-
-	void Cubemap(const TexturePtr &cubemap)
-	{
-		cubemap_ = cubemap;
-	}
-
-private:
-	uint32_t material_id = MATERIAL_REFRACT;
-
-	RenderTechnique *matte_tech_;
-	RenderTechnique *reflect_tech_;
-	RenderTechnique *refract_tech_;
-
-	TexturePtr cubemap_;
-};
-
-class HDRSceneObject : public SceneObjectHelper
-{
-public:
-	HDRSceneObject()
-		: SceneObjectHelper(SOA_Cullable)
-	{
-		renderable_ = LoadModel("venus.obj", EAH_GPU_Read | EAH_Immutable,
-			CreateModelFunc<Model>(), CreateMeshFunc<HDRObject>());
-	}
-
-	void Cubemap(const TexturePtr &cubemap)
-	{
-		for (uint32_t i = 0; i < renderable_->NumSubrenderables(); ++i)
-		{
-			checked_pointer_cast<HDRObject>(renderable_->Subrenderable(i))->Cubemap(cubemap);
-		}
-	}
-};
 
 int main()
 {
@@ -150,7 +44,9 @@ void HDR::OnCreate()
 	skybox_ = std::make_shared<SceneObjectSkybox>(0);
 	checked_pointer_cast<SceneObjectSkybox>(skybox_)->CubeMap(cube_map_);
 
-	this->LookAt(glm::vec3(0, 0, 4), glm::vec3());
+	downsample_ = std::make_shared<SceneObjectDownSample>(TexturePtr(), TexturePtr(), 4);
+
+	this->LookAt(glm::vec3(0, 10, 200), glm::vec3(0, 10, 0));
 	this->Proj(0.05f, 1000);
 
 	controller_.AttachCamera(this->ActiveCamera());
@@ -162,10 +58,16 @@ void HDR::OnCreate()
 uint32_t HDR::DoUpdate(uint32_t render_index)
 {
 	RenderEngine &re = Context::Instance().RenderEngineInstance();
+	SceneManager &sm = Context::Instance().SceneManagerInstance();
 	switch (render_index)
 	{
 	case 0: // render scene
 	{
+		sm.ClearObject();
+
+		re.BindFrameBuffer(screen_buffer_);
+		screen_buffer_->GetViewport()->camera = re.DefaultFrameBuffer()->GetViewport()->camera;
+		//re.BindFrameBuffer(re.DefaultFrameBuffer());
 		Color clear_color(0.2f, 0.4f, 0.6f, 1.0f);
 		re.CurrentFrameBuffer()->Clear(CBM_Color | CBM_Depth, clear_color, 1.0f, 0);
 
@@ -175,17 +77,21 @@ uint32_t HDR::DoUpdate(uint32_t render_index)
 	}
 
 	case 1: // downsize for buffers
-
-
-		return UR_Finished;
-		break;
+	{
+		sm.ClearObject();
+		
+		downsample_->SetTexture(screen_tex_, blur_texA_[LEVEL_0]);
+		downsample_->Set2xOr4x(4);
+		downsample_->AddToSceneManager();
+		return UR_NeedFlush | UR_Finished;
+	}
 	}
 }
 
 void HDR::Init()
 {
 	// post process width & height
-	pp_width_ = 1024, pp_height_ = 1024;
+	pp_width_ = 1600, pp_height_ = 900;
 
 	RenderEngine &re = Context::Instance().RenderEngineInstance();
 
@@ -227,4 +133,59 @@ void HDR::DownSample4x(const FrameBufferPtr & src, const FrameBufferPtr & dst)
 {
 	RenderEngine &re = Context::Instance().RenderEngineInstance();
 	re.BindFrameBuffer(dst);
+}
+
+HDRObject::HDRObject(const std::string & name, const ModelPtr & model)
+	: Mesh(name, model)
+{
+	effect_ = LoadRenderEffect("HDR.xml");
+	//matte_tech_ = effect_->GetTechniqueByName("MatteTech");
+	//reflect_tech_ = effect_->GetTechniqueByName("ReflectTech");
+	refract_tech_ = effect_->GetTechniqueByName("RefractTech");
+	technique_ = refract_tech_;
+
+	// refract
+	auto &refract_shader = refract_tech_->GetShaderObject(*effect_);
+	*(refract_shader->GetUniformByName("color")) = glm::vec4(0.8f, 0.8f, 0.8f, 1.0f);
+	*(refract_shader->GetUniformByName("emission")) = glm::vec3(0);
+}
+
+void HDRObject::OnRenderBegin()
+{
+	assert(cubemap_);
+	uint32_t material = material_id & 0xF;
+
+	switch (material)
+	{
+	case MATERIAL_MAT:
+		technique_ = matte_tech_;
+		break;
+	case MATERIAL_REFLECT:
+		technique_ = reflect_tech_;
+		break;
+	case MATERIAL_REFRACT:
+		technique_ = refract_tech_;
+	}
+
+	Camera &camera = Context::Instance().FrameworkInstance().ActiveCamera();
+	ShaderObject &shader = *technique_->GetShaderObject(*effect_);
+	*(shader.GetUniformByName("proj_view")) = camera.ProjViewMatrix();
+	*(shader.GetUniformByName("model")) = model_matrix_;
+	*(shader.GetUniformByName("eye_pos")) = camera.EyePos();
+	*(shader.GetSamplerByName("env_map")) = cubemap_;
+}
+
+HDRSceneObject::HDRSceneObject()
+	: SceneObjectHelper(SOA_Cullable)
+{
+	renderable_ = LoadModel("venus.obj", EAH_GPU_Read | EAH_Immutable,
+		CreateModelFunc<Model>(), CreateMeshFunc<HDRObject>());
+}
+
+void HDRSceneObject::Cubemap(const TexturePtr & cubemap)
+{
+	for (uint32_t i = 0; i < renderable_->NumSubrenderables(); ++i)
+	{
+		checked_pointer_cast<HDRObject>(renderable_->Subrenderable(i))->Cubemap(cubemap);
+	}
 }

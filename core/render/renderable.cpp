@@ -6,6 +6,7 @@
 #include "graphics_buffer.h"
 #include "render_engine.h"
 #include "render_effect.h"
+#include "shader_object.h"
 #include <base/bbox.h>
 #include <base/framework.h>
 #include "frame_buffer.h"
@@ -13,6 +14,7 @@
 #include "camera.h"
 #include "render_view.h"
 #include "ogl_util.h"
+#include "texture.h"
 namespace gleam {
 	void Renderable::ModelMatrix(const glm::mat4 & model)
 	{
@@ -481,27 +483,101 @@ namespace gleam {
 		normal_tex_ = h2n->GetNormalTexture();
 	}
 
-	RenderableDownSample::RenderableDownSample(const FrameBufferPtr & src, const FrameBufferPtr & dst, uint8_t _2x_or_4x)
-		: src_(src), dst_(dst), x_(_2x_or_4x)
+	RenderableDownSample::RenderableDownSample(const TexturePtr & src, const TexturePtr & dst, uint8_t _2x_or_4x)
+		: x_(_2x_or_4x)
 	{
 		assert(x_ == 2 || x_ == 4);
 
 		effect_ = LoadRenderEffect("downsample.xml");
+		tech_2x_ = effect_->GetTechniqueByName("DownSample2xTech");
+		tech_4x_ = effect_->GetTechniqueByName("DownSample4xTech");
 		if (x_ == 2)
 		{
-			technique_ = effect_->GetTechniqueByName("DownSample2xTech");
+			technique_ = tech_2x_;
+			tex_2x_ = technique_->GetShaderObject(*effect_)->GetSamplerByName("tex");
 		}
 		else
 		{
-			technique_ = effect_->GetTechniqueByName("DownSample4xTech");
+			technique_ = tech_4x_;
+			tex_4x_ = technique_->GetShaderObject(*effect_)->GetSamplerByName("tex");
+			twoPixel = technique_->GetShaderObject(*effect_)->GetUniformByName("twoTexelSize");
+		}
+
+		RenderEngine &re = Context::Instance().RenderEngineInstance();
+		src_fb_ = re.MakeFrameBuffer();
+		dst_fb_ = re.MakeFrameBuffer();
+
+		this->SetTexture(src, dst);
+
+		const float pos[] = { -1.0f, -1.0f, 0,  1.0f, -1.0f, 0,
+							  - 1.0f, 1.0f, 0,   1.0f, 1.0f, 0 };
+		const float uv[] = { 0,0, 1,0, 0,1, 1,1 };
+		layout_ = re.MakeRenderLayout();
+		layout_->TopologyType(TT_TriangleStrip);
+		GraphicsBufferPtr pos_buffer = re.MakeVertexBuffer(BU_Static, EAH_GPU_Read | EAH_Immutable, sizeof(pos), pos);
+		layout_->BindVertexStream(pos_buffer, VertexElement(VEU_Position, 0, EF_BGR32F));
+		GraphicsBufferPtr uv_buffer = re.MakeVertexBuffer(BU_Static, EAH_GPU_Read | EAH_Immutable, sizeof(uv), uv);
+		layout_->BindVertexStream(uv_buffer, VertexElement(VEU_TextureCoord, 0, EF_GR32F));
+	}
+	void RenderableDownSample::SetTexture(const TexturePtr & src, const TexturePtr & dst)
+	{
+		RenderEngine &re = Context::Instance().RenderEngineInstance();
+		if (src && dst)
+		{
+			src_ = src;
+			dst_ = dst;
+			if (IsDepthFormat(src_->Format()))
+			{
+				assert(IsDepthFormat(dst_->Format()));
+				src_fb_->Attach(ATT_DepthStencil, re.Make2DDepthStencilRenderView(*src_, 0));
+				dst_fb_->Attach(ATT_DepthStencil, re.Make2DDepthStencilRenderView(*dst_, 0));
+			}
+			else
+			{
+				assert(!IsDepthFormat(dst_->Format()));
+				src_fb_->Attach(ATT_Color0, re.Make2DRenderView(*src_, 0));
+				dst_fb_->Attach(ATT_Color0, re.Make2DRenderView(*dst_, 0));
+			}
 		}
 	}
 	void RenderableDownSample::Set2xOr4x(uint8_t x)
 	{
 		assert(x == 2 || x == 4);
 		x_ = x;
+		if (x == 2)
+		{
+			technique_ = tech_2x_;
+			if (!tex_2x_)
+			{
+				ShaderObject &shader = *technique_->GetShaderObject(*effect_);
+				tex_2x_ = shader.GetSamplerByName("tex");
+			}
+		}
+		else
+		{
+			technique_ = tech_4x_;
+			if (!tex_4x_)
+			{
+				ShaderObject &shader = *technique_->GetShaderObject(*effect_);
+				tex_4x_ = shader.GetSamplerByName("tex");
+				twoPixel = shader.GetUniformByName("twoTexelSize");
+			}
+		}
 	}
 	void RenderableDownSample::OnRenderBegin()
 	{
+		RenderEngine &re = Context::Instance().RenderEngineInstance();
+		re.BindFrameBuffer(dst_fb_);
+
+		if (x_ == 2)
+		{
+			*tex_2x_ = src_;
+		}
+		else
+		{
+			glm::vec2 two_pixel(2.0f / src_->Width(0), 2.0f / src_->Height(0));
+			*twoPixel = two_pixel;
+			*tex_4x_ = src_;
+		}
 	}
 }
