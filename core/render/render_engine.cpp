@@ -17,6 +17,10 @@ namespace gleam {
 	{
 		current_render_state_ = std::make_shared<OGLRenderStateObject>(RasterizerStateDesc(),DepthStencilStateDesc(),BlendStateDesc());
 	}
+	OGLRenderEngine::~OGLRenderEngine()
+	{
+		this->Destroy();
+	}
 	void OGLRenderEngine::ActiveTexture(GLenum tex_unit)
 	{
 		if (tex_unit != active_tex_unit_)
@@ -911,6 +915,17 @@ namespace gleam {
 				tech.Unbind(effect);
 			}
 			++num_draws_just_called_;
+		}
+	}
+	void OGLRenderEngine::DoDestroy()
+	{
+		if (fbo_blit_src_ != 0)
+		{
+			glDeleteFramebuffers(1, &fbo_blit_src_);
+		}
+		if (fbo_blit_dst_ != 0)
+		{
+			glDeleteFramebuffers(1, &fbo_blit_dst_);
 		}
 	}
 	RenderEngine::RenderEngine()

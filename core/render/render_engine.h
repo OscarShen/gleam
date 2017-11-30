@@ -107,6 +107,14 @@ namespace gleam
 
 		void SwapBuffer();
 
+	protected:
+		void Destroy()
+		{
+			current_frame_buffer_.reset();
+			screen_frame_buffer_.reset();
+
+		}
+
 	private:
 		virtual void DoCreateRenderWindow(const std::string & name, const RenderSettings &settings) = 0;
 		virtual SamplerStateObjectPtr DoMakeSamplerStateObjece(const SamplerStateDesc &desc) = 0;
@@ -114,6 +122,7 @@ namespace gleam
 			const DepthStencilStateDesc &depth_stencil_state, const BlendStateDesc &blend_state) = 0;
 		virtual void DoBindFrameBuffer(const FrameBufferPtr & fb) = 0;
 		virtual void DoRender(const RenderEffect &effect, const RenderTechnique &tech, const RenderLayout &layout) = 0;
+		virtual void DoDestroy() = 0;
 
 	protected:
 		RenderStateObjectPtr current_render_state_;
@@ -136,6 +145,7 @@ namespace gleam
 	{
 	public:
 		OGLRenderEngine();
+		~OGLRenderEngine() override;
 		void ActiveTexture(GLenum tex_unit);
 		void BindTexture(GLuint index, GLuint target, GLuint texture, bool force = false);
 		void BindTextures(GLuint first, GLsizei count, const GLuint *targets, const GLuint *textures, bool force = false);
@@ -213,6 +223,8 @@ namespace gleam
 		void DoBindFrameBuffer(const FrameBufferPtr & fb) override;
 
 		void DoRender(const RenderEffect &effect, const RenderTechnique &tech, const RenderLayout &layout) override;
+
+		void DoDestroy() override;
 
 	private:
 		GLenum active_tex_unit_;
