@@ -79,6 +79,11 @@ namespace gleam {
 			*checked_pointer_cast<Uniform>(samplers_[i]) = static_cast<uint32_t>(i);
 			samplers_[i]->StoreUniformLocation(glsl_program_);
 		}
+		for (size_t i = 0; i < images_.size(); ++i)
+		{
+			*checked_pointer_cast<Uniform>(images_[i]) = static_cast<uint32_t>(i);
+			images_[i]->StoreUniformLocation(glsl_program_);
+		}
 		for (const auto &ub : uniform_buffers_)
 		{
 			ub->StoreUniformBlockIndex(glsl_program_);
@@ -143,6 +148,13 @@ namespace gleam {
 			samplers_.push_back(checked_pointer_cast<OGLUniform>(samplers[i]));
 		}
 	}
+	void OGLShaderObject::SetImages(const std::vector<UniformPtr>& images)
+	{
+		for (size_t i = 0; i < images.size(); ++i)
+		{
+			images_.push_back(checked_pointer_cast<OGLUniform>(images[i]));
+		}
+	}
 	void OGLShaderObject::SetUniformBuffers(const std::vector<UniformBufferPtr>& uniform_buffers)
 	{
 		for (size_t i = 0; i < uniform_buffers.size(); ++i)
@@ -172,6 +184,17 @@ namespace gleam {
 		}
 		return nullptr;
 	}
+	UniformPtr OGLShaderObject::GetImageByName(const std::string & image_name)
+	{
+		for (const auto &u : images_)
+		{
+			if (u->Name() == image_name)
+			{
+				return u;
+			}
+		}
+		return nullptr;
+	}
 	void OGLShaderObject::LoadUniforms()
 	{
 		// TODO:update all unifrom & ubo & texture ...
@@ -186,6 +209,10 @@ namespace gleam {
 		for (auto &ub : uniform_buffers_)
 		{
 			ub->Load();
+		}
+		for (auto &i : images_)
+		{
+			i->Load();
 		}
 		// ...
 	}

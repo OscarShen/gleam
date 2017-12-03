@@ -293,6 +293,8 @@ namespace gleam {
 			type = UT_Sampler;
 		else if (name == "mat4")
 			type = UT_Matrix4f;
+		else if (name == "image" || name == "image2d")
+			type = UT_Image;
 		else
 			CHECK_INFO(false, "invalid uniform type : " << name);
 	}
@@ -317,5 +319,53 @@ namespace gleam {
 			data_ = buffer;
 		}
 		return *this;
+	}
+	Uniform & OGLUniformImage::operator=(const TexturePtr & value)
+	{
+		if (data_.texture != value)
+		{
+			data_.texture = value;
+			dirty_ = true;
+		}
+		return *this;
+	}
+	Uniform & OGLUniformImage::operator=(const uint32_t & value)
+	{
+		GLuint unit = static_cast<GLuint>(value);
+		if (data_.texture_unit != unit)
+		{
+			dirty_ = true;
+			data_.texture_unit = unit;
+		}
+		return *this;
+	}
+	Uniform & OGLUniformImage::operator=(const int32_t & value)
+	{
+		GLuint unit = static_cast<GLuint>(value);
+		if (data_.texture_unit != unit)
+		{
+			dirty_ = true;
+			data_.texture_unit = unit;
+		}
+		return *this;
+	}
+	void OGLUniformImage::Load()
+	{
+		if (dirty_)
+		{
+			OGLTexture &gl_texture = *checked_pointer_cast<OGLTexture>(data_.texture);
+			GLuint tex_id = gl_texture.GLTexture();
+			glProgramUniform1i(program_, location_, data_.texture_unit);
+			glBindImageTextures(data_.texture_unit, 1, &tex_id);
+			dirty_ = false;
+		}
+	}
+	UniformPtr OGLUniformImage::CopyResource() const
+	{
+		std::shared_ptr<OGLUniformImage> u = std::make_shared<OGLUniformImage>();
+		u->name_ = this->name_;
+		u->data_ = this->data_;
+		u->dirty_ = true;
+		return u;
 	}
 }

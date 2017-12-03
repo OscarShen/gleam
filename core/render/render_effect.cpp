@@ -107,11 +107,30 @@ namespace gleam
 	{
 		assert(shader_type < ST_NumShaderTypes);
 		const auto &shader_type_samplers = shader_samplers[shader_type];
-		const std::vector<UniformPtr> &uniform_buffers = shader_type_samplers.find(shader_name)->second;
-		std::vector<UniformPtr> ret(uniform_buffers.size());
-		for (size_t i = 0; i < uniform_buffers.size(); ++i)
+		const std::vector<UniformPtr> &uniform_samplers = shader_type_samplers.find(shader_name)->second;
+		std::vector<UniformPtr> ret(uniform_samplers.size());
+		for (size_t i = 0; i < uniform_samplers.size(); ++i)
 		{
-			ret[i] = uniform_buffers[i]->CopyResource();
+			ret[i] = uniform_samplers[i]->CopyResource();
+		}
+		return ret;
+	}
+	const std::vector<UniformPtr>& RenderEffect::GetImagesByName(uint32_t shader_type, const std::string & shader_name)
+	{
+		assert(shader_type < ST_NumShaderTypes);
+		const auto &shader_type_images = shader_images_[shader_type];
+		auto iter = shader_type_images.find(shader_name);
+		return iter->second;
+	}
+	std::vector<UniformPtr> RenderEffect::GetImagesCopyByName(uint32_t shader_type, const std::string & shader_name)
+	{
+		assert(shader_type < ST_NumShaderTypes);
+		const auto &shader_type_images = shader_images_[shader_type];
+		const std::vector<UniformPtr> &uniform_images = shader_type_images.find(shader_name)->second;
+		std::vector<UniformPtr> ret(uniform_images.size());
+		for (size_t i = 0; i < uniform_images.size(); ++i)
+		{
+			ret[i] = uniform_images[i]->CopyResource();
 		}
 		return ret;
 	}
@@ -259,6 +278,10 @@ namespace gleam
 						*uniform = sampler_state;
 						samplers.push_back(uniform);
 					}
+				}
+				else if (uniform_type == UT_Image) // image variable
+				{
+					shader_images_[shader_type][name].push_back(uniform);
 				}
 				else
 				{
@@ -710,6 +733,8 @@ namespace gleam
 				shader_obj->SetUniforms(uniforms);
 				std::vector<UniformPtr> samplers = effect.GetSamplersCopyByName(type, name);
 				shader_obj->SetSamplers(samplers);
+				std::vector<UniformPtr> images = effect.GetImagesCopyByName(type, name);
+				shader_obj->SetImages(images);
 
 				std::vector<UniformBufferPtr> uniform_buffers = effect.GetUniformBuffersCopyByName(type, name);
 				shader_obj->SetUniformBuffers(uniform_buffers);

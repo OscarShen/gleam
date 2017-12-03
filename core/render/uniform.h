@@ -23,6 +23,7 @@ namespace gleam {
 		UT_Vector4f,
 		UT_Sampler,
 		UT_Matrix4f,
+		UT_Image
 	};
 
 	void UniformTypeFromString(UniformType &type, const std::string &name);
@@ -143,6 +144,16 @@ namespace gleam {
 	{
 	public:
 		Uniform &operator=(const glm::mat4 &value) override;
+		void Load() override;
+		UniformPtr CopyResource() const override;
+	};
+
+	class OGLUniformImage : public OGLUniformTemplate<TextureBind>
+	{
+	public:
+		Uniform &operator=(const TexturePtr &value) override;
+		Uniform &operator=(const uint32_t &value) override;
+		Uniform &operator=(const int32_t &value) override;
 		void Load() override;
 		UniformPtr CopyResource() const override;
 	};
