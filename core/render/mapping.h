@@ -32,6 +32,8 @@ namespace gleam
 
 		static void		MappingFormat(GLint &internalFormat, GLenum &glformat, GLenum &gltype, ElementFormat format);
 		static void		MappingVertexFormat(GLenum &gltype, GLboolean &normalized, ElementFormat format);
+
+		static GLbitfield Mapping(uint32_t barrier_op);
 	};
 }
 #endif // !GLEAM_CORE_RENDER_MAPPING_H_

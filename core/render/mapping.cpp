@@ -1,5 +1,5 @@
 #include "mapping.h"
-
+#include "compute_renderable.h"
 namespace gleam
 {
 	void OGLMapping::Mapping(GLfloat * color4, const Color & color)
@@ -944,5 +944,23 @@ namespace gleam
 		default:
 			CHECK_INFO(false, "Invalid vertex format...");
 		}
+	}
+	GLbitfield OGLMapping::Mapping(uint32_t barrier_op)
+	{
+		GLbitfield ret = 0;
+		if (barrier_op & MB_Vertex_attrb_array) ret |= GL_VERTEX_ATTRIB_ARRAY_BARRIER_BIT;
+		if (barrier_op & MB_Element_array) ret |= GL_ELEMENT_ARRAY_BARRIER_BIT;
+		if (barrier_op & MB_Uniform) ret |= GL_UNIFORM_BARRIER_BIT;
+		if (barrier_op & MB_Texture_fetch) ret |= GL_TEXTURE_FETCH_BARRIER_BIT;
+		if (barrier_op & MB_Shader_image_access) ret |= GL_SHADER_IMAGE_ACCESS_BARRIER_BIT;
+		if (barrier_op & MB_Command) ret |= GL_COMMAND_BARRIER_BIT;
+		if (barrier_op & MB_Pixel_buffer) ret |= GL_PIXEL_BUFFER_BARRIER_BIT;
+		if (barrier_op & MB_Texture_update) ret |= GL_TEXTURE_UPDATE_BARRIER_BIT;
+		if (barrier_op & MB_Buffer_update) ret |= GL_BUFFER_UPDATE_BARRIER_BIT;
+		if (barrier_op & MB_Framebuffer) ret |= GL_FRAMEBUFFER_BARRIER_BIT;
+		if (barrier_op & MB_Transform_feedback) ret |= GL_TRANSFORM_FEEDBACK_BARRIER_BIT;
+		if (barrier_op & MB_Atomic_counter) ret |= GL_ATOMIC_COUNTER_BARRIER_BIT;
+		if (barrier_op & MB_Shader_storage) ret |= GL_SHADER_STORAGE_BARRIER_BIT;
+		return ret;
 	}
 }
