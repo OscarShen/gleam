@@ -45,6 +45,7 @@ void HDR::OnCreate()
 	checked_pointer_cast<SceneObjectSkybox>(skybox_)->CubeMap(cube_map_);
 
 	downsample_ = std::make_shared<SceneObjectDownSample>(TexturePtr(), TexturePtr(), 4);
+	calc_lum_ = std::make_shared<CalcLumRenderable>();
 
 	this->LookAt(glm::vec3(0, 10, 200), glm::vec3(0, 10, 0));
 	this->Proj(0.05f, 1000);
@@ -54,6 +55,8 @@ void HDR::OnCreate()
 
 	Init();
 }
+
+#include <render/ogl_util.h>
 
 uint32_t HDR::DoUpdate(uint32_t render_index)
 {
@@ -67,7 +70,7 @@ uint32_t HDR::DoUpdate(uint32_t render_index)
 
 		re.BindFrameBuffer(screen_buffer_);
 		screen_buffer_->GetViewport()->camera = re.DefaultFrameBuffer()->GetViewport()->camera;
-		//re.BindFrameBuffer(re.DefaultFrameBuffer());
+		//re.BindFrameBuffer(FrameBufferPtr());
 		Color clear_color(0.2f, 0.4f, 0.6f, 1.0f);
 		re.CurrentFrameBuffer()->Clear(CBM_Color | CBM_Depth, clear_color, 1.0f, 0);
 
@@ -83,7 +86,28 @@ uint32_t HDR::DoUpdate(uint32_t render_index)
 		downsample_->SetTexture(screen_tex_, blur_texA_[LEVEL_0]);
 		downsample_->Set2xOr4x(4);
 		downsample_->AddToSceneManager();
-		return UR_NeedFlush | UR_Finished;
+		return UR_NeedFlush;
+	}
+
+	case 2:
+	{
+		downsample_->SetTexture(blur_texA_[LEVEL_0], exp_tex_[0]);
+		return UR_NeedFlush;
+	}
+
+	case 3:
+	{
+		downsample_->SetTexture(exp_tex_[0], exp_tex_[1]);
+		return UR_NeedFlush;
+	}
+
+	case 4: // calculate luminance
+	{
+		TexturePtr lum_tex = calc_lum_->CalculateLuminance(exp_tex_[1]);
+		float v[4];
+		glGetTextureImage(checked_pointer_cast<OGLTexture>(lum_tex)->GLTexture(), 0, GL_RGBA, GL_FLOAT, 4 * sizeof(float), v);
+		std::cout << v[0] << std::endl;
+		return UR_Finished;
 	}
 	}
 }
@@ -91,7 +115,7 @@ uint32_t HDR::DoUpdate(uint32_t render_index)
 void HDR::Init()
 {
 	// post process width & height
-	pp_width_ = 1600, pp_height_ = 900;
+	pp_width_ = 1024, pp_height_ = 1024;
 
 	RenderEngine &re = Context::Instance().RenderEngineInstance();
 
@@ -127,12 +151,6 @@ void HDR::Init()
 		w /= 4;
 		h /= 4;
 	}
-}
-
-void HDR::DownSample4x(const FrameBufferPtr & src, const FrameBufferPtr & dst)
-{
-	RenderEngine &re = Context::Instance().RenderEngineInstance();
-	re.BindFrameBuffer(dst);
 }
 
 HDRObject::HDRObject(const std::string & name, const ModelPtr & model)
@@ -189,3 +207,4 @@ void HDRSceneObject::Cubemap(const TexturePtr & cubemap)
 		checked_pointer_cast<HDRObject>(renderable_->Subrenderable(i))->Cubemap(cubemap);
 	}
 }
+

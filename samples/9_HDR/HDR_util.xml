@@ -1,0 +1,37 @@
+<?xml version='1.0'?>
+
+<effect>
+  <shader type="compute_shader" name="CalcLuminanceCS">
+    <uniform type="image" name="inputImage"/>
+    <uniform type="image" name="outputImage"/>
+    <code>
+      <![CDATA[
+layout(local_size_x = 1, local_size_y = 1) in;
+layout(rgba16f) readonly restrict uniform image2D inputImage;
+layout(rgba16f) writeonly restrict uniform image2D outputImage;
+
+const vec3 LUMINANCE_VECTOR = vec3(0.2125, 0.7154, 0.0721);
+void main()
+{
+  float logLumSum = 0;
+  int x, y;
+  for(y = 0; y < 16; ++y)
+  {
+    for(x = 0; x < 16; ++x)
+    {
+		  logLumSum += (dot(imageLoad(inputImage, ivec2(x,y)).rgb, LUMINANCE_VECTOR) + 0.00001);
+    }
+  }
+  logLumSum /= 256.0;
+  float val = (logLumSum + 0.00001);
+  imageStore(outputImage, ivec2(0, 0), vec4(val, val, val, val));
+}
+      ]]>
+    </code>
+  </shader>
+
+  <technique name="CalcLuminanceTech">
+    <state name="compute_shader" value="CalcLuminanceCS"/>
+  </technique>
+  
+</effect>

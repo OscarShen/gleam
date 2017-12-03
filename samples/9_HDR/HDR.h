@@ -9,6 +9,7 @@
 #ifndef HDR_H_
 #define HDR_H_
 #include <base/framework.h>
+#include <render/compute_renderable.h>
 using namespace gleam;
 
 enum MATERIAL_TYPE
@@ -64,6 +65,44 @@ public:
 	void Cubemap(const TexturePtr &cubemap);
 };
 
+class CalcLumRenderable : public ComputeRenderable
+{
+public:
+	CalcLumRenderable()
+	{
+		RenderEngine &re = Context::Instance().RenderEngineInstance();
+
+		effect_ = LoadRenderEffect("HDR_util.xml");
+
+		calc_luminance_tech_ = effect_->GetTechniqueByName("CalcLuminanceTech");
+		technique_ = calc_luminance_tech_;
+
+		ShaderObjectPtr shader = technique_->GetShaderObject(*effect_);
+		lum_in = shader->GetImageByName("inputImage");
+		lum_out = shader->GetImageByName("outputImage");
+
+		lum_out_tex_ = re.MakeTexture2D(1, 1, 1, EF_ABGR16F, 1, EAH_GPU_Read | EAH_GPU_Write);
+		lum_adapted_out_tex_ = re.MakeTexture2D(1, 1, 1, EF_ABGR16F, 1, EAH_GPU_Read | EAH_GPU_Write);
+	}
+
+	TexturePtr CalculateLuminance(const TexturePtr tex)
+	{
+		technique_ = calc_luminance_tech_;
+		*lum_in = tex;
+		*lum_out = lum_out_tex_;
+		this->Render(1, 1, 1);
+		return lum_out_tex_;
+	}
+
+private:
+	TexturePtr lum_out_tex_, lum_adapted_out_tex_;
+	UniformPtr lum_in, lum_out;
+	UniformPtr lum_adaptd_in_[2], lum_adapted_out_;
+
+	RenderTechnique *calc_luminance_tech_;
+	//RenderTechnique *calc_adapted_luminance_tech_;
+};
+
 class HDR : public Framework3D
 {
 public:
@@ -75,8 +114,6 @@ public:
 private:
 	void Init();
 
-	void DownSample4x(const FrameBufferPtr &src, const FrameBufferPtr &dst);
-
 private:
 	TrackballCameraController controller_;
 
@@ -84,6 +121,7 @@ private:
 	SceneObjectPtr skybox_;
 	SceneObjectPtr object_;
 	std::shared_ptr<SceneObjectDownSample> downsample_;
+	std::shared_ptr<CalcLumRenderable> calc_lum_;
 
 	FrameBufferPtr screen_buffer_;
 	TexturePtr screen_tex_;
