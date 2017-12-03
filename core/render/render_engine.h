@@ -38,6 +38,9 @@ namespace gleam
 		void CreateRenderWindow(const std::string &name, RenderSettings &settings);
 
 		void Render(const RenderEffect &effect, const RenderTechnique &tech, const RenderLayout &layout);
+		void RenderCompute(const RenderEffect &effect, const RenderTechnique &tech,
+			uint32_t x, uint32_t y, uint32_t z, uint32_t barrier = 0);
+		virtual void MemoryBarrier(uint32_t barrier_op) = 0;
 
 		const RenderStateObjectPtr &CurrentRenderStateObject() const { return current_render_state_; }
 		const FrameBufferPtr &CurrentFrameBuffer() const { return current_frame_buffer_; }
@@ -122,6 +125,8 @@ namespace gleam
 			const DepthStencilStateDesc &depth_stencil_state, const BlendStateDesc &blend_state) = 0;
 		virtual void DoBindFrameBuffer(const FrameBufferPtr & fb) = 0;
 		virtual void DoRender(const RenderEffect &effect, const RenderTechnique &tech, const RenderLayout &layout) = 0;
+		virtual void DoRenderCompute(const RenderEffect &effect, const RenderTechnique &tech,
+			uint32_t x, uint32_t y, uint32_t z, uint32_t barrier = 0) = 0;
 		virtual void DoDestroy() = 0;
 
 	protected:
@@ -214,6 +219,8 @@ namespace gleam
 		TexturePtr MakeTextureHandler2D(uint32_t width, uint32_t height, uint32_t num_mip_maps, ElementFormat format, uint32_t sample_count, uint32_t access_hint) override;
 		TexturePtr MakeTextureHandlerCube(uint32_t width, uint32_t num_mip_maps, ElementFormat format, uint32_t sample_count, uint32_t access_hint) override;
 
+		void MemoryBarrier(uint32_t barrier_op) override;
+
 	private:
 		void DoCreateRenderWindow(const std::string & name, const RenderSettings &settings);
 		SamplerStateObjectPtr DoMakeSamplerStateObjece(const SamplerStateDesc &desc) override;
@@ -223,6 +230,8 @@ namespace gleam
 		void DoBindFrameBuffer(const FrameBufferPtr & fb) override;
 
 		void DoRender(const RenderEffect &effect, const RenderTechnique &tech, const RenderLayout &layout) override;
+		void DoRenderCompute(const RenderEffect &effect, const RenderTechnique &tech,
+			uint32_t x, uint32_t y, uint32_t z, uint32_t barrier) override;
 
 		void DoDestroy() override;
 

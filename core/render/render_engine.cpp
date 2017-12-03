@@ -754,6 +754,8 @@ namespace gleam {
 			return std::make_shared<OGLUniformSampler>();
 		case gleam::UT_Matrix4f:
 			return std::make_shared<OGLUniformMatrix4>();
+		case gleam::UT_Image:
+			return std::make_shared<OGLUniformImage>();
 		default:
 			CHECK_INFO(false, "invalid uniform type : " << type);
 			return nullptr;
@@ -798,6 +800,15 @@ namespace gleam {
 	TexturePtr OGLRenderEngine::MakeTextureHandlerCube(uint32_t width, uint32_t num_mip_maps, ElementFormat format, uint32_t sample_count, uint32_t access_hint)
 	{
 		return std::make_shared<OGLTextureCube>(width, num_mip_maps, format, sample_count, access_hint);
+	}
+
+	void OGLRenderEngine::MemoryBarrier(uint32_t barrier_op)
+	{
+		if (barrier_op)
+		{
+			GLbitfield bits = OGLMapping::Mapping(barrier_op);
+			glMemoryBarrier(bits);
+		}
 	}
 
 	void OGLRenderEngine::DoCreateRenderWindow(const std::string & name, const RenderSettings & settings)
@@ -917,6 +928,14 @@ namespace gleam {
 			++num_draws_just_called_;
 		}
 	}
+	void OGLRenderEngine::DoRenderCompute(const RenderEffect &effect, const RenderTechnique &tech,
+		uint32_t x, uint32_t y, uint32_t z, uint32_t barrier = 0)
+	{
+		OGLShaderObjectPtr current_shader = checked_pointer_cast<OGLShaderObject>(tech.GetShaderObject(effect));
+		current_shader->Bind();
+		glDispatchCompute(x, y, z);
+		this->MemoryBarrier(barrier);
+	}
 	void OGLRenderEngine::DoDestroy()
 	{
 		if (fbo_blit_src_ != 0)
@@ -939,6 +958,10 @@ namespace gleam {
 	void RenderEngine::Render(const RenderEffect & effect, const RenderTechnique & tech, const RenderLayout & layout)
 	{
 		this->DoRender(effect, tech, layout);
+	}
+	void RenderEngine::RenderCompute(const RenderEffect & effect, const RenderTechnique & tech, uint32_t x, uint32_t y, uint32_t z, uint32_t barrier)
+	{
+		this->DoRenderCompute(effect, tech, x, y, z, barrier);
 	}
 	SamplerStateObjectPtr RenderEngine::MakeSamplerStateObject(const SamplerStateDesc & desc)
 	{
