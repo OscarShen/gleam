@@ -17,13 +17,6 @@
 
 using namespace gleam;
 
-int main()
-{
-	HDR hdr;
-	hdr.Create();
-	hdr.Run();
-}
-
 HDR::HDR()
 	:Framework3D("HDR")
 {
@@ -103,13 +96,22 @@ uint32_t HDR::DoUpdate(uint32_t render_index)
 
 	case 4: // calculate luminance
 	{
-		TexturePtr lum_tex = calc_lum_->CalculateLuminance(exp_tex_[1]);
-		float v[4];
-		glGetTextureImage(checked_pointer_cast<OGLTexture>(lum_tex)->GLTexture(), 0, GL_RGBA, GL_FLOAT, 4 * sizeof(float), v);
-		std::cout << v[0] << std::endl;
+		calc_lum_->CalculateLuminance(exp_tex_[1], lum_tex_);
+		float time = this->FrameTime();
+		calc_lum_->CalculateAdaptedLuminance(lum_tex_, adapted_lum_tex_[0], adapted_lum_tex_[1], time);
+		return 0;
+	}
+
+	case 5:
+	{
+		float lum_threshold = 1.0f, lum_scalar = 0.3f;
+		extract_hl_->SetParameters(lum_threshold, lum_scalar, blur_texA_[LEVEL_0], compose_tex_[LEVEL_0]);
+		extract_hl_->Render();
 		return UR_Finished;
 	}
 	}
+	CHECK_INFO(false, "no impl...");
+	return UR_Finished;
 }
 
 void HDR::Init()
@@ -136,6 +138,8 @@ void HDR::Init()
 		blur_texB_[i] = re.MakeTexture2D(w, h, 1, EF_ABGR16F, 1, EAH_GPU_Read | EAH_GPU_Write);
 		blur_bufferB_[i]->Attach(ATT_Color0, re.Make2DRenderView(*blur_texA_[i], 0));
 
+		compose_tex_[i] = re.MakeTexture2D(w, h, 1, EF_ABGR16F, 1, EAH_GPU_Read | EAH_GPU_Write);
+
 		w /= 2;
 		h /= 2;
 	}
@@ -151,6 +155,12 @@ void HDR::Init()
 		w /= 4;
 		h /= 4;
 	}
+
+	lum_tex_ = re.MakeTexture2D(1, 1, 1, EF_ABGR16, 1, EAH_GPU_Read | EAH_GPU_Write);
+	adapted_lum_tex_[0] = re.MakeTexture2D(1, 1, 1, EF_ABGR16, 1, EAH_GPU_Read | EAH_GPU_Write);
+	adapted_lum_tex_[1] = re.MakeTexture2D(1, 1, 1, EF_ABGR16, 1, EAH_GPU_Read | EAH_GPU_Write);
+
+	extract_hl_ = std::make_shared<ExtractHighLightPP>();
 }
 
 HDRObject::HDRObject(const std::string & name, const ModelPtr & model)
@@ -208,3 +218,90 @@ void HDRSceneObject::Cubemap(const TexturePtr & cubemap)
 	}
 }
 
+#define HDR_APP
+#ifdef HDR_APP
+int main()
+{
+	HDR hdr;
+	hdr.Create();
+	hdr.Run();
+}
+#endif
+
+CalcLumRenderable::CalcLumRenderable()
+{
+	RenderEngine &re = Context::Instance().RenderEngineInstance();
+
+	effect_ = LoadRenderEffect("HDR_util.xml");
+
+	calc_luminance_tech_ = effect_->GetTechniqueByName("CalcLuminanceTech");
+	ShaderObjectPtr shader = calc_luminance_tech_->GetShaderObject(*effect_);
+	lum_in = shader->GetImageByName("inputImage");
+	lum_out = shader->GetImageByName("outputImage");
+
+	calc_adapted_luminance_tech_ = effect_->GetTechniqueByName("CalcAdaptedLuminanceTech");
+	shader = calc_adapted_luminance_tech_->GetShaderObject(*effect_);
+	lum_adaptd_in_[0] = shader->GetImageByName("currentImage");
+	lum_adaptd_in_[1] = shader->GetImageByName("lastImage");
+	lum_adapted_out_ = shader->GetImageByName("outputImage");
+	elapsed_time_ = shader->GetUniformByName("elapsedTime");
+}
+
+void CalcLumRenderable::CalculateLuminance(const TexturePtr & tex, TexturePtr & output)
+{
+	technique_ = calc_luminance_tech_;
+	*lum_in = tex;
+	*lum_out = output;
+	this->Render(1, 1, 1, MB_Shader_image_access);
+}
+
+void CalcLumRenderable::CalculateAdaptedLuminance(const TexturePtr & curTex, const TexturePtr & lastTex, TexturePtr & nowTex, float frame_delta_time)
+{
+	technique_ = calc_adapted_luminance_tech_;
+	*lum_adaptd_in_[0] = curTex;
+	*lum_adaptd_in_[1] = lastTex;
+	*lum_adapted_out_ = nowTex;
+	*elapsed_time_ = frame_delta_time;
+	this->Render(1, 1, 1, MB_Shader_image_access);
+}
+
+ExtractHighLightPP::ExtractHighLightPP()
+{
+	RenderEngine& re = Context::Instance().RenderEngineInstance();
+	fb_ = re.MakeFrameBuffer();
+
+	effect_ = LoadRenderEffect("HDR_util.xml");
+	technique_ = effect_->GetTechniqueByName("ExtractHighLightTech");
+
+	const ShaderObjectPtr &shader = technique_->GetShaderObject(*effect_);
+	lum_threshold_ = shader->GetUniformByName("threshold");
+	lum_scalar_ = shader->GetUniformByName("scalar");
+	src_ = shader->GetSamplerByName("src");
+
+	const float pos[] = { -1.0f, -1.0f, 0,  1.0f, -1.0f, 0,
+		-1.0f, 1.0f, 0,   1.0f, 1.0f, 0 };
+	const float uv[] = { 0,0, 1,0, 0,1, 1,1 };
+	layout_ = re.MakeRenderLayout();
+	layout_->TopologyType(TT_TriangleStrip);
+	GraphicsBufferPtr pos_buffer = re.MakeVertexBuffer(BU_Static, EAH_GPU_Read | EAH_Immutable, sizeof(pos), pos);
+	layout_->BindVertexStream(pos_buffer, VertexElement(VEU_Position, 0, EF_BGR32F));
+	GraphicsBufferPtr uv_buffer = re.MakeVertexBuffer(BU_Static, EAH_GPU_Read | EAH_Immutable, sizeof(uv), uv);
+	layout_->BindVertexStream(uv_buffer, VertexElement(VEU_TextureCoord, 0, EF_GR32F));
+}
+
+void ExtractHighLightPP::SetParameters(float lum_threshold, float lum_scaler, const TexturePtr & src_tex, const TexturePtr & dst_tex)
+{
+	RenderEngine &re = Context::Instance().RenderEngineInstance();
+	*lum_threshold_ = lum_threshold;
+	*lum_scalar_ = lum_scaler;
+	*src_ = src_tex;
+	dst_tex_ = dst_tex;
+}
+
+void ExtractHighLightPP::OnRenderBegin()
+{
+	RenderEngine &re = Context::Instance().RenderEngineInstance();
+	RenderViewPtr rv = re.Make2DRenderView(*dst_tex_, 0);
+	fb_->Attach(ATT_Color0, rv);
+	re.BindFrameBuffer(fb_);
+}

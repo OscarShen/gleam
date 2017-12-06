@@ -68,39 +68,37 @@ public:
 class CalcLumRenderable : public ComputeRenderable
 {
 public:
-	CalcLumRenderable()
-	{
-		RenderEngine &re = Context::Instance().RenderEngineInstance();
+	CalcLumRenderable();
 
-		effect_ = LoadRenderEffect("HDR_util.xml");
+	void CalculateLuminance(const TexturePtr& tex, TexturePtr &output);
 
-		calc_luminance_tech_ = effect_->GetTechniqueByName("CalcLuminanceTech");
-		technique_ = calc_luminance_tech_;
-
-		ShaderObjectPtr shader = technique_->GetShaderObject(*effect_);
-		lum_in = shader->GetImageByName("inputImage");
-		lum_out = shader->GetImageByName("outputImage");
-
-		lum_out_tex_ = re.MakeTexture2D(1, 1, 1, EF_ABGR16F, 1, EAH_GPU_Read | EAH_GPU_Write);
-		lum_adapted_out_tex_ = re.MakeTexture2D(1, 1, 1, EF_ABGR16F, 1, EAH_GPU_Read | EAH_GPU_Write);
-	}
-
-	TexturePtr CalculateLuminance(const TexturePtr tex)
-	{
-		technique_ = calc_luminance_tech_;
-		*lum_in = tex;
-		*lum_out = lum_out_tex_;
-		this->Render(1, 1, 1);
-		return lum_out_tex_;
-	}
+	void CalculateAdaptedLuminance(const TexturePtr& curTex, const TexturePtr &lastTex, TexturePtr &nowTex, float frame_delta_time);
 
 private:
-	TexturePtr lum_out_tex_, lum_adapted_out_tex_;
 	UniformPtr lum_in, lum_out;
 	UniformPtr lum_adaptd_in_[2], lum_adapted_out_;
+	UniformPtr elapsed_time_;
 
 	RenderTechnique *calc_luminance_tech_;
-	//RenderTechnique *calc_adapted_luminance_tech_;
+	RenderTechnique *calc_adapted_luminance_tech_;
+};
+
+class ExtractHighLightPP : public RenderableHelper
+{
+public:
+	ExtractHighLightPP();
+
+	void SetParameters(float lum_threshold, float lum_scaler, const TexturePtr &src_tex, const TexturePtr &dst_tex);
+
+	void OnRenderBegin() override;
+
+private:
+	UniformPtr lum_threshold_;
+	UniformPtr lum_scalar_;
+	UniformPtr src_;
+
+	FrameBufferPtr fb_;
+	TexturePtr dst_tex_;
 };
 
 class HDR : public Framework3D
@@ -122,6 +120,7 @@ private:
 	SceneObjectPtr object_;
 	std::shared_ptr<SceneObjectDownSample> downsample_;
 	std::shared_ptr<CalcLumRenderable> calc_lum_;
+	std::shared_ptr<ExtractHighLightPP> extract_hl_;
 
 	FrameBufferPtr screen_buffer_;
 	TexturePtr screen_tex_;
@@ -134,6 +133,9 @@ private:
 
 	FrameBufferPtr exp_buffer_[2]; // exposure info buffer
 	TexturePtr exp_tex_[2];
+
+	TexturePtr lum_tex_, adapted_lum_tex_[2];
+	TexturePtr compose_tex_[NUM_LEVEL];
 
 	uint32_t pp_width_;
 	uint32_t pp_height_;

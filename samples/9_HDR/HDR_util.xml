@@ -30,8 +30,82 @@ void main()
     </code>
   </shader>
 
+  <shader type="compute_shader" name="CalcAdaptedLuminanceCS">
+    <uniform type="image" name="currentImage"/>
+    <uniform type="image" name="lastImage"/>
+    <uniform type="image" name="outputImage"/>
+    <uniform type="float" name="elapsedTime"/>
+    <code>
+      <![CDATA[
+layout(local_size_x = 1, local_size_y = 1) in;
+layout(rgba16f) readonly restrict uniform image2D currentImage;
+layout(rgba16f) readonly restrict uniform image2D lastImage;
+layout(rgba16f) writeonly restrict uniform image2D outputImage;
+uniform float elapsedTime;
+void main()
+{
+  float currentLum = imageLoad(currentImage, ivec2(0,0)).r;
+  float lastLum = imageLoad(lastImage, ivec2(0,0)).r;
+  float newLum = lastLum + (currentLum - lastLum) * (1.0 - pow(0.98f, 30.0f * elapsedTime));
+  imageStore(outputImage, ivec2(0,0), vec4(newLum,newLum,newLum,newLum));
+}
+      ]]>
+    </code>
+  </shader>
+
+  <shader type="vertex_shader" name="ExtractHighLightVS">
+    <attrib name="pos" usage="position"/>
+    <attrib name="uv" usage="texture_coord"/>
+    <code>
+      <![CDATA[
+in vec3 pos;
+in vec2 uv;
+
+out vec2 UV;
+
+void main() {
+  gl_Position = vec4(pos, 1.0f);
+  UV = uv;
+}
+      ]]>
+    </code>
+  </shader>
+
+  <shader type="fragment_shader" name="ExtractHighLightFS">
+    <uniform type="float" name="threshold"/>
+    <uniform type="float" name="scalar"/>
+    <uniform type="sampler" name="src"/>
+    <code>
+      <![CDATA[
+in vec2 UV;
+
+uniform float threshold;
+uniform float scalar;
+uniform sampler2D src;
+
+out vec4 FragColor;
+
+void main() {
+  FragColor = max((texture(src, UV) - threshold) * scalar, vec4(0));
+}
+      ]]>
+    </code>
+  </shader>
+
   <technique name="CalcLuminanceTech">
     <state name="compute_shader" value="CalcLuminanceCS"/>
+  </technique>
+
+  <technique name="CalcAdaptedLuminanceTech">
+    <state name="compute_shader" value="CalcAdaptedLuminanceCS"/>
+  </technique>
+
+  <technique name="ExtractHighLightTech">
+    <state name="cull_mode" value="none"/>
+    <state name="blend_enable" value="false"/>
+    
+    <state name="vertex_shader" value="ExtractHighLightVS"/>
+    <state name="fragment_shader" value="ExtractHighLightFS"/>
   </technique>
   
 </effect>
