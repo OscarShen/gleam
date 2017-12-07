@@ -82,6 +82,8 @@ namespace gleam {
 	typedef std::shared_ptr<Model> ModelPtr;
 	struct Material;
 	typedef std::shared_ptr<Material> MaterialPtr;
+	class PostProcess;
+	typedef std::shared_ptr<PostProcess> PostProcessPtr;
 
 	struct SamplerStateDesc;
 

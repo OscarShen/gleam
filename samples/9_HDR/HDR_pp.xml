@@ -1,0 +1,27 @@
+<?xml version='1.0'?>
+
+<pp>
+  <post_process name="CalcLuminance">
+    <input name="inputImage"/>
+    <output name="outputImage"/>
+    <shader effect="HDR_util.xml" technique="CalcLuminanceTech"
+            thread_x="1" thread_y="1" thread_z="1"/>
+  </post_process>
+
+  <post_process name="CalcAdaptedLuminance">
+    <input name="currentImage"/>
+    <input name="lastImage"/>
+    <uniform name="elapsedTime"/>
+    <output name="outputImage"/>
+    <shader effect="HDR_util.xml" technique="CalcAdaptedLuminanceTech"
+            thread_x="1" thread_y="1" thread_z="1"/>
+  </post_process>
+
+  <post_process name="ExtractHighLight">
+    <uniform name="threshold"/>
+    <uniform name="scalar"/>
+    <input name="src"/>
+    <output name="dst"/>
+    <shader effect="HDR_util.xml" technique="ExtractHighLightTech"/>
+  </post_process>
+</pp>

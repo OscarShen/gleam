@@ -268,7 +268,6 @@ namespace gleam
 			{
 				output_[i].second = sampler;
 			}
-			CHECK_INFO(output_[i].second, "Can't find output texture : " << output_[i].first);
 		}
 
 		for (size_t i = 0; i < uniforms_.size(); ++i)
@@ -285,7 +284,10 @@ namespace gleam
 		}
 		for (size_t i = 0; i < output_.size(); ++i)
 		{
-			*(output_[i].second) = output_tex_[i];
+			if (output_[i].second)
+			{
+				*(output_[i].second) = output_tex_[i];
+			}
 		}
 	}
 	void PostProcess::Render()

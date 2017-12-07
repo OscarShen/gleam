@@ -65,42 +65,6 @@ public:
 	void Cubemap(const TexturePtr &cubemap);
 };
 
-class CalcLumRenderable : public ComputeRenderable
-{
-public:
-	CalcLumRenderable();
-
-	void CalculateLuminance(const TexturePtr& tex, TexturePtr &output);
-
-	void CalculateAdaptedLuminance(const TexturePtr& curTex, const TexturePtr &lastTex, TexturePtr &nowTex, float frame_delta_time);
-
-private:
-	UniformPtr lum_in, lum_out;
-	UniformPtr lum_adaptd_in_[2], lum_adapted_out_;
-	UniformPtr elapsed_time_;
-
-	RenderTechnique *calc_luminance_tech_;
-	RenderTechnique *calc_adapted_luminance_tech_;
-};
-
-class ExtractHighLightPP : public RenderableHelper
-{
-public:
-	ExtractHighLightPP();
-
-	void SetParameters(float lum_threshold, float lum_scaler, const TexturePtr &src_tex, const TexturePtr &dst_tex);
-
-	void OnRenderBegin() override;
-
-private:
-	UniformPtr lum_threshold_;
-	UniformPtr lum_scalar_;
-	UniformPtr src_;
-
-	FrameBufferPtr fb_;
-	TexturePtr dst_tex_;
-};
-
 class HDR : public Framework3D
 {
 public:
@@ -119,8 +83,10 @@ private:
 	SceneObjectPtr skybox_;
 	SceneObjectPtr object_;
 	std::shared_ptr<SceneObjectDownSample> downsample_;
-	std::shared_ptr<CalcLumRenderable> calc_lum_;
-	std::shared_ptr<ExtractHighLightPP> extract_hl_;
+
+	PostProcessPtr calc_luminance_;
+	PostProcessPtr calc_adapted_luminance_;
+	PostProcessPtr extract_highlight_;
 
 	FrameBufferPtr screen_buffer_;
 	TexturePtr screen_tex_;
