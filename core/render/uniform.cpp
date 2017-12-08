@@ -93,9 +93,10 @@ namespace gleam {
 	}
 	Uniform & OGLUniformSampler::operator=(const TexturePtr & value)
 	{
+		// should bind texture before every draw call,
+		// it's always dirty.
 		if (data_.texture != value)
 		{
-			dirty_ = true;
 			data_.texture = value;
 		}
 		return *this;
@@ -122,11 +123,11 @@ namespace gleam {
 	}
 	void OGLUniformSampler::Load()
 	{
+		OGLTexture &gl_texture = *checked_pointer_cast<OGLTexture>(data_.texture);
+		OGLSamplerStateObject &gl_sampler_state = *checked_pointer_cast<OGLSamplerStateObject>(data_.sampler_state);
+		glBindTextureUnit(data_.texture_unit, gl_texture.GLTexture());
 		if (dirty_)
 		{
-			OGLTexture &gl_texture = *checked_pointer_cast<OGLTexture>(data_.texture);
-			OGLSamplerStateObject &gl_sampler_state = *checked_pointer_cast<OGLSamplerStateObject>(data_.sampler_state);
-			glBindTextureUnit(data_.texture_unit, gl_texture.GLTexture());
 			glBindSampler(data_.texture_unit, gl_sampler_state.GLSampler());
 			glProgramUniform1i(program_, location_, data_.texture_unit);
 			dirty_ = false;
@@ -325,7 +326,6 @@ namespace gleam {
 		if (data_.texture != value)
 		{
 			data_.texture = value;
-			dirty_ = true;
 		}
 		return *this;
 	}
@@ -351,12 +351,12 @@ namespace gleam {
 	}
 	void OGLUniformImage::Load()
 	{
+		OGLTexture &gl_texture = *checked_pointer_cast<OGLTexture>(data_.texture);
+		GLuint tex_id = gl_texture.GLTexture();
+		glBindImageTextures(data_.texture_unit, 1, &tex_id);
 		if (dirty_)
 		{
-			OGLTexture &gl_texture = *checked_pointer_cast<OGLTexture>(data_.texture);
-			GLuint tex_id = gl_texture.GLTexture();
 			glProgramUniform1i(program_, location_, data_.texture_unit);
-			glBindImageTextures(data_.texture_unit, 1, &tex_id);
 			dirty_ = false;
 		}
 	}
