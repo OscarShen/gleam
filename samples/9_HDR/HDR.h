@@ -82,11 +82,12 @@ private:
 	TexturePtr cube_map_;
 	SceneObjectPtr skybox_;
 	SceneObjectPtr object_;
-	std::shared_ptr<SceneObjectDownSample> downsample_;
 
 	PostProcessPtr calc_luminance_;
 	PostProcessPtr calc_adapted_luminance_;
 	PostProcessPtr extract_highlight_;
+	PostProcessPtr downsize_2x_;
+	PostProcessPtr downsize_4x_;
 
 	FrameBufferPtr screen_buffer_;
 	TexturePtr screen_tex_;

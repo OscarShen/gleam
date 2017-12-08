@@ -168,16 +168,4 @@ namespace gleam {
 		: SceneObjectHelper(std::make_shared<RenderableTerrain>(height_tex, width, height, level,strength,tile_size), attrib)
 	{
 	}
-	SceneObjectDownSample::SceneObjectDownSample(const TexturePtr & src, const TexturePtr & dst, uint8_t _2x_or_4x)
-		: SceneObjectHelper(std::make_shared<RenderableDownSample>(src, dst, _2x_or_4x), 0)
-	{
-	}
-	void SceneObjectDownSample::SetTexture(const TexturePtr & src, const TexturePtr & dst)
-	{
-		checked_pointer_cast<RenderableDownSample>(renderable_)->SetTexture(src, dst);
-	}
-	void SceneObjectDownSample::Set2xOr4x(uint8_t x)
-	{
-		checked_pointer_cast<RenderableDownSample>(renderable_)->Set2xOr4x(x);
-	}
 }

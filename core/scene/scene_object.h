@@ -113,14 +113,6 @@ namespace gleam
 		SceneObjectTerrain(const TexturePtr &height_tex, float width, float height,
 			float level, float strength, float tile_size, uint32_t attrib);
 	};
-
-	class SceneObjectDownSample : public SceneObjectHelper
-	{
-	public:
-		SceneObjectDownSample(const TexturePtr &src, const TexturePtr &dst, uint8_t _2x_or_4x);
-		void SetTexture(const TexturePtr &src, const TexturePtr &dst);
-		void Set2xOr4x(uint8_t x);
-	};
 }
 
 #endif // !GLEAM_SCENE_OBJECT_H_

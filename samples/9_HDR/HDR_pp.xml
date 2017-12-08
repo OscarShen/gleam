@@ -24,4 +24,17 @@
     <output name="dst"/>
     <shader effect="HDR_util.xml" technique="ExtractHighLightTech"/>
   </post_process>
+
+  <post_process name="DownSize2x">
+    <input name="tex"/>
+    <output name="dst"/>
+    <shader effect="downsize.xml" technique="DownSize2xTech"/>
+  </post_process>
+
+  <post_process name="DownSize4x">
+    <input name="tex"/>
+    <uniform name="twoTexelSize"/>
+    <output name="dst"/>
+    <shader effect="downsize.xml" technique="DownSize4xTech"/>
+  </post_process>
 </pp>

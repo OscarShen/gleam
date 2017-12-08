@@ -38,11 +38,11 @@ void HDR::OnCreate()
 	skybox_ = std::make_shared<SceneObjectSkybox>(0);
 	checked_pointer_cast<SceneObjectSkybox>(skybox_)->CubeMap(cube_map_);
 
-	downsample_ = std::make_shared<SceneObjectDownSample>(TexturePtr(), TexturePtr(), 4);
-
 	calc_luminance_ = LoadPostProcess("HDR_pp.xml", "CalcLuminance");
 	calc_adapted_luminance_ = LoadPostProcess("HDR_pp.xml", "CalcAdaptedLuminance");
 	extract_highlight_ = LoadPostProcess("HDR_pp.xml", "ExtractHighLight");
+	downsize_2x_ = LoadPostProcess("HDR_pp.xml", "DownSize2x");
+	downsize_4x_ = LoadPostProcess("HDR_pp.xml", "DownSize4x");
 
 	this->LookAt(glm::vec3(0, 10, 200), glm::vec3(0, 10, 0));
 	this->Proj(0.05f, 1000);
@@ -76,34 +76,28 @@ uint32_t HDR::DoUpdate(uint32_t render_index)
 		return UR_NeedFlush;
 	}
 
-	case 1: // downsize for buffers
+	case 1: // calculate luminance
 	{
-		sm.ClearObject();
+		downsize_4x_->InputTexture(0, screen_tex_);
+		downsize_4x_->OutputTexture(0, blur_texA_[LEVEL_0], 0, 0);
+		downsize_4x_->SetParam(0, glm::vec2(2.0f / screen_tex_->Width(0), 2.0f / screen_tex_->Height(0)));
+		downsize_4x_->Render();
 		
-		downsample_->SetTexture(screen_tex_, blur_texA_[LEVEL_0]);
-		downsample_->Set2xOr4x(4);
-		downsample_->AddToSceneManager();
-		return UR_NeedFlush;
-	}
+		downsize_4x_->InputTexture(0, blur_texA_[LEVEL_0]);
+		downsize_4x_->OutputTexture(0, exp_tex_[0], 0, 0);
+		downsize_4x_->SetParam(0, glm::vec2(2.0f / blur_texA_[LEVEL_0]->Width(0), 2.0f / blur_texA_[LEVEL_0]->Height(0)));
+		downsize_4x_->Render();
 
-	case 2:
-	{
-		downsample_->SetTexture(blur_texA_[LEVEL_0], exp_tex_[0]);
-		return UR_NeedFlush;
-	}
+		downsize_4x_->InputTexture(0, exp_tex_[0]);
+		downsize_4x_->OutputTexture(0, exp_tex_[1], 0, 0);
+		downsize_4x_->SetParam(0, glm::vec2(2.0f / exp_tex_[0]->Width(0), 2.0f / exp_tex_[0]->Height(0)));
+		downsize_4x_->Render();
 
-	case 3:
-	{
-		downsample_->SetTexture(exp_tex_[0], exp_tex_[1]);
-		return UR_NeedFlush;
-	}
-
-	case 4: // calculate luminance
-	{
 		calc_luminance_->InputTexture(0, exp_tex_[1]);
 		calc_luminance_->OutputTexture(0, lum_tex_, 0, 0);
 		calc_luminance_->Render();
 		re.MemoryBarrier(MB_Shader_image_access);
+
 		float time = this->FrameTime();
 		calc_adapted_luminance_->InputTexture(0, lum_tex_);
 		calc_adapted_luminance_->InputTexture(1, adapted_lum_tex_[0]);
@@ -111,7 +105,8 @@ uint32_t HDR::DoUpdate(uint32_t render_index)
 		calc_adapted_luminance_->OutputTexture(0, adapted_lum_tex_[1], 0, 0);
 		calc_adapted_luminance_->Render();
 		re.MemoryBarrier(MB_Shader_image_access);
-		return 0;
+
+		return UR_Finished;
 	}
 
 	case 5:

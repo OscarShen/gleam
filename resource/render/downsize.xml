@@ -1,7 +1,7 @@
 <?xml version='1.0'?>
 
 <effect>
-  <shader type="vertex_shader" name="DownSample2xVS">
+  <shader type="vertex_shader" name="DownSize2xVS">
     <attrib name="pos" usage="position"/>
     <attrib name="uv" usage="texture_coord"/>
     <code>
@@ -19,7 +19,7 @@ void main()
     </code>
   </shader>
 
-  <shader type="fragment_shader" name="DownSample2xFS">
+  <shader type="fragment_shader" name="DownSize2xFS">
     <uniform type="sampler" name="tex">
       <state name="filtering" value="min_mag_mip_linear"/>
       <state name="address_u" value="clamp"/>
@@ -38,7 +38,7 @@ void main()
     </code>
   </shader>
 
-  <shader type="vertex_shader" name="DownSample4xVS">
+  <shader type="vertex_shader" name="DownSize4xVS">
     <attrib name="pos" usage="position"/>
     <attrib name="uv" usage="texture_coord"/>
     <uniform type="vec2" name="twoTexelSize"/>
@@ -66,7 +66,7 @@ void main()
     </code>
   </shader>
 
-  <shader type="fragment_shader" name="DownSample4xFS">
+  <shader type="fragment_shader" name="DownSize4xFS">
     <uniform type="sampler" name="tex">
       <state name="filtering" value="min_mag_mip_linear"/>
       <state name="address_u" value="clamp"/>
@@ -91,22 +91,22 @@ void main()
     </code>
   </shader>
 
-  <technique name="DownSample2xTech">
+  <technique name="DownSize2xTech">
     <state name="cull_mode" value="none"/>
     <state name="blend_enable" value="false"/>
     <state name="depth_enable" value="false"/>
            
-    <state name="vertex_shader" value="DownSample2xVS"/>
-    <state name="fragment_shader" value="DownSample2xFS"/>
+    <state name="vertex_shader" value="DownSize2xVS"/>
+    <state name="fragment_shader" value="DownSize2xFS"/>
   </technique>
 
-  <technique name="DownSample4xTech">
+  <technique name="DownSize4xTech">
     <state name="cull_mode" value="none"/>
     <state name="blend_enable" value="false"/>
     <state name="depth_enable" value="false"/>
     
-    <state name="vertex_shader" value="DownSample4xVS"/>
-    <state name="fragment_shader" value="DownSample4xFS"/>
+    <state name="vertex_shader" value="DownSize4xVS"/>
+    <state name="fragment_shader" value="DownSize4xFS"/>
   </technique>
 
 </effect>
