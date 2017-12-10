@@ -135,6 +135,22 @@ namespace gleam
 		PostProcessDesc pp_desc_;
 	};
 
+	PostProcess::PostProcess()
+	{
+		RenderEngine &re = Context::Instance().RenderEngineInstance();
+		const float pos[] = { -1.0f, -1.0f, 0,  1.0f, -1.0f, 0,
+			-1.0f, 1.0f, 0,   1.0f, 1.0f, 0 };
+		const float uv[] = { 0,0, 1,0, 0,1, 1,1 };
+		layout_ = re.MakeRenderLayout();
+		layout_->TopologyType(TT_TriangleStrip);
+		GraphicsBufferPtr pos_buffer = re.MakeVertexBuffer(BU_Static, EAH_GPU_Read | EAH_Immutable, sizeof(pos), pos);
+		layout_->BindVertexStream(pos_buffer, VertexElement(VEU_Position, 0, EF_BGR32F));
+		GraphicsBufferPtr uv_buffer = re.MakeVertexBuffer(BU_Static, EAH_GPU_Read | EAH_Immutable, sizeof(uv), uv);
+		layout_->BindVertexStream(uv_buffer, VertexElement(VEU_TextureCoord, 0, EF_GR32F));
+
+		fb_ = re.MakeFrameBuffer();
+	}
+
 	PostProcess::PostProcess(const std::vector<std::string>& param_names, const std::vector<std::string>& input_names, const std::vector<std::string>& output_names, const RenderEffectPtr & effect, RenderTechnique * tech)
 		: compute_shader_(false), cs_thread_x_(1), cs_thread_y_(1), cs_thread_z_(1),
 		input_(input_names.size()), output_(output_names.size()), input_tex_(input_names.size()), output_tex_(output_names.size()),
@@ -314,5 +330,80 @@ namespace gleam
 	PostProcessPtr LoadPostProcess(const std::string & xml_name, const std::string & pp_name)
 	{
 		return ResLoader::Instance().QueryT<PostProcess>(std::make_shared<PostProcessLoadingDesc>(xml_name, pp_name));
+	}
+	GaussianBlurPostProcess::GaussianBlurPostProcess(int kernel_radius, bool horizontal)
+		: kernel_radius_(kernel_radius), hor_dir_(horizontal)
+	{
+		assert(kernel_radius > 0 && kernel_radius < 8);
+		
+		RenderEffectPtr effect = LoadRenderEffect("blur.xml");
+		RenderTechnique *tech = effect->GetTechniqueByName(hor_dir_ ? "BlurX" : "BlurY");
+		this->BindRenderTechnique(effect, tech);
+		const ShaderObjectPtr &shader = tech->GetShaderObject(*effect);
+
+
+	}
+	void GaussianBlurPostProcess::InputTexture(uint32_t index, const TexturePtr & texture)
+	{
+		PostProcess::InputTexture(index, texture);
+		if (0 == index)
+		{
+			this->CalcSampleOffsets(hor_dir_ ? texture->Width(0) : texture->Height(0), 3.0f);
+		}
+	}
+	void GaussianBlurPostProcess::KernelRadius(int radius)
+	{
+		kernel_radius_ = radius;
+		const TexturePtr &texture = this->InputTexture(0);
+		if (texture)
+		{
+			this->CalcSampleOffsets(hor_dir_ ? texture->Width(0) : texture->Height(0), 3.0f);
+		}
+	}
+	void GaussianBlurPostProcess::CalcSampleOffsets(uint32_t tex_size, float deviation)
+	{
+		std::vector<float> color_weight(8, 0);
+		std::vector<float> uv_offset(8, 0);
+
+		std::vector<float> tmp_weights(kernel_radius_ * 2, 0);
+		std::vector<float> tmp_offset(kernel_radius_ * 2, 0);
+
+		const float inv_t = 1.0f / tex_size;
+		const float width = kernel_radius_ / deviation;
+		float sum_weight = 0;
+		for (int i = 0; i < 2 * kernel_radius_; ++i)
+		{
+			float weight = this->GaussianDistrib(static_cast<float>(i - kernel_radius_), 0, width);
+			tmp_weights[i] = weight;
+			sum_weight += weight;
+		}
+		for (int i = 0; i < 2 * kernel_radius_; ++i)
+		{
+			tmp_weights[i] /= sum_weight;
+		}
+
+		for (int i = 0; i < kernel_radius_; ++i)
+		{
+			tmp_offset[i]				   = static_cast<float>(i - kernel_radius_);
+			tmp_offset[i + kernel_radius_] = static_cast<float>(i);
+		}
+
+		for (int i = 0; i < kernel_radius_; ++i)
+		{
+			const float scale = tmp_weights[i * 2] + tmp_weights[i * 2 + 1];
+			const float frac = tmp_weights[i * 2 + 1] / scale;
+
+			uv_offset[i] = (tmp_offset[i * 2] + frac) * inv_t;
+			color_weight[i] = scale;
+		}
+
+		*tex_size_ = glm::vec2(static_cast<float>(tex_size), 1.0f / tex_size);
+		// Uniform Array
+	}
+	float GaussianBlurPostProcess::GaussianDistrib(float x, float y, float rho)
+	{
+		float g = 1.0f / sqrt(2.0f * glm::pi<float>() * rho * rho);
+		g *= exp(-(x * x + y * y) / (2 * rho * rho));
+		return g;
 	}
 }

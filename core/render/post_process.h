@@ -14,6 +14,7 @@ namespace gleam
 	class PostProcess : public RenderableHelper
 	{
 	public:
+		PostProcess();
 		PostProcess(const std::vector<std::string> &param_names,
 			const std::vector<std::string> &input_names,
 			const std::vector<std::string> &output_names,
@@ -70,6 +71,27 @@ namespace gleam
 
 		std::string name_;
 		float width_, height_;
+	};
+
+	class GaussianBlurPostProcess : public PostProcess
+	{
+	public:
+		GaussianBlurPostProcess(int kernel_radius, bool horizontal);
+
+		void InputTexture(uint32_t index, const TexturePtr &texture) override;
+		using PostProcess::InputTexture;
+
+		void KernelRadius(int radius);
+
+	private:
+		void CalcSampleOffsets(uint32_t tex_size, float deviation);
+		float GaussianDistrib(float x, float y, float rh0);
+
+	private:
+		int kernel_radius_;
+		bool hor_dir_;
+
+		UniformPtr tex_size_;
 	};
 
 	PostProcessPtr LoadPostProcess(const std::string &xml_name, const std::string &pp_name);
