@@ -756,6 +756,14 @@ namespace gleam {
 			return std::make_shared<OGLUniformMatrix4>();
 		case gleam::UT_Image:
 			return std::make_shared<OGLUniformImage>();
+		case UT_FloatArray:
+			return std::make_shared<OGLUniformFloatArray>();
+		case UT_Vector2fArray:
+			return std::make_shared<OGLUniformVec2Array>();
+		case UT_Vector3fArray:
+			return std::make_shared<OGLUniformVec3Array>();
+		case UT_Vector4fArray:
+			return std::make_shared<OGLUniformVec4Array>();
 		default:
 			CHECK_INFO(false, "invalid uniform type : " << type);
 			return nullptr;

@@ -23,10 +23,15 @@ namespace gleam {
 		UT_Vector4f,
 		UT_Sampler,
 		UT_Matrix4f,
-		UT_Image
+		UT_Image,
+
+		UT_FloatArray,
+		UT_Vector2fArray,
+		UT_Vector3fArray,
+		UT_Vector4fArray
 	};
 
-	void UniformTypeFromString(UniformType &type, const std::string &name);
+	void UniformTypeFromString(UniformType &type, const std::string &name, uint32_t array_size);
 
 	class Uniform : boost::noncopyable
 	{
@@ -47,6 +52,17 @@ namespace gleam {
 		virtual Uniform &operator=(const glm::mat4 &value)				{ CHECK_INFO(false, "no impl..."); return *this; }
 		virtual Uniform &operator=(const SamplerStateObjectPtr &value)	{ CHECK_INFO(false, "no impl..."); return *this; }
 		virtual Uniform &operator=(const TexturePtr &value)				{ CHECK_INFO(false, "no impl..."); return *this; }
+
+		/*For uniform array*/
+		virtual void Size(uint32_t size) { CHECK_INFO(false, "no impl..."); }
+		virtual uint32_t Size() const { return 1; }
+		virtual Uniform &operator=(const std::vector<char> &value) { CHECK_INFO(false, "no impl..."); return *this; }
+		virtual Uniform &operator=(const std::vector<uint32_t> &value) { CHECK_INFO(false, "no impl..."); return *this; }
+		virtual Uniform &operator=(const std::vector<int32_t> &value) { CHECK_INFO(false, "no impl..."); return *this; }
+		virtual Uniform &operator=(const std::vector<float> &value) { CHECK_INFO(false, "no impl..."); return *this; }
+		virtual Uniform &operator=(const std::vector<glm::vec2> &value) { CHECK_INFO(false, "no impl..."); return *this; }
+		virtual Uniform &operator=(const std::vector<glm::vec3> &value) { CHECK_INFO(false, "no impl..."); return *this; }
+		virtual Uniform &operator=(const std::vector<glm::vec4> &value) { CHECK_INFO(false, "no impl..."); return *this; }
 
 		virtual UniformPtr CopyResource() const = 0;
 
@@ -154,6 +170,49 @@ namespace gleam {
 		Uniform &operator=(const TexturePtr &value) override;
 		Uniform &operator=(const uint32_t &value) override;
 		Uniform &operator=(const int32_t &value) override;
+		void Load() override;
+		UniformPtr CopyResource() const override;
+	};
+
+	template <typename T>
+	class OGLUniformArray : public OGLUniformTemplate<std::vector<T>>
+	{
+	public:
+		void Size(uint32_t size) override { this->size_ = static_cast<GLsizei>(size); }
+		uint32_t Size() const override { return static_cast<uint32_t>(size_); }
+
+	protected:
+		GLsizei size_;
+	};
+
+	class OGLUniformFloatArray : public OGLUniformArray<float>
+	{
+	public:
+		Uniform &operator=(const std::vector<float> &value) override;
+		void Load() override;
+		UniformPtr CopyResource() const override;
+	};
+
+	class OGLUniformVec2Array : public OGLUniformArray<glm::vec2>
+	{
+	public:
+		Uniform &operator=(const std::vector<glm::vec2> &value) override;
+		void Load() override;
+		UniformPtr CopyResource() const override;
+	};
+
+	class OGLUniformVec3Array : public OGLUniformArray<glm::vec3>
+	{
+	public:
+		Uniform &operator=(const std::vector<glm::vec3> &value) override;
+		void Load() override;
+		UniformPtr CopyResource() const override;
+	};
+
+	class OGLUniformVec4Array : public OGLUniformArray<glm::vec4>
+	{
+	public:
+		Uniform &operator=(const std::vector<glm::vec4> &value) override;
 		void Load() override;
 		UniformPtr CopyResource() const override;
 	};

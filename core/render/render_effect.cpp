@@ -241,13 +241,20 @@ namespace gleam
 			{
 				std::string uniform_type_str = uniform_node->Attribute("type");
 				UniformType uniform_type;
-				UniformTypeFromString(uniform_type, uniform_type_str);
+
+				const char *array_size_char = uniform_node->Attribute("array_size");
+				uint32_t array_size = array_size_char ? boost::lexical_cast<uint32_t>(array_size) : 0;
+				UniformTypeFromString(uniform_type, uniform_type_str,array_size);
 
 				std::string uniform_name = uniform_node->Attribute("name");
 				assert(!uniform_name.empty());
 
 				UniformPtr uniform = re.MakeUniform(uniform_type);
 				uniform->Name(uniform_name);
+				if (array_size)
+				{
+					uniform->Size(array_size);
+				}
 
 				if (uniform_type == UT_Sampler)
 				{

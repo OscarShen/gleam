@@ -277,7 +277,7 @@ namespace gleam {
 		u->dirty_ = true;
 		return u;
 	}
-	void UniformTypeFromString(UniformType & type, const std::string & name)
+	void UniformTypeFromString(UniformType & type, const std::string & name, uint32_t array_size)
 	{
 		if (name == "bool")
 			type = UT_Bool;
@@ -298,6 +298,27 @@ namespace gleam {
 			type = UT_Image;
 		else
 			CHECK_INFO(false, "invalid uniform type : " << name);
+
+		if (array_size > 0)
+		{
+			switch (type)
+			{
+			case UT_Float:
+				type = UT_FloatArray;
+				break;
+			case UT_Vector2f:
+				type = UT_Vector2fArray;
+				break;
+			case UT_Vector3f:
+				type = UT_Vector3fArray;
+				break;
+			case UT_Vector4f:
+				type = UT_Vector4fArray;
+				break;
+			default:
+				CHECK_INFO(false, "invalid uniform type & array_size : " << name << ", " << array_size);
+			}
+		}
 	}
 	void OGLAttrib::StoreAttribLocation(GLuint program)
 	{
@@ -366,6 +387,121 @@ namespace gleam {
 		u->name_ = this->name_;
 		u->data_ = this->data_;
 		u->dirty_ = true;
+		return u;
+	}
+	Uniform & OGLUniformFloatArray::operator=(const std::vector<float>& value)
+	{
+		WARNING(static_cast<GLsizei>(value.size()) == size_, "Array size is inconsistent..." << value.size() << " : " << size_);
+
+		if (size_ > 16 || (size_ <= 16 && data_ != value))
+		{
+			dirty_ = true;
+			data_ = value;
+		}
+		return *this;
+	}
+	void OGLUniformFloatArray::Load()
+	{
+		if (dirty_)
+		{
+			glProgramUniform1fv(program_, location_, size_, data_.data());
+			dirty_ = false;
+		}
+	}
+	UniformPtr OGLUniformFloatArray::CopyResource() const
+	{
+		std::shared_ptr<OGLUniformFloatArray> u = std::make_shared<OGLUniformFloatArray>();
+		u->name_ = this->name_;
+		u->data_ = this->data_;
+		u->dirty_ = true;
+		u->size_ = this->size_;
+		return u;
+	}
+	Uniform & OGLUniformVec2Array::operator=(const std::vector<glm::vec2>& value)
+	{
+		WARNING(static_cast<GLsizei>(value.size()) == size_, "Array size is inconsistent..." << value.size() << " : " << size_);
+
+		if (size_ > 8 || (size_ <= 8 && data_ != value))
+		{
+			dirty_ = true;
+			data_ = value;
+		}
+		return *this;
+	}
+	void OGLUniformVec2Array::Load()
+	{
+		if (dirty_)
+		{
+			glProgramUniform2fv(program_, location_, size_,
+				static_cast<GLfloat*>(static_cast<void*>(data_.data())));
+			dirty_ = false;
+		}
+	}
+	UniformPtr OGLUniformVec2Array::CopyResource() const
+	{
+		std::shared_ptr<OGLUniformVec2Array> u = std::make_shared<OGLUniformVec2Array>();
+		u->name_ = this->name_;
+		u->data_ = this->data_;
+		u->dirty_ = true;
+		u->size_ = this->size_;
+		return u;
+	}
+	Uniform & OGLUniformVec3Array::operator=(const std::vector<glm::vec3>& value)
+	{
+		WARNING(static_cast<GLsizei>(value.size()) == size_, "Array size is inconsistent..." << value.size() << " : " << size_);
+
+		if (size_ > 6 || (size_ <= 6 && data_ != value))
+		{
+			dirty_ = true;
+			data_ = value;
+		}
+		return *this;
+	}
+	void OGLUniformVec3Array::Load()
+	{
+		if (dirty_)
+		{
+			glProgramUniform3fv(program_, location_, size_,
+				static_cast<GLfloat*>(static_cast<void*>(data_.data())));
+			dirty_ = false;
+		}
+	}
+	UniformPtr OGLUniformVec3Array::CopyResource() const
+	{
+		std::shared_ptr<OGLUniformVec3Array> u = std::make_shared<OGLUniformVec3Array>();
+		u->name_ = this->name_;
+		u->data_ = this->data_;
+		u->dirty_ = true;
+		u->size_ = this->size_;
+		return u;
+	}
+	Uniform & OGLUniformVec4Array::operator=(const std::vector<glm::vec4>& value)
+	{
+		WARNING(static_cast<GLsizei>(value.size()) == size_, "Array size is inconsistent..." << value.size() << " : " << size_);
+
+		if (size_ > 4 || (size_ <= 4 && data_ != value))
+		{
+			dirty_ = true;
+			data_ = value;
+		}
+		return *this;
+	}
+	void OGLUniformVec4Array::Load()
+	{
+		if (dirty_)
+		{
+			glProgramUniform4fv(program_, location_, size_,
+				static_cast<GLfloat*>(static_cast<void*>(data_.data())));
+			dirty_ = false;
+		}
+	}
+	UniformPtr OGLUniformVec4Array::CopyResource() const
+	{
+		std::shared_ptr<OGLUniformVec4Array> u = std::make_shared<OGLUniformVec4Array>();
+		u->name_ = this->name_;
+		u->data_ = this->data_;
+		u->dirty_ = true;
+		u->size_ = this->size_;
 		return u;
 	}
 }
