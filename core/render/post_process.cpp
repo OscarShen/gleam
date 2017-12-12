@@ -206,6 +206,7 @@ namespace gleam
 	void PostProcess::InputTexture(uint32_t index, const TexturePtr & texture)
 	{
 		input_tex_[index] = texture;
+		*(input_[index].second) = texture;
 
 		if (0 == index)
 		{
@@ -245,66 +246,60 @@ namespace gleam
 				}
 				fb_->Attach(ATT_Color0 + index, rv);
 			}
+			else
+			{
+				*(output_[index].second) = texture;
+			}
 		}
 	}
 	void PostProcess::BindRenderTechnique(const RenderEffectPtr & effect, RenderTechnique * tech)
 	{
 		effect_ = effect;
 		technique_ = tech;
-		assert(technique_);
-
-		auto &shader = technique_->GetShaderObject(*effect);
-
-		for (size_t i = 0; i < input_.size(); ++i)
+		if (technique_)
 		{
-			UniformPtr image = shader->GetImageByName(input_[i].first);
-			if (image)
+			auto &shader = technique_->GetShaderObject(*effect);
+
+			for (size_t i = 0; i < input_.size(); ++i)
 			{
-				input_[i].second = image;
+				UniformPtr image = shader->GetImageByName(input_[i].first);
+				if (image)
+				{
+					input_[i].second = image;
+				}
+
+				UniformPtr sampler = shader->GetSamplerByName(input_[i].first);
+				if (sampler)
+				{
+					input_[i].second = sampler;
+				}
+				CHECK_INFO(input_[i].second, "Can't find input texture : " << input_[i].first);
 			}
 
-			UniformPtr sampler = shader->GetSamplerByName(input_[i].first);
-			if (sampler)
+			for (size_t i = 0; i < output_.size(); ++i)
 			{
-				input_[i].second = sampler;
-			}
-			CHECK_INFO(input_[i].second, "Can't find input texture : " << input_[i].first);
-		}
+				UniformPtr image = shader->GetImageByName(output_[i].first);
+				if (image)
+				{
+					output_[i].second = image;
+				}
 
-		for (size_t i = 0; i < output_.size(); ++i)
-		{
-			UniformPtr image = shader->GetImageByName(output_[i].first);
-			if (image)
+				UniformPtr sampler = shader->GetSamplerByName(output_[i].first);
+				if (sampler)
+				{
+					output_[i].second = sampler;
+				}
+			}
+
+			for (size_t i = 0; i < uniforms_.size(); ++i)
 			{
-				output_[i].second = image;
+				uniforms_[i].second = shader->GetUniformByName(uniforms_[i].first);
+				assert(uniforms_[i].second);
 			}
-
-			UniformPtr sampler = shader->GetSamplerByName(output_[i].first);
-			if (sampler)
-			{
-				output_[i].second = sampler;
-			}
-		}
-
-		for (size_t i = 0; i < uniforms_.size(); ++i)
-		{
-			uniforms_[i].second = shader->GetUniformByName(uniforms_[i].first);
-			assert(uniforms_[i].second);
 		}
 	}
 	void PostProcess::OnRenderBegin()
 	{
-		for (size_t i = 0; i < input_.size(); ++i)
-		{
-			*(input_[i].second) = input_tex_[i];
-		}
-		for (size_t i = 0; i < output_.size(); ++i)
-		{
-			if (output_[i].second)
-			{
-				*(output_[i].second) = output_tex_[i];
-			}
-		}
 	}
 	void PostProcess::Render()
 	{
@@ -332,16 +327,21 @@ namespace gleam
 		return ResLoader::Instance().QueryT<PostProcess>(std::make_shared<PostProcessLoadingDesc>(xml_name, pp_name));
 	}
 	GaussianBlurPostProcess::GaussianBlurPostProcess(int kernel_radius, bool horizontal)
-		: kernel_radius_(kernel_radius), hor_dir_(horizontal)
+		: PostProcess(std::vector<std::string>(),
+			std::vector<std::string>(1, "src"),
+			std::vector<std::string>(1, "dst"), RenderEffectPtr(), nullptr)
+			, kernel_radius_(kernel_radius), hor_dir_(horizontal)
 	{
 		assert(kernel_radius > 0 && kernel_radius < 8);
-		
+
 		RenderEffectPtr effect = LoadRenderEffect("blur.xml");
-		RenderTechnique *tech = effect->GetTechniqueByName(hor_dir_ ? "BlurX" : "BlurY");
+		RenderTechnique *tech = effect->GetTechniqueByName(hor_dir_ ? "BlurXTech" : "BlurYTech");
 		this->BindRenderTechnique(effect, tech);
 		const ShaderObjectPtr &shader = tech->GetShaderObject(*effect);
 
-
+		tex_size_ = shader->GetUniformByName("tex_size");
+		color_weight_ = shader->GetUniformByName("color_weight");
+		uv_offset_ = shader->GetUniformByName("uv_offset");
 	}
 	void GaussianBlurPostProcess::InputTexture(uint32_t index, const TexturePtr & texture)
 	{
@@ -398,12 +398,59 @@ namespace gleam
 		}
 
 		*tex_size_ = glm::vec2(static_cast<float>(tex_size), 1.0f / tex_size);
-		// Uniform Array
+		*color_weight_ = color_weight;
+		*uv_offset_ = uv_offset;
 	}
 	float GaussianBlurPostProcess::GaussianDistrib(float x, float y, float rho)
 	{
 		float g = 1.0f / sqrt(2.0f * glm::pi<float>() * rho * rho);
 		g *= exp(-(x * x + y * y) / (2 * rho * rho));
 		return g;
+	}
+	//PostProcessChain::PostProcessChain(const std::vector<std::string>& param_names, const std::vector<std::string>& input_names, const std::vector<std::string>& output_names, const RenderEffectPtr & effect, RenderTechnique * tech)
+	//	: PostProcess(param_names, input_names, output_names, effect, tech)
+	//{
+	//}
+	void PostProcessChain::Append(const PostProcessPtr & pp)
+	{
+		pp_chain_.push_back(pp);
+	}
+	uint32_t PostProcessChain::NumPostProcess() const
+	{
+		return static_cast<uint32_t>(pp_chain_.size());
+	}
+	const PostProcessPtr & PostProcessChain::GetPostProcess(uint32_t index) const
+	{
+		assert(index < static_cast<uint32_t>(pp_chain_.size()));
+		return pp_chain_[index];
+	}
+	void PostProcessChain::Render()
+	{
+		for (const auto &pp : pp_chain_)
+		{
+			pp->Render();
+		}
+	}
+	GaussianBlurPostProcessChain::GaussianBlurPostProcessChain(int kernel_radius)
+	{
+		this->Append(std::make_shared<GaussianBlurPostProcess>(kernel_radius, true));
+		this->Append(std::make_shared<GaussianBlurPostProcess>(kernel_radius, false));
+	}
+	void GaussianBlurPostProcessChain::InputTexture(uint32_t index, const TexturePtr & tex)
+	{
+		auto first_blur = checked_pointer_cast<GaussianBlurPostProcess>(pp_chain_[0]);
+		first_blur->InputTexture(index, tex);
+		if (0 == index)
+		{
+			RenderEngine &re = Context::Instance().RenderEngineInstance();
+			TexturePtr x_out = re.MakeTexture2D(tex->Width(0), tex->Height(0),
+				1, tex->Format(), 1, EAH_GPU_Read | EAH_GPU_Write);
+			pp_chain_[0]->OutputTexture(0, x_out);
+			pp_chain_[1]->InputTexture(0, x_out);
+		}
+		else
+		{
+			pp_chain_[1]->InputTexture(index, tex);
+		}
 	}
 }
