@@ -88,6 +88,7 @@ private:
 	PostProcessPtr extract_highlight_;
 	PostProcessPtr downsize_2x_;
 	PostProcessPtr downsize_4x_;
+	PostProcessPtr blur_4_;
 
 	FrameBufferPtr screen_buffer_;
 	TexturePtr screen_tex_;

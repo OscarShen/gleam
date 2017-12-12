@@ -24,10 +24,15 @@ HDR::HDR()
 	ResLoader::Instance().AddPath("../../samples/9_HDR");
 	ResLoader::Instance().AddPath("../../resource/common/skybox");
 	ResLoader::Instance().AddPath("../../resource/common");
+	//ResLoader::Instance().AddPath("../../resource/render");
 }
 
 void HDR::OnCreate()
 {
+	this->LookAt(glm::vec3(0, 10, 200), glm::vec3(0, 10, 0));
+	this->Proj(0.05f, 1000);
+
+	RenderEngine &re = Context::Instance().RenderEngineInstance();
 	cube_map_ = LoadTextureCube("altar_cross_mmp_s.hdr", EAH_GPU_Read | EAH_Immutable);
 
 	auto hdr_so = std::make_shared<HDRSceneObject>();
@@ -43,9 +48,7 @@ void HDR::OnCreate()
 	extract_highlight_ = LoadPostProcess("HDR_pp.xml", "ExtractHighLight");
 	downsize_2x_ = LoadPostProcess("HDR_pp.xml", "DownSize2x");
 	downsize_4x_ = LoadPostProcess("HDR_pp.xml", "DownSize4x");
-
-	this->LookAt(glm::vec3(0, 10, 200), glm::vec3(0, 10, 0));
-	this->Proj(0.05f, 1000);
+	blur_4_ = std::make_shared<GaussianBlurPostProcessChain>(4);
 
 	controller_.AttachCamera(this->ActiveCamera());
 	controller_.SetScalers(0.05f, 0.05f);
@@ -79,12 +82,12 @@ uint32_t HDR::DoUpdate(uint32_t render_index)
 	case 1: // calculate luminance
 	{
 		downsize_4x_->InputTexture(0, screen_tex_);
-		downsize_4x_->OutputTexture(0, blur_texA_[LEVEL_0], 0, 0);
+		downsize_4x_->OutputTexture(0, blur_texA_[LEVEL_0]);
 		downsize_4x_->SetParam(0, glm::vec2(2.0f / screen_tex_->Width(0), 2.0f / screen_tex_->Height(0)));
 		downsize_4x_->Render();
-		
+
 		downsize_4x_->InputTexture(0, blur_texA_[LEVEL_0]);
-		downsize_4x_->OutputTexture(0, exp_tex_[0], 0, 0);
+		downsize_4x_->OutputTexture(0, exp_tex_[0]);
 		downsize_4x_->SetParam(0, glm::vec2(2.0f / blur_texA_[LEVEL_0]->Width(0), 2.0f / blur_texA_[LEVEL_0]->Height(0)));
 		downsize_4x_->Render();
 
@@ -94,7 +97,7 @@ uint32_t HDR::DoUpdate(uint32_t render_index)
 		downsize_4x_->Render();
 
 		calc_luminance_->InputTexture(0, exp_tex_[1]);
-		calc_luminance_->OutputTexture(0, lum_tex_, 0, 0);
+		calc_luminance_->OutputTexture(0, lum_tex_);
 		calc_luminance_->Render();
 		re.MemoryBarrier(MB_Shader_image_access);
 
@@ -106,17 +109,19 @@ uint32_t HDR::DoUpdate(uint32_t render_index)
 		calc_adapted_luminance_->Render();
 		re.MemoryBarrier(MB_Shader_image_access);
 
-		return UR_Finished;
-	}
-
-	case 5:
-	{
 		float lum_threshold = 1.0f, lum_scalar = 0.3f;
 		extract_highlight_->InputTexture(0, blur_texA_[LEVEL_0]);
 		extract_highlight_->OutputTexture(0, compose_tex_[LEVEL_0], 0, 0);
 		extract_highlight_->SetParam(0, lum_threshold);
 		extract_highlight_->SetParam(1, lum_scalar);
 		extract_highlight_->Render();
+
+		blur_4_->InputTexture(0, compose_tex_[LEVEL_0]);
+		blur_4_->OutputTexture(0, blur_texA_[LEVEL_0]);
+		blur_4_->Render();
+
+		std::swap(adapted_lum_tex_[0], adapted_lum_tex_[1]);
+
 		return UR_Finished;
 	}
 	}

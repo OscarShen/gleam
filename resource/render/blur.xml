@@ -1,49 +1,170 @@
 <?xml version='1.0'?>
 
 <effect>
-  <shader type="compute_shader" name="CalcLuminanceCS">
-    <uniform type="image" name="inputImage"/>
-    <uniform type="image" name="outputImage"/>
+  <shader type="vertex_shader" name="BlurXVS">
+    <attrib name="pos" usage="position"/>
+    <attrib name="uv" usage="texture_coord"/>
+    <uniform name="uv_offset" type="float" array_size="8"/>
     <code>
       <![CDATA[
-layout(local_size_x = 1, local_size_y = 1) in;
-layout(rgba16f) readonly restrict uniform image2D inputImage;
-layout(rgba16f) writeonly restrict uniform image2D outputImage;
+in vec3 pos;
+in vec2 uv;
 
-const vec3 LUMINANCE_VECTOR = vec3(0.2125, 0.7154, 0.0721);
+uniform float uv_offset[8];
+
+out vec4 UV0;
+out vec4 UV1;
+out vec4 UV2;
+out vec4 UV3;
+
+out vec2 OriUV;
+
 void main()
 {
-  float logLumSum = 0;
-  int x, y;
-  for(y = 0; y < 16; ++y)
+  gl_Position = vec4(pos, 1.0f);
+  
+  vec4 tex[4];
+  for(int i = 0; i < 4; ++i)
   {
-    for(x = 0; x < 16; ++x)
-    {
-		  logLumSum += (dot(imageLoad(inputImage, ivec2(x,y)).rgb, LUMINANCE_VECTOR) + 0.00001);
-    }
+    tex[i] = uv.xyxy + vec4(uv_offset[i * 2], 0, uv_offset[i * 2 + 1], 0);
   }
-  logLumSum /= 256.0;
-  float val = (logLumSum + 0.00001);
-  imageStore(outputImage, ivec2(0, 0), vec4(val, val, val, val));
+  UV0 = tex[0];
+  UV1 = tex[1];
+  UV2 = tex[2];
+  UV3 = tex[3];
+  
+  OriUV = uv;
 }
       ]]>
     </code>
   </shader>
 
-  <technique name="CalcLuminanceTech">
-    <state name="compute_shader" value="CalcLuminanceCS"/>
+  <shader type="fragment_shader" name="BlurXFS">
+    <uniform name="color_weight" type="float" array_size="8"/>
+    <uniform name="tex_size" type="vec2"/>
+    <uniform name="src" type="sampler"/>
+    <code>
+      <![CDATA[
+in vec4 UV0;
+in vec4 UV1;
+in vec4 UV2;
+in vec4 UV3;
+
+in vec2 OriUV;
+
+uniform float color_weight[8];
+uniform vec2 tex_size;
+uniform sampler2D src;
+
+out vec4 FragColor;
+
+void main()
+{
+  vec2 offset = vec2((floor(OriUV.x * tex_size.x) + 0.5f) * tex_size.y - OriUV.x, 0);
+  vec4 color = vec4(0, 0, 0, 1);
+  vec4 uv[4] = { UV0, UV1, UV2, UV3 };
+  
+  for(int i = 0; i < 4; ++i)
+  {
+    uv[i] += offset.xyxy;
+    color.rgb += texture(src, uv[i].xy).rgb * color_weight[i * 2 + 0];
+    color.rgb += texture(src, uv[i].zw).rgb * color_weight[i * 2 + 1];
+  }
+  FragColor = color;
+}
+      ]]>
+    </code>
+  </shader>
+
+  <shader type="vertex_shader" name="BlurYVS">
+    <attrib name="pos" usage="position"/>
+    <attrib name="uv" usage="texture_coord"/>
+    <uniform name="uv_offset" type="float" array_size="8"/>
+    <code>
+      <![CDATA[
+in vec3 pos;
+in vec2 uv;
+
+uniform float uv_offset[8];
+
+out vec4 UV0;
+out vec4 UV1;
+out vec4 UV2;
+out vec4 UV3;
+
+out vec2 OriUV;
+
+void main()
+{
+  gl_Position = vec4(pos, 1.0f);
+  
+  vec4 tex[4];
+  for(int i = 0; i < 4; ++i)
+  {
+    tex[i] = uv.xyxy + vec4(0, uv_offset[i * 2], 0, uv_offset[i * 2 + 1]);
+  }
+  UV0 = tex[0];
+  UV1 = tex[1];
+  UV2 = tex[2];
+  UV3 = tex[3];
+  
+  OriUV = uv;
+}
+      ]]>
+    </code>
+  </shader>
+
+  <shader type="fragment_shader" name="BlurYFS">
+    <uniform name="color_weight" type="float" array_size="8"/>
+    <uniform name="tex_size" type="vec2"/>
+    <uniform name="src" type="sampler"/>
+    <code>
+      <![CDATA[
+in vec4 UV0;
+in vec4 UV1;
+in vec4 UV2;
+in vec4 UV3;
+
+in vec2 OriUV;
+
+uniform float color_weight[8];
+uniform vec2 tex_size;
+uniform sampler2D src;
+
+out vec4 FragColor;
+
+void main()
+{
+  vec2 offset = vec2(0, (floor(OriUV.y * tex_size.x) + 0.5f) * tex_size.y - OriUV.y);
+  vec4 color = vec4(0, 0, 0, 1);
+  vec4 uv[4] = { UV0, UV1, UV2, UV3 };
+  
+  for(int i = 0; i < 4; ++i)
+  {
+    uv[i] += offset.xyxy;
+    color.rgb += texture(src, uv[i].xy).rgb * color_weight[i * 2 + 0];
+    color.rgb += texture(src, uv[i].zw).rgb * color_weight[i * 2 + 1];
+  }
+  FragColor = color;
+}
+      ]]>
+    </code>
+  </shader>
+
+  <technique name="BlurXTech">
+    <state name="depth_enable" value="false"/>
+    <state name="depth_write_mask" value="0"/>
+
+    <state name="vertex_shader" value="BlurXVS"/>
+    <state name="fragment_shader" value="BlurXFS"/>
   </technique>
 
-  <technique name="CalcAdaptedLuminanceTech">
-    <state name="compute_shader" value="CalcAdaptedLuminanceCS"/>
-  </technique>
+  <technique name="BlurYTech">
+    <state name="depth_enable" value="false"/>
+    <state name="depth_write_mask" value="0"/>
 
-  <technique name="ExtractHighLightTech">
-    <state name="cull_mode" value="none"/>
-    <state name="blend_enable" value="false"/>
-
-    <state name="vertex_shader" value="ExtractHighLightVS"/>
-    <state name="fragment_shader" value="ExtractHighLightFS"/>
+    <state name="vertex_shader" value="BlurYVS"/>
+    <state name="fragment_shader" value="BlurYFS"/>
   </technique>
 
 </effect>

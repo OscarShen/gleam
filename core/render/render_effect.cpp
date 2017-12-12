@@ -243,8 +243,8 @@ namespace gleam
 				UniformType uniform_type;
 
 				const char *array_size_char = uniform_node->Attribute("array_size");
-				uint32_t array_size = array_size_char ? boost::lexical_cast<uint32_t>(array_size) : 0;
-				UniformTypeFromString(uniform_type, uniform_type_str,array_size);
+				uint32_t array_size = array_size_char ? boost::lexical_cast<uint32_t>(array_size_char) : 0;
+				UniformTypeFromString(uniform_type, uniform_type_str, array_size);
 
 				std::string uniform_name = uniform_node->Attribute("name");
 				assert(!uniform_name.empty());
