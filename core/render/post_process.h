@@ -1,16 +1,33 @@
-/************************************************************************ 
- * @description :  
+/************************************************************************
+ * @description :
  * @author		:  $username$
  * @creat 		:  $time$
-************************************************************************ 
- * Copyright @ OscarShen 2017. All rights reserved. 
-************************************************************************/  
+************************************************************************
+ * Copyright @ OscarShen 2017. All rights reserved.
+************************************************************************/
 #pragma once
 #ifndef GLEAM_POST_PROCESS_H_
 #define GLEAM_POST_PROCESS_H_
 #include "renderable.h"
 namespace gleam
 {
+	enum ParamType
+	{
+		PT_Bool,
+		PT_U32,
+		PT_I32,
+		PT_Float,
+		PT_Vec2,
+		PT_Vec3,
+		PT_Vec4,
+		PT_Mat4,
+
+		PT_FloatArray,
+		PT_Vec2Array,
+		PT_Vec3Array,
+		PT_Vec4Array
+	};
+
 	class PostProcess : public RenderableHelper
 	{
 	public:
@@ -24,19 +41,18 @@ namespace gleam
 		virtual const std::string & GetParamName(uint32_t index) const { return uniforms_[index].first; }
 		virtual uint32_t ParamByName(const std::string &name) const;
 
-		virtual void SetParam(uint32_t index, const bool &value)					{ *(uniforms_[index].second) = value; }
-		virtual void SetParam(uint32_t index, const uint32_t &value)				{ *(uniforms_[index].second) = value; }
-		virtual void SetParam(uint32_t index, const int32_t &value)					{ *(uniforms_[index].second) = value; }
-		virtual void SetParam(uint32_t index, const float &value)					{ *(uniforms_[index].second) = value; }
-		virtual void SetParam(uint32_t index, const glm::vec2 &value)				{ *(uniforms_[index].second) = value; }
-		virtual void SetParam(uint32_t index, const glm::vec3 &value)				{ *(uniforms_[index].second) = value; }
-		virtual void SetParam(uint32_t index, const glm::vec4 &value)				{ *(uniforms_[index].second) = value; }
-		virtual void SetParam(uint32_t index, const glm::mat4 &value)				{ *(uniforms_[index].second) = value; }
-		virtual void SetParam(uint32_t index, const TexturePtr &value)				{ *(uniforms_[index].second) = value; }
-		virtual void SetParam(uint32_t index, const std::vector<float> &value)		{ *(uniforms_[index].second) = value; }
-		virtual void SetParam(uint32_t index, const std::vector<glm::vec2> &value)	{ *(uniforms_[index].second) = value; }
-		virtual void SetParam(uint32_t index, const std::vector<glm::vec3> &value)	{ *(uniforms_[index].second) = value; }
-		virtual void SetParam(uint32_t index, const std::vector<glm::vec4> &value)	{ *(uniforms_[index].second) = value; }
+		virtual void SetParam(uint32_t index, const bool &value);
+		virtual void SetParam(uint32_t index, const uint32_t &value);
+		virtual void SetParam(uint32_t index, const int32_t &value);
+		virtual void SetParam(uint32_t index, const float &value);
+		virtual void SetParam(uint32_t index, const glm::vec2 &value);
+		virtual void SetParam(uint32_t index, const glm::vec3 &value);
+		virtual void SetParam(uint32_t index, const glm::vec4 &value);
+		virtual void SetParam(uint32_t index, const glm::mat4 &value);
+		virtual void SetParam(uint32_t index, const std::vector<float> &value);
+		virtual void SetParam(uint32_t index, const std::vector<glm::vec2> &value);
+		virtual void SetParam(uint32_t index, const std::vector<glm::vec3> &value);
+		virtual void SetParam(uint32_t index, const std::vector<glm::vec4> &value);
 
 		virtual uint32_t NumParams() const { return static_cast<uint32_t>(uniforms_.size()); }
 
@@ -63,7 +79,12 @@ namespace gleam
 
 		void Render() override;
 
+	private:
+		void SetUniformValue(uint32_t index);
+
 	protected:
+		// shared_ptr<void> is total security...
+		std::vector<std::pair<ParamType, std::shared_ptr<void>>> uniform_values_;
 		std::vector<std::pair<std::string, UniformPtr>> uniforms_;
 		std::vector<TexturePtr> input_tex_;
 		std::vector<TexturePtr> output_tex_;
@@ -91,34 +112,33 @@ namespace gleam
 		uint32_t NumPostProcess() const;
 		const PostProcessPtr &GetPostProcess(uint32_t index) const;
 
-		virtual void SetParam(uint32_t index, const bool &value)					{ pp_chain_.front()->SetParam(index, value); }
-		virtual void SetParam(uint32_t index, const uint32_t &value)				{ pp_chain_.front()->SetParam(index, value); }
-		virtual void SetParam(uint32_t index, const int32_t &value)					{ pp_chain_.front()->SetParam(index, value); }
-		virtual void SetParam(uint32_t index, const float &value)					{ pp_chain_.front()->SetParam(index, value); }
-		virtual void SetParam(uint32_t index, const glm::vec2 &value)				{ pp_chain_.front()->SetParam(index, value); }
-		virtual void SetParam(uint32_t index, const glm::vec3 &value)				{ pp_chain_.front()->SetParam(index, value); }
-		virtual void SetParam(uint32_t index, const glm::vec4 &value)				{ pp_chain_.front()->SetParam(index, value); }
-		virtual void SetParam(uint32_t index, const glm::mat4 &value)				{ pp_chain_.front()->SetParam(index, value); }
-		virtual void SetParam(uint32_t index, const TexturePtr &value)				{ pp_chain_.front()->SetParam(index, value); }
-		virtual void SetParam(uint32_t index, const std::vector<float> &value)		{ pp_chain_.front()->SetParam(index, value); }
-		virtual void SetParam(uint32_t index, const std::vector<glm::vec2> &value)  { pp_chain_.front()->SetParam(index, value); }
-		virtual void SetParam(uint32_t index, const std::vector<glm::vec3> &value)	{ pp_chain_.front()->SetParam(index, value); }
-		virtual void SetParam(uint32_t index, const std::vector<glm::vec4> &value)	{ pp_chain_.front()->SetParam(index, value); }
+		virtual void SetParam(uint32_t index, const bool &value) { pp_chain_.front()->SetParam(index, value); }
+		virtual void SetParam(uint32_t index, const uint32_t &value) { pp_chain_.front()->SetParam(index, value); }
+		virtual void SetParam(uint32_t index, const int32_t &value) { pp_chain_.front()->SetParam(index, value); }
+		virtual void SetParam(uint32_t index, const float &value) { pp_chain_.front()->SetParam(index, value); }
+		virtual void SetParam(uint32_t index, const glm::vec2 &value) { pp_chain_.front()->SetParam(index, value); }
+		virtual void SetParam(uint32_t index, const glm::vec3 &value) { pp_chain_.front()->SetParam(index, value); }
+		virtual void SetParam(uint32_t index, const glm::vec4 &value) { pp_chain_.front()->SetParam(index, value); }
+		virtual void SetParam(uint32_t index, const glm::mat4 &value) { pp_chain_.front()->SetParam(index, value); }
+		virtual void SetParam(uint32_t index, const std::vector<float> &value) { pp_chain_.front()->SetParam(index, value); }
+		virtual void SetParam(uint32_t index, const std::vector<glm::vec2> &value) { pp_chain_.front()->SetParam(index, value); }
+		virtual void SetParam(uint32_t index, const std::vector<glm::vec3> &value) { pp_chain_.front()->SetParam(index, value); }
+		virtual void SetParam(uint32_t index, const std::vector<glm::vec4> &value) { pp_chain_.front()->SetParam(index, value); }
 
-		virtual uint32_t NumParams() const											{ return pp_chain_.front()->NumParams(); }
-		virtual const std::string & GetParamName(uint32_t index) const				{ return pp_chain_.front()->GetParamName(index); }
-		virtual uint32_t ParamByName(const std::string &name) const					{ return pp_chain_.front()->ParamByName(name); }
+		virtual uint32_t NumParams() const { return pp_chain_.front()->NumParams(); }
+		virtual const std::string & GetParamName(uint32_t index) const { return pp_chain_.front()->GetParamName(index); }
+		virtual uint32_t ParamByName(const std::string &name) const { return pp_chain_.front()->ParamByName(name); }
 
-		virtual uint32_t NumInput() const											{ return pp_chain_.front()->NumInput(); }
-		virtual uint32_t InputByName(const std::string &name) const					{ return pp_chain_.front()->InputByName(name); }
-		virtual const std::string &InputName(uint32_t index) const					{ return pp_chain_.front()->InputName(index); }
-		virtual const TexturePtr &InputTexture(uint32_t index) const				{ return pp_chain_.front()->InputTexture(index); }
-		virtual void InputTexture(uint32_t index, const TexturePtr &texture)		{ pp_chain_.front()->InputTexture(index, texture); }
+		virtual uint32_t NumInput() const { return pp_chain_.front()->NumInput(); }
+		virtual uint32_t InputByName(const std::string &name) const { return pp_chain_.front()->InputByName(name); }
+		virtual const std::string &InputName(uint32_t index) const { return pp_chain_.front()->InputName(index); }
+		virtual const TexturePtr &InputTexture(uint32_t index) const { return pp_chain_.front()->InputTexture(index); }
+		virtual void InputTexture(uint32_t index, const TexturePtr &texture) { pp_chain_.front()->InputTexture(index, texture); }
 
-		virtual uint32_t NumOutput() const											{ return pp_chain_.back()->NumOutput(); }
-		virtual uint32_t OutputByName(const std::string &name) const				{ return pp_chain_.back()->OutputByName(name); }
-		virtual const std::string &OutputName(uint32_t index) const					{ return pp_chain_.back()->OutputName(index); }
-		virtual const TexturePtr &OutputTexture(uint32_t index) const				{ return pp_chain_.back()->OutputTexture(index); }
+		virtual uint32_t NumOutput() const { return pp_chain_.back()->NumOutput(); }
+		virtual uint32_t OutputByName(const std::string &name) const { return pp_chain_.back()->OutputByName(name); }
+		virtual const std::string &OutputName(uint32_t index) const { return pp_chain_.back()->OutputName(index); }
+		virtual const TexturePtr &OutputTexture(uint32_t index) const { return pp_chain_.back()->OutputTexture(index); }
 		virtual void OutputTexture(uint32_t index, const TexturePtr &texture, uint32_t level = 0, uint32_t face = 0)
 		{
 			pp_chain_.back()->OutputTexture(index, texture, level, face);

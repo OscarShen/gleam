@@ -153,8 +153,9 @@ namespace gleam
 
 	PostProcess::PostProcess(const std::vector<std::string>& param_names, const std::vector<std::string>& input_names, const std::vector<std::string>& output_names, const RenderEffectPtr & effect, RenderTechnique * tech)
 		: compute_shader_(false), cs_thread_x_(1), cs_thread_y_(1), cs_thread_z_(1),
-		input_(input_names.size()), output_(output_names.size()), input_tex_(input_names.size()), output_tex_(output_names.size()),
-		uniforms_(param_names.size())
+		input_(input_names.size()), output_(output_names.size()), 
+		input_tex_(input_names.size()), output_tex_(output_names.size()), 
+		uniforms_(param_names.size()), uniform_values_(param_names.size())
 	{
 		RenderEngine &re = Context::Instance().RenderEngineInstance();
 
@@ -194,6 +195,66 @@ namespace gleam
 		}
 		return 0xFFFFFFFF;
 	}
+	void PostProcess::SetParam(uint32_t index, const bool & value)
+	{
+		uniform_values_[index].first = PT_Bool;
+		uniform_values_[index].second = std::make_shared<bool>(value);
+	}
+	void PostProcess::SetParam(uint32_t index, const uint32_t & value)
+	{
+		uniform_values_[index].first = PT_U32;
+		uniform_values_[index].second = std::make_shared<uint32_t>(value);
+	}
+	void PostProcess::SetParam(uint32_t index, const int32_t & value)
+	{
+		uniform_values_[index].first = PT_I32;
+		uniform_values_[index].second = std::make_shared<int32_t>(value);
+	}
+	void PostProcess::SetParam(uint32_t index, const float & value)
+	{
+		uniform_values_[index].first = PT_Float;
+		uniform_values_[index].second = std::make_shared<float>(value);
+	}
+	void PostProcess::SetParam(uint32_t index, const glm::vec2 & value)
+	{
+		uniform_values_[index].first = PT_Vec2;
+		uniform_values_[index].second = std::make_shared<glm::vec2>(value);
+	}
+	void PostProcess::SetParam(uint32_t index, const glm::vec3 & value)
+	{
+		uniform_values_[index].first = PT_Vec3;
+		uniform_values_[index].second = std::make_shared<glm::vec3>(value);
+	}
+	void PostProcess::SetParam(uint32_t index, const glm::vec4 & value)
+	{
+		uniform_values_[index].first = PT_Vec4;
+		uniform_values_[index].second = std::make_shared<glm::vec4>(value);
+	}
+	void PostProcess::SetParam(uint32_t index, const glm::mat4 & value)
+	{
+		uniform_values_[index].first = PT_Mat4;
+		uniform_values_[index].second = std::make_shared<glm::mat4>(value);
+	}
+	void PostProcess::SetParam(uint32_t index, const std::vector<float>& value)
+	{
+		uniform_values_[index].first = PT_FloatArray;
+		uniform_values_[index].second = std::make_shared<std::vector<float>>(value);
+	}
+	void PostProcess::SetParam(uint32_t index, const std::vector<glm::vec2>& value)
+	{
+		uniform_values_[index].first = PT_Vec2Array;
+		uniform_values_[index].second = std::make_shared<std::vector<glm::vec2>>(value);
+	}
+	void PostProcess::SetParam(uint32_t index, const std::vector<glm::vec3>& value)
+	{
+		uniform_values_[index].first = PT_Vec3Array;
+		uniform_values_[index].second = std::make_shared<std::vector<glm::vec3>>(value);
+	}
+	void PostProcess::SetParam(uint32_t index, const std::vector<glm::vec4>& value)
+	{
+		uniform_values_[index].first = PT_Vec4Array;
+		uniform_values_[index].second = std::make_shared<std::vector<glm::vec4>>(value);
+	}
 	uint32_t PostProcess::InputByName(const std::string & name) const
 	{
 		for (size_t i = 0; i < uniforms_.size(); ++i)
@@ -206,7 +267,6 @@ namespace gleam
 	void PostProcess::InputTexture(uint32_t index, const TexturePtr & texture)
 	{
 		input_tex_[index] = texture;
-		*(input_[index].second) = texture;
 
 		if (0 == index)
 		{
@@ -300,6 +360,21 @@ namespace gleam
 	}
 	void PostProcess::OnRenderBegin()
 	{
+		for (size_t i = 0; i < uniforms_.size(); ++i)
+		{
+			SetUniformValue(i);
+		}
+		for (size_t i = 0; i < input_.size(); ++i)
+		{
+			*(input_[i].second) = input_tex_[i];
+		}
+		for (size_t i = 0; i < output_.size(); ++i)
+		{
+			if (output_[i].second)
+			{
+				*(output_[i].second) = output_tex_[i];
+			}
+		}
 	}
 	void PostProcess::Render()
 	{
@@ -322,6 +397,51 @@ namespace gleam
 			Renderable::Render();
 		}
 	}
+	void PostProcess::SetUniformValue(uint32_t i)
+	{
+		switch (uniform_values_[i].first)
+		{
+		case gleam::PT_Bool:
+			*(uniforms_[i].second) = *std::static_pointer_cast<bool>(uniform_values_[i].second);
+			break;
+		case gleam::PT_U32:
+			*(uniforms_[i].second) = *std::static_pointer_cast<uint32_t>(uniform_values_[i].second);
+			break;
+		case gleam::PT_I32:
+			*(uniforms_[i].second) = *std::static_pointer_cast<int32_t>(uniform_values_[i].second);
+			break;
+		case gleam::PT_Float:
+			*(uniforms_[i].second) = *std::static_pointer_cast<float>(uniform_values_[i].second);
+			break;
+		case gleam::PT_Vec2:
+			*(uniforms_[i].second) = *std::static_pointer_cast<glm::vec2>(uniform_values_[i].second);
+			break;
+		case gleam::PT_Vec3:
+			*(uniforms_[i].second) = *std::static_pointer_cast<glm::vec3>(uniform_values_[i].second);
+			break;
+		case gleam::PT_Vec4:
+			*(uniforms_[i].second) = *std::static_pointer_cast<glm::vec4>(uniform_values_[i].second);
+			break;
+		case gleam::PT_Mat4:
+			*(uniforms_[i].second) = *std::static_pointer_cast<glm::mat4>(uniform_values_[i].second);
+			break;
+		case gleam::PT_FloatArray:
+			*(uniforms_[i].second) = *std::static_pointer_cast<std::vector<float>>(uniform_values_[i].second);
+			break;
+		case gleam::PT_Vec2Array:
+			*(uniforms_[i].second) = *std::static_pointer_cast<std::vector<glm::vec2>>(uniform_values_[i].second);
+			break;
+		case gleam::PT_Vec3Array:
+			*(uniforms_[i].second) = *std::static_pointer_cast<std::vector<glm::vec3>>(uniform_values_[i].second);
+			break;
+		case gleam::PT_Vec4Array:
+			*(uniforms_[i].second) = *std::static_pointer_cast<std::vector<glm::vec4>>(uniform_values_[i].second);
+			break;
+		default:
+			CHECK_INFO(false, "Error param type : " << uniform_values_[i].first);
+			break;
+		}
+	}
 	PostProcessPtr LoadPostProcess(const std::string & xml_name, const std::string & pp_name)
 	{
 		return ResLoader::Instance().QueryT<PostProcess>(std::make_shared<PostProcessLoadingDesc>(xml_name, pp_name));
@@ -332,7 +452,7 @@ namespace gleam
 			std::vector<std::string>(1, "dst"), RenderEffectPtr(), nullptr)
 			, kernel_radius_(kernel_radius), hor_dir_(horizontal)
 	{
-		assert(kernel_radius > 0 && kernel_radius < 8);
+		assert(kernel_radius > 0 && kernel_radius <= 8);
 
 		RenderEffectPtr effect = LoadRenderEffect("blur.xml");
 		RenderTechnique *tech = effect->GetTechniqueByName(hor_dir_ ? "BlurXTech" : "BlurYTech");
