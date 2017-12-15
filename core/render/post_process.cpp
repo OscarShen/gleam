@@ -393,7 +393,7 @@ namespace gleam
 		}
 		else
 		{
-			re.BindFrameBuffer(fb_);
+			re.BindFrameBuffer(output_tex_[0] ? fb_ : FrameBufferPtr());
 			Renderable::Render();
 		}
 	}
@@ -465,10 +465,12 @@ namespace gleam
 	}
 	void GaussianBlurPostProcess::InputTexture(uint32_t index, const TexturePtr & texture)
 	{
-		PostProcess::InputTexture(index, texture);
-		if (0 == index)
-		{
-			this->CalcSampleOffsets(hor_dir_ ? texture->Width(0) : texture->Height(0), 3.0f);
+		if (texture != InputTexture(index)) {
+			PostProcess::InputTexture(index, texture);
+			if (0 == index)
+			{
+				this->CalcSampleOffsets(hor_dir_ ? texture->Width(0) : texture->Height(0), 3.0f);
+			}
 		}
 	}
 	void GaussianBlurPostProcess::KernelRadius(int radius)
@@ -479,6 +481,13 @@ namespace gleam
 		{
 			this->CalcSampleOffsets(hor_dir_ ? texture->Width(0) : texture->Height(0), 3.0f);
 		}
+	}
+	void GaussianBlurPostProcess::OnRenderBegin()
+	{
+		PostProcess::OnRenderBegin();
+		*tex_size_ = tex_size_u_;
+		*color_weight_ = color_weight_u_;
+		*uv_offset_ = uv_offset_u_;
 	}
 	void GaussianBlurPostProcess::CalcSampleOffsets(uint32_t tex_size, float deviation)
 	{
@@ -517,9 +526,9 @@ namespace gleam
 			color_weight[i] = scale;
 		}
 
-		*tex_size_ = glm::vec2(static_cast<float>(tex_size), 1.0f / tex_size);
-		*color_weight_ = color_weight;
-		*uv_offset_ = uv_offset;
+		tex_size_u_ = glm::vec2(static_cast<float>(tex_size), 1.0f / tex_size);
+		color_weight_u_ = color_weight;
+		uv_offset_u_ = uv_offset;
 	}
 	float GaussianBlurPostProcess::GaussianDistrib(float x, float y, float rho)
 	{
@@ -527,10 +536,6 @@ namespace gleam
 		g *= exp(-(x * x + y * y) / (2 * rho * rho));
 		return g;
 	}
-	//PostProcessChain::PostProcessChain(const std::vector<std::string>& param_names, const std::vector<std::string>& input_names, const std::vector<std::string>& output_names, const RenderEffectPtr & effect, RenderTechnique * tech)
-	//	: PostProcess(param_names, input_names, output_names, effect, tech)
-	//{
-	//}
 	void PostProcessChain::Append(const PostProcessPtr & pp)
 	{
 		pp_chain_.push_back(pp);
@@ -559,18 +564,21 @@ namespace gleam
 	void GaussianBlurPostProcessChain::InputTexture(uint32_t index, const TexturePtr & tex)
 	{
 		auto first_blur = checked_pointer_cast<GaussianBlurPostProcess>(pp_chain_[0]);
-		first_blur->InputTexture(index, tex);
-		if (0 == index)
+		if (tex != first_blur->InputTexture(index))
 		{
-			RenderEngine &re = Context::Instance().RenderEngineInstance();
-			TexturePtr x_out = re.MakeTexture2D(tex->Width(0), tex->Height(0),
-				1, tex->Format(), 1, EAH_GPU_Read | EAH_GPU_Write);
-			pp_chain_[0]->OutputTexture(0, x_out);
-			pp_chain_[1]->InputTexture(0, x_out);
-		}
-		else
-		{
-			pp_chain_[1]->InputTexture(index, tex);
+			first_blur->InputTexture(index, tex);
+			if (0 == index)
+			{
+				RenderEngine &re = Context::Instance().RenderEngineInstance();
+				TexturePtr x_out = re.MakeTexture2D(tex->Width(0), tex->Height(0),
+					1, tex->Format(), 1, EAH_GPU_Read | EAH_GPU_Write);
+				pp_chain_[0]->OutputTexture(0, x_out);
+				pp_chain_[1]->InputTexture(0, x_out);
+			}
+			else
+			{
+				pp_chain_[1]->InputTexture(index, tex);
+			}
 		}
 	}
 }

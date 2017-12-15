@@ -160,6 +160,8 @@ namespace gleam
 
 		void KernelRadius(int radius);
 
+		void OnRenderBegin() override;
+
 	private:
 		void CalcSampleOffsets(uint32_t tex_size, float deviation);
 		float GaussianDistrib(float x, float y, float rh0);
@@ -171,6 +173,10 @@ namespace gleam
 		UniformPtr tex_size_;
 		UniformPtr color_weight_;
 		UniformPtr uv_offset_;
+
+		glm::vec2 tex_size_u_;
+		std::vector<float> color_weight_u_;
+		std::vector<float> uv_offset_u_;
 	};
 
 	class GaussianBlurPostProcessChain : public PostProcessChain
