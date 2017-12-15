@@ -37,4 +37,13 @@
     <output name="dst"/>
     <shader effect="downsize.xml" technique="DownSize4xTech"/>
   </post_process>
+
+  <post_process name="Tonemapping">
+    <input name="scene_tex"/>
+    <input name="lum_tex"/>
+    <uniform name="exposure"/>
+    <uniform name="gamma"/>
+    <output name="dst"/>
+    <shader effect="tonemapping.xml" technique="TomemappingTech"/>
+  </post_process>
 </pp>

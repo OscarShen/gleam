@@ -42,7 +42,11 @@ void main()
   <shader type="fragment_shader" name="BlurXFS">
     <uniform name="color_weight" type="float" array_size="8"/>
     <uniform name="tex_size" type="vec2"/>
-    <uniform name="src" type="sampler"/>
+    <uniform name="src" type="sampler">
+      <state name="filtering" value="min_mag_linear_mip_nearest"/>
+      <state name="address_u" value="clamp"/>
+      <state name="address_v" value="clamp"/>
+    </uniform>
     <code>
       <![CDATA[
 in vec4 UV0;
@@ -117,7 +121,11 @@ void main()
   <shader type="fragment_shader" name="BlurYFS">
     <uniform name="color_weight" type="float" array_size="8"/>
     <uniform name="tex_size" type="vec2"/>
-    <uniform name="src" type="sampler"/>
+    <uniform name="src" type="sampler">
+      <state name="filtering" value="min_mag_linear_mip_nearest"/>
+      <state name="address_u" value="clamp"/>
+      <state name="address_v" value="clamp"/>
+    </uniform>
     <code>
       <![CDATA[
 in vec4 UV0;
