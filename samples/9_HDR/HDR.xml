@@ -37,7 +37,7 @@ void main()
   <shader type="fragment_shader" name="RefractFS">
     <header  name="LightingFunc"/>
     <uniform type="sampler" name="env_map">
-      <state name="filtering" value="min_mag_linear_mip_nearest"/>
+      <state name="filtering" value="min_mag_mip_linear"/>
       <state name="address_u" value="clamp"/>
       <state name="address_v" value="clamp"/>
       <state name="address_w" value="clamp"/>
