@@ -215,6 +215,7 @@ namespace gleam {
 			
 			vaos_.emplace(shader, vao);
 			this->BindVertexStreams(shader, vao);
+			streams_dirty_ = false;
 		}
 		else
 		{
@@ -227,11 +228,28 @@ namespace gleam {
 			}
 		}
 
+		OGLRenderEngine &re = *checked_cast<OGLRenderEngine*>(&Context::Instance().RenderEngineInstance());
+		if (this->NumVertexStreams() > 0) // cache the last vbo
+		{
+			OGLGraphicsBuffer &buffer = *checked_pointer_cast<OGLGraphicsBuffer>(this->GetVertexStream(this->NumVertexStreams() - 1));
+			re.OverrideBindBufferCache(buffer.GLType(), buffer.GLvbo());
+		}
+
+		if (this->InstanceStream())
+		{
+			OGLGraphicsBuffer &buffer = *checked_pointer_cast<OGLGraphicsBuffer>(this->InstanceStream());
+			re.OverrideBindBufferCache(buffer.GLType(), buffer.GLvbo());
+		}
+
 		if (this->UseIndices())
 		{
 			OGLGraphicsBuffer &stream(*checked_pointer_cast<OGLGraphicsBuffer>(this->GetIndexStream()));
 			assert(GL_ELEMENT_ARRAY_BUFFER == stream.GLType());
 			stream.Active(true);
+		}
+		else
+		{
+			re.OverrideBindBufferCache(GL_ELEMENT_ARRAY_BUFFER, 0);
 		}
 	}
 	void OGLRenderLayout::BindVertexStreams(const ShaderObjectPtr & shader, GLuint vao) const
