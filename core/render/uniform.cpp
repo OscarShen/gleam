@@ -126,9 +126,9 @@ namespace gleam {
 		OGLTexture &gl_texture = *checked_pointer_cast<OGLTexture>(data_.texture);
 		OGLSamplerStateObject &gl_sampler_state = *checked_pointer_cast<OGLSamplerStateObject>(data_.sampler_state);
 		glBindTextureUnit(data_.texture_unit, gl_texture.GLTexture());
+		glBindSampler(data_.texture_unit, gl_sampler_state.GLSampler());
 		if (dirty_)
 		{
-			glBindSampler(data_.texture_unit, gl_sampler_state.GLSampler());
 			glProgramUniform1i(program_, location_, data_.texture_unit);
 			dirty_ = false;
 		}
