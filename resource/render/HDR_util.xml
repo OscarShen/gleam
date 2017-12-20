@@ -96,31 +96,6 @@ void main() {
     </code>
   </shader>
 
-  <shader type="fragment_shader" name="ExtractHighLightFS">
-    <uniform type="float" name="threshold"/>
-    <uniform type="float" name="scalar"/>
-    <uniform type="sampler" name="src">
-      <state name="filtering" value="min_mag_linear_mip_nearest"/>
-      <state name="address_u" value="clamp"/>
-      <state name="address_v" value="clamp"/>
-    </uniform>
-    <code>
-      <![CDATA[
-in vec2 UV;
-
-uniform float threshold;
-uniform float scalar;
-uniform sampler2D src;
-
-out vec4 FragColor;
-
-void main() {
-  FragColor = max((texture(src, UV) - threshold) * scalar, vec4(0));
-}
-      ]]>
-    </code>
-  </shader>
-
   <technique name="CalcLuminanceTech">
     <state name="compute_shader" value="CalcLuminanceCS"/>
   </technique>

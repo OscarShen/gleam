@@ -194,8 +194,6 @@ void HDR::Init()
 	adapted_lum_tex_[1] = re.MakeTexture2D(1, 1, 1, EF_ABGR32F, 1, EAH_GPU_Read | EAH_GPU_Write);
 }
 
-
-#define HDR_APP
 #ifdef HDR_APP
 int main()
 {

@@ -232,10 +232,9 @@ namespace gleam
 			assert(code_node);
 			code += code_node->GetText();
 
-			if (shader_codes_[shader_type].find(name) == shader_codes_[shader_type].end())
-			{
-				shader_codes_[shader_type].emplace(std::make_pair(name, code));
-			}
+			CHECK_INFO(shader_codes_[shader_type].find(name) == shader_codes_[shader_type].end(),
+				"Already load same shader : " << name);
+			shader_codes_[shader_type].emplace(std::make_pair(name, code));
 			for (TiXmlElement *uniform_node = shader_node->FirstChildElement("uniform");
 				uniform_node; uniform_node = uniform_node->NextSiblingElement("uniform"))
 			{
