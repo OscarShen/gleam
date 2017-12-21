@@ -36,17 +36,17 @@ uniform float gamma;
 
 out vec4 FragColor;
 
+const float W = 11.2;
+const float exposure_bias = 1.0;
+
+vec3 filmicTonemapping(vec3 x)
+{
 const float A = 0.15;
 const float B = 0.50;
 const float C = 0.10;
 const float D = 0.20;
 const float E = 0.02;
 const float F = 0.30;
-const float W = 11.2;
-const float exposure_bias = 1.0;
-
-vec3 filmicTonemapping(vec3 x)
-{
   return ((x*(A*x+C*B)+D*E)/(x*(A*x+B)+D*F))-E/F;
 }
 float vignette(vec2 pos, float inner, float outer)
@@ -55,15 +55,34 @@ float vignette(vec2 pos, float inner, float outer)
   r = 1.0 - smoothstep(inner, outer, r);
   return r;
 }
+//void main()
+//{
+//  vec4 scene_color = texture(scene_tex, UV);
+//  float lum = texture(lum_tex, UV).r;
+//  vec3 color = scene_color.rgb * (exposure * 0.0001 + 1.6f) / lum;
+//  color = color * vignette(UV * 2.0 - 1.0, 0.55, 1.5);
+//  color = filmicTonemapping(exposure_bias * color);
+//  vec3 white_scale = 1.0f / filmicTonemapping(vec3(W, W, W));
+//  color = color * white_scale;
+//  color.r = pow(color.r, gamma);
+//  color.g = pow(color.g, gamma);
+//  color.b = pow(color.b, gamma);
+//  FragColor = vec4(color, 1.0f);
+//}
+
 void main()
 {
+	const float A = 2.51f;
+	const float B = 0.03f;
+	const float C = 2.43f;
+	const float D = 0.59f;
+	const float E = 0.14f;
   vec4 scene_color = texture(scene_tex, UV);
   float lum = texture(lum_tex, UV).r;
-  vec3 color = scene_color.rgb * exposure / lum;
+  vec3 color = (scene_color.rgb) / lum * 0.6f;
+  color.r += exposure * 0.001;
   color = color * vignette(UV * 2.0 - 1.0, 0.55, 1.5);
-  color = filmicTonemapping(exposure_bias * color);
-  vec3 white_scale = 1.0f / filmicTonemapping(vec3(W, W, W));
-  color = color * white_scale;
+  color = (color * (A * color + B)) / (color * (C * color + D) + E);
   color.r = pow(color.r, gamma);
   color.g = pow(color.g, gamma);
   color.b = pow(color.b, gamma);
