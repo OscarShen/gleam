@@ -23,7 +23,11 @@ void main()
 
   <shader type="fragment_shader" name="TonemapFS">
     <uniform type="sampler" name="scene_tex"/>
-    <uniform type="sampler" name="lum_tex"/>
+      <state name="filtering" value="min_mag_linear_mip_nearest"/>
+      <state name="address_u" value="clamp"/>
+      <state name="address_v" value="clamp"/>
+    <uniform type="sampler" name="lum_tex" copy="scene_tex"/>
+    <uniform type="sampler" name="streak_tex" copy="scene_tex"/>
     <uniform type="float" name="exposure"/>
     <uniform type="float" name="gamma"/>
     <code>
@@ -31,6 +35,7 @@ void main()
 in vec2 UV;
 uniform sampler2D scene_tex;
 uniform sampler2D lum_tex;
+uniform sampler2D streak_tex;
 uniform float exposure;
 uniform float gamma;
 
@@ -78,8 +83,11 @@ void main()
 	const float D = 0.59f;
 	const float E = 0.14f;
   vec4 scene_color = texture(scene_tex, UV);
+  vec4 streak_color = texture(streak_tex, UV);
   float lum = texture(lum_tex, UV).r;
-  vec3 color = (scene_color.rgb) / lum * 0.6f;
+  vec3 color = mix(scene_color.rgb, streak_color.rgb, 0.33f);
+  color = color / lum * 0.6f;
+  
   color.r += exposure * 0.001;
   color = color * vignette(UV * 2.0 - 1.0, 0.55, 1.5);
   color = (color * (A * color + B)) / (color * (C * color + D) + E);

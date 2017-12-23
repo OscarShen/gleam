@@ -41,9 +41,28 @@
   <post_process name="Tonemapping">
     <input name="scene_tex"/>
     <input name="lum_tex"/>
+    <input name="streak_tex"/>
     <uniform name="exposure"/>
     <uniform name="gamma"/>
     <output name="dst"/>
     <shader effect="tonemapping.xml" technique="TomemappingTech"/>
+  </post_process>
+
+  <post_process name="StarStreak">
+    <input name="src"/>
+    <uniform name="step_size"/>
+    <uniform name="stride"/>
+    <uniform name="color_coeff"/>
+    <output name="dst"/>
+    <shader effect="HDR_util.xml" technique="StarStreakTech"/>
+  </post_process>
+
+  <post_process name="StarStreakCompose">
+    <input name="src0"/>
+    <input name="src1"/>
+    <input name="src2"/>
+    <input name="src3"/>
+    <output name="dst"/>
+    <shader effect="HDR_util.xml" technique="StarStreakComposeTech"/>
   </post_process>
 </pp>

@@ -362,7 +362,7 @@ namespace gleam
 	{
 		for (size_t i = 0; i < uniforms_.size(); ++i)
 		{
-			SetUniformValue(i);
+			SetUniformValue(static_cast<uint32_t>(i));
 		}
 		for (size_t i = 0; i < input_.size(); ++i)
 		{
@@ -580,5 +580,146 @@ namespace gleam
 				pp_chain_[1]->InputTexture(index, tex);
 			}
 		}
+	}
+
+	inline void ColorModulationRedShift(glm::vec4 &color, float r, float g, float b)
+	{
+		color.r *= r;
+		color.g *= g;
+		color.b *= b;
+	}
+
+	std::vector<glm::vec4> StarStreakPPAdaptor::color_coeff1st;
+	std::vector<glm::vec4> StarStreakPPAdaptor::color_coeff2nd;
+	std::vector<glm::vec4> StarStreakPPAdaptor::color_coeff3rd;
+
+	StarStreakPPAdaptor::StarStreakPPAdaptor()
+		: pass_index_(1)
+	{
+		star_streak_pp_ = LoadPostProcess("HDR_pp.xml", "StarStreak");
+		step_index_ = star_streak_pp_->ParamByName("step_size");
+		stride_index_ = star_streak_pp_->ParamByName("stride");
+		color_coeff_index_ = star_streak_pp_->ParamByName("color_coeff");
+
+		if (color_coeff1st.size() == 0)
+		{
+			color_coeff1st.resize(4);
+			color_coeff2nd.resize(4);
+			color_coeff3rd.resize(4);
+
+			std::vector<glm::vec4> star_modulation1st(4, glm::vec4(0.25f));
+			std::vector<glm::vec4> star_modulation2nd(4, glm::vec4(0.25f));
+			std::vector<glm::vec4> star_modulation3rd(4, glm::vec4(0.25f));
+
+			ColorModulationRedShift(star_modulation1st[0], 1.0, 0.95, 0.9);
+			ColorModulationRedShift(star_modulation1st[1], 0.8, 1.0, 0.9);
+			ColorModulationRedShift(star_modulation1st[2], 0.9, 0.9, 1.0);
+			ColorModulationRedShift(star_modulation1st[3], 0.9, 1.0, 0.9);
+
+			ColorModulationRedShift(star_modulation2nd[0], 1.0, 0.9, 0.8);
+			ColorModulationRedShift(star_modulation2nd[1], 1.0, 0.6, 0.5);
+			ColorModulationRedShift(star_modulation2nd[2], 0.5, 1.0, 0.6);
+			ColorModulationRedShift(star_modulation2nd[3], 0.6, 0.4, 1.0);
+
+			ColorModulationRedShift(star_modulation3rd[0], 1.0, 0.6, 0.6);
+			ColorModulationRedShift(star_modulation3rd[1], 0.6, 1.0, 0.6);
+			ColorModulationRedShift(star_modulation3rd[2], 0.6, 0.6, 1.0);
+
+			const float DEC = 0.9f;
+			for (int s = 0; s < 4; ++s)
+			{
+				int n = 1;
+				color_coeff1st[s] = star_modulation1st[s] * std::pow(DEC, std::pow(4.0f, n - 1) * s);
+
+				n = 2;
+				color_coeff2nd[s] = star_modulation2nd[s] * std::pow(DEC, std::pow(4.0f, n - 1) * s);
+
+				n = 3;
+				color_coeff3rd[s] = star_modulation3rd[s] * std::pow(DEC, std::pow(4.0f, n - 1) * s);
+			}
+		}
+	}
+	void StarStreakPPAdaptor::InputTexture(const TexturePtr & texture)
+	{
+		if (texture != tex_[0]) {
+			assert(texture);
+			uint32_t width = texture->Width(0), height = texture->Height(0);
+
+			if (!tex_[0] || width != tex_[0]->Width(0) || height != tex_[0]->Height(0))
+			{
+				tex_[0] = texture;
+				const float delta = 0.9f;
+				step_[0] = delta / width;
+				step_[1] = delta / height;
+
+				stride1st_ = 1.0f;
+				stride2nd_ = 4.0f;
+				stride3rd_ = 16.0f;
+
+				RenderEngine &re = Context::Instance().RenderEngineInstance();
+				tex_[1] = re.MakeTexture2D(width, height, 1, EF_ABGR32F, 1, EAH_GPU_Read | EAH_GPU_Write);
+				tex_[2] = re.MakeTexture2D(width, height, 1, EF_ABGR32F, 1, EAH_GPU_Read | EAH_GPU_Write);
+			}
+		}
+	}
+	void StarStreakPPAdaptor::OutputTexture(const TexturePtr & texture, uint32_t level, uint32_t face)
+	{
+		assert(!texture || (texture && texture->Type() == TT_2D));
+		this->tex_[3] = texture;
+	}
+	void StarStreakPPAdaptor::SetupParams(uint32_t pass_index)
+	{
+		RenderEngine &re = Context::Instance().RenderEngineInstance();
+		switch (pass_index)
+		{
+		case 1: // 1st pass
+		{
+			star_streak_pp_->SetParam(stride_index_, stride1st_);
+			star_streak_pp_->SetParam(color_coeff_index_, color_coeff1st);
+			star_streak_pp_->InputTexture(0, tex_[0]);
+			star_streak_pp_->OutputTexture(0, tex_[1]);
+			break;
+		}
+
+		case 2: // 2nd pass
+		{
+			star_streak_pp_->SetParam(stride_index_, stride2nd_);
+			star_streak_pp_->SetParam(color_coeff_index_, color_coeff2nd);
+			star_streak_pp_->InputTexture(0, tex_[1]);
+			star_streak_pp_->OutputTexture(0, tex_[2]);
+			break;
+		}
+
+		case 3: // 3rd pass
+		{
+			star_streak_pp_->SetParam(stride_index_, stride3rd_);
+			star_streak_pp_->SetParam(color_coeff_index_, color_coeff3rd);
+			star_streak_pp_->InputTexture(0, tex_[2]);
+			star_streak_pp_->OutputTexture(0, tex_[3]);
+			break;
+		}
+
+		default:
+			WARNING(false, "star streak only have 3 passes")
+			break;
+		}
+
+		float angle = glm::two_pi<float>() * dir_ratio_ + glm::pi<float>() * 0.25f;
+		glm::vec2 step(step_.x * cos(angle), step_.y * sin(angle));
+		star_streak_pp_->SetParam(step_index_, step);
+	}
+	void StarStreakPPAdaptor::Render()
+	{
+		// 3 passes
+		SetupParams(1);
+		star_streak_pp_->Render();
+		SetupParams(2);
+		star_streak_pp_->Render();
+		SetupParams(3);
+		star_streak_pp_->Render();
+	}
+	void StarStreakPPAdaptor::DirRatio(uint32_t index, uint32_t num_dir)
+	{
+		dir_ratio_ = static_cast<float>(index) / num_dir;
 	}
 }

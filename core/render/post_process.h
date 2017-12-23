@@ -189,6 +189,43 @@ namespace gleam
 		using PostProcessChain::InputTexture;
 	};
 
+	class StarStreakPPAdaptor : public RenderableHelper
+	{
+		static std::vector<glm::vec4> color_coeff1st;
+		static std::vector<glm::vec4> color_coeff2nd;
+		static std::vector<glm::vec4> color_coeff3rd;
+
+	public:
+		StarStreakPPAdaptor();
+
+		void InputTexture(const TexturePtr &texture);
+		void OutputTexture(const TexturePtr &texture, uint32_t level = 0, uint32_t face = 0);
+
+		void Render() override;
+
+		// dir_ratio = dir_index / num_dir, determine the number of streaks
+		void DirRatio(uint32_t index, uint32_t num_dir);
+
+	private:
+		void SetupParams(uint32_t pass_index);
+
+	private:
+		glm::vec2 step_;
+
+		float stride1st_;
+		float stride2nd_;
+		float stride3rd_;
+
+		float dir_ratio_;
+		uint8_t pass_index_;
+		TexturePtr tex_[4]; // input|tex[0]  ->(pass 1st)->  tex[1]  ->(pass 2nd)->  tex[2]  ->(pass 3rd)->  tex[3]|output
+
+		PostProcessPtr star_streak_pp_;
+		uint32_t step_index_;
+		uint32_t stride_index_;
+		uint32_t color_coeff_index_;
+	};
+
 	PostProcessPtr LoadPostProcess(const std::string &xml_name, const std::string &pp_name);
 }
 

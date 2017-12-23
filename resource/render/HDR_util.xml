@@ -96,6 +96,111 @@ void main() {
     </code>
   </shader>
 
+  <shader type="vertex_shader" name="StarStreakVS">
+    <attrib name="pos" usage="position"/>
+    <attrib name="uv" usage="texture_coord"/>
+    <uniform type="vec2" name="step_size"/>
+    <uniform type="float" name="stride"/>
+    <code>
+      <![CDATA[
+in vec3 pos;
+in vec2 uv;
+uniform vec2 step_size;
+uniform float stride;
+
+out vec2 UV0;
+out vec2 UV1;
+out vec2 UV2;
+out vec2 UV3;
+void main()
+{
+  UV0 = uv;
+  UV1 = uv + step_size * stride;
+  UV2 = uv + step_size * stride * 2;
+  UV3 = uv + step_size * stride * 3;
+  gl_Position = vec4(pos, 1.0f);
+}
+      ]]>
+    </code>
+  </shader>
+
+  <shader type="fragment_shader" name="StarStreakFS">
+    <uniform type="vec4" name="color_coeff" array_size="4"/>
+    <uniform type="sampler" name="src">
+      <state name="filtering" value="min_mag_linear_mip_nearest"/>
+      <state name="address_u" value="clamp"/>
+      <state name="address_v" value="clamp"/>
+    </uniform>
+    <code>
+      <![CDATA[
+in vec2 UV0;
+in vec2 UV1;
+in vec2 UV2;
+in vec2 UV3;
+
+uniform vec4 color_coeff[4];
+uniform sampler2D src;
+
+out vec4 FragColor;
+
+void main() {
+  FragColor = texture(src, UV0) * color_coeff[0] +
+              texture(src, UV1) * color_coeff[1] +
+              texture(src, UV2) * color_coeff[2] +
+              texture(src, UV3) * color_coeff[3];
+}
+      ]]>
+    </code>
+  </shader>
+  
+    <shader type="vertex_shader" name="StarStreakComposeVS">
+    <attrib name="pos" usage="position"/>
+    <attrib name="uv" usage="texture_coord"/>
+    <code>
+      <![CDATA[
+in vec3 pos;
+in vec2 uv;
+
+out vec2 UV;
+
+void main()
+{
+  gl_Position = vec4(pos, 1.0f);
+  UV = uv;
+}
+      ]]>
+    </code>
+  </shader>
+
+  <shader type="fragment_shader" name="StarStreakComposeFS">
+    <uniform type="sampler" name="src0">
+      <state name="filtering" value="min_mag_linear_mip_nearest"/>
+      <state name="address_u" value="clamp"/>
+      <state name="address_v" value="clamp"/>
+    </uniform>
+    <uniform type="sampler" name="src1" copy="src0"/>
+    <uniform type="sampler" name="src2" copy="src0"/>
+    <uniform type="sampler" name="src3" copy="src0"/>
+    <code>
+      <![CDATA[
+in vec2 UV;
+
+uniform sampler2D src0;
+uniform sampler2D src1;
+uniform sampler2D src2;
+uniform sampler2D src3;
+
+out vec4 FragColor;
+
+void main() {
+  vec4 color1 = max(texture(src0, UV), texture(src1, UV));
+  vec4 color2 = max(texture(src2, UV), texture(src3, UV));
+  FragColor = max(color1, color2);
+}
+      ]]>
+    </code>
+  </shader>
+  
   <technique name="CalcLuminanceTech">
     <state name="compute_shader" value="CalcLuminanceCS"/>
   </technique>
@@ -110,6 +215,22 @@ void main() {
     
     <state name="vertex_shader" value="ExtractHighLightVS"/>
     <state name="fragment_shader" value="ExtractHighLightFS"/>
+  </technique>
+
+  <technique name="StarStreakTech">
+    <state name="cull_mode" value="none"/>
+    <state name="blend_enable" value="false"/>
+
+    <state name="vertex_shader" value="StarStreakVS"/>
+    <state name="fragment_shader" value="StarStreakFS"/>
+  </technique>
+  
+  <technique name="StarStreakComposeTech">
+    <state name="cull_mode" value="none"/>
+    <state name="blend_enable" value="false"/>
+
+    <state name="vertex_shader" value="StarStreakComposeVS"/>
+    <state name="fragment_shader" value="StarStreakComposeFS"/>
   </technique>
   
 </effect>
