@@ -44,6 +44,9 @@ void HDRAdvance::OnCreate()
 	skybox_ = std::make_shared<SceneObjectSkybox>(0);
 	checked_pointer_cast<SceneObjectSkybox>(skybox_)->CubeMap(cube_map_);
 
+	hdr_so->AddToSceneManager();
+	skybox_->AddToSceneManager();
+
 	calc_luminance_ = LoadPostProcess("HDR_pp.xml", "CalcLuminance");
 	calc_adapted_luminance_ = LoadPostProcess("HDR_pp.xml", "CalcAdaptedLuminance");
 	extract_highlight_ = LoadPostProcess("HDR_pp.xml", "ExtractHighLight");
