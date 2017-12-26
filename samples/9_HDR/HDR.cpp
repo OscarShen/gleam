@@ -184,6 +184,8 @@ void HDR::Init()
 	screen_buffer_->Attach(ATT_Color0, re.Make2DRenderView(*screen_tex_, 0));
 	screen_buffer_->Attach(ATT_DepthStencil, re.Make2DDepthStencilRenderView(width, height, EF_D16, 1));
 
+	width = 1024;
+	height = 1024;
 	downsize_tex_ = re.MakeTexture2D(width / 4, height / 4, 1, EF_ABGR32F, 1, EAH_GPU_Read | EAH_GPU_Write);
 
 	exp_tex_[0] = re.MakeTexture2D(width / 16, height / 16, 1, EF_ABGR32F, 1, EAH_GPU_Read | EAH_GPU_Write);
