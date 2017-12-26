@@ -153,7 +153,7 @@ void main() {
     </code>
   </shader>
   
-    <shader type="vertex_shader" name="StarStreakComposeVS">
+    <shader type="vertex_shader" name="ComposeVS">
     <attrib name="pos" usage="position"/>
     <attrib name="uv" usage="texture_coord"/>
     <code>
@@ -200,6 +200,133 @@ void main() {
       ]]>
     </code>
   </shader>
+
+  <shader type="vertex_shader" name="GenGhostImageVS">
+    <attrib name="pos" usage="position"/>
+    <attrib name="uv" usage="texture_coord"/>
+    <uniform type="vec4" name="scalar"/>
+    <code>
+      <![CDATA[
+in vec3 pos;
+in vec2 uv;
+
+uniform vec4 scalar;
+
+out vec2 UV0;
+out vec2 UV1;
+out vec2 UV2;
+out vec2 UV3;
+
+void main()
+{
+  gl_Position = vec4(pos, 1.0f);
+  UV0 = (uv - 0.5f) * scalar[0] + 0.5f;
+  UV1 = (uv - 0.5f) * scalar[1] + 0.5f;
+  UV2 = (uv - 0.5f) * scalar[2] + 0.5f;
+  UV3 = (uv - 0.5f) * scalar[3] + 0.5f;
+}
+      ]]>
+    </code>
+  </shader>
+
+  <shader type="fragment_shader" name="GenGhostImageFS">
+    <uniform type="sampler" name="src0">
+      <state name="filtering" value="min_mag_linear_mip_nearest"/>
+      <state name="address_u" value="clamp"/>
+      <state name="address_v" value="clamp"/>
+    </uniform>
+    <uniform type="sampler" name="src1" copy="src0"/>
+    <uniform type="sampler" name="src2" copy="src0"/>
+    <uniform type="sampler" name="src3" copy="src0"/>
+    <uniform type="vec4" name="color_coeff" array_size="4"/>
+    <code>
+      <![CDATA[
+in vec2 UV0;
+in vec2 UV1;
+in vec2 UV2;
+in vec2 UV3;
+
+uniform vec4 color_coeff[4];
+
+uniform sampler2D src0;
+uniform sampler2D src1;
+uniform sampler2D src2;
+uniform sampler2D src3;
+
+out vec4 FragColor;
+
+void main() {
+	gl_FragColor =   texture(src0, UV0) * texture(src3, UV0).g * color_coeff[0] 
+                 + texture(src0, UV1) * texture(src3, UV1).g * color_coeff[1]
+                 + texture(src1, UV2) * texture(src3, UV2).g * color_coeff[2]
+                 + texture(src2, UV3) * texture(src3, UV3).g * color_coeff[3];
+}
+      ]]>
+    </code>
+  </shader>
+
+  <shader type="fragment_shader" name="GaussianBlurComposeFS">
+    <uniform type="vec4" name="coeff"/>
+    <uniform type="sampler" name="src0">
+      <state name="filtering" value="min_mag_linear_mip_nearest"/>
+      <state name="address_u" value="clamp"/>
+      <state name="address_v" value="clamp"/>
+    </uniform>
+    <uniform type="sampler" name="src1" copy="src0"/>
+    <uniform type="sampler" name="src2" copy="src0"/>
+    <uniform type="sampler" name="src3" copy="src0"/>
+    <code>
+      <![CDATA[
+in vec2 UV;
+
+uniform vec4 coeff;
+
+uniform sampler2D src0;
+uniform sampler2D src1;
+uniform sampler2D src2;
+uniform sampler2D src3;
+
+out vec4 FragColor;
+
+void main() {
+  FragColor = texture(src0, UV) * coeff.x +
+              texture(src1, UV) * coeff.y +
+              texture(src2, UV) * coeff.z +
+              texture(src3, UV) * coeff.w;
+}
+      ]]>
+    </code>
+  </shader>
+
+  <shader type="fragment_shader" name="GlareComposeFS">
+    <uniform type="vec4" name="mix_coeff"/>
+    <uniform type="sampler" name="src0">
+      <state name="filtering" value="min_mag_linear_mip_nearest"/>
+      <state name="address_u" value="clamp"/>
+      <state name="address_v" value="clamp"/>
+    </uniform>
+    <uniform type="sampler" name="src1" copy="src0"/>
+    <uniform type="sampler" name="src2" copy="src0"/>
+    <code>
+      <![CDATA[
+in vec2 UV;
+
+uniform vec4 mix_coeff;
+
+uniform sampler2D src0;
+uniform sampler2D src1;
+uniform sampler2D src2;
+
+out vec4 FragColor;
+
+void main() {
+  FragColor = texture(src0, UV) * mix_coeff.x +
+              texture(src1, UV) * mix_coeff.y +
+              texture(src2, UV) * mix_coeff.z;
+}
+      ]]>
+    </code>
+  </shader>
   
   <technique name="CalcLuminanceTech">
     <state name="compute_shader" value="CalcLuminanceCS"/>
@@ -225,12 +352,35 @@ void main() {
     <state name="fragment_shader" value="StarStreakFS"/>
   </technique>
   
+  <technique name="GenGhostImageTech">
+    <state name="cull_mode" value="none"/>
+    <state name="blend_enable" value="false"/>
+
+    <state name="vertex_shader" value="GenGhostImageVS"/>
+    <state name="fragment_shader" value="GenGhostImageFS"/>
+  </technique>
+
   <technique name="StarStreakComposeTech">
     <state name="cull_mode" value="none"/>
     <state name="blend_enable" value="false"/>
 
-    <state name="vertex_shader" value="StarStreakComposeVS"/>
+    <state name="vertex_shader" value="ComposeVS"/>
     <state name="fragment_shader" value="StarStreakComposeFS"/>
   </technique>
+
+  <technique name="GaussianBlurComposeTech">
+    <state name="cull_mode" value="none"/>
+    <state name="blend_enable" value="false"/>
+
+    <state name="vertex_shader" value="ComposeVS"/>
+    <state name="fragment_shader" value="GaussianBlurComposeFS"/>
+  </technique>
   
+  <technique name="GlareComposeTech">
+    <state name="cull_mode" value="none"/>
+    <state name="blend_enable" value="false"/>
+
+    <state name="vertex_shader" value="ComposeVS"/>
+    <state name="fragment_shader" value="GlareComposeFS"/>
+  </technique>
 </effect>

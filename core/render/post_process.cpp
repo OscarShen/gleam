@@ -399,6 +399,7 @@ namespace gleam
 	}
 	void PostProcess::SetUniformValue(uint32_t i)
 	{
+		CHECK_INFO(uniforms_[i].second, "UniformPtr is empty, name " << uniforms_[i].first);
 		switch (uniform_values_[i].first)
 		{
 		case gleam::PT_Bool:
@@ -647,16 +648,21 @@ namespace gleam
 
 			if (!tex_[0] || width != tex_[0]->Width(0) || height != tex_[0]->Height(0))
 			{
+				RenderEngine &re = Context::Instance().RenderEngineInstance();
 				tex_[0] = texture;
 				const float delta = 0.9f;
-				step_[0] = delta / width;
-				step_[1] = delta / height;
+				float ratio = 1.0f;
+				if (width == height)
+				{
+					ratio = re.DefaultFrameBuffer()->Width() / (float)(re.DefaultFrameBuffer()->Height());
+				}
+				step_[1] = delta / width * ratio;
+				step_[0] = delta / height;
 
 				stride1st_ = 1.0f;
 				stride2nd_ = 4.0f;
 				stride3rd_ = 16.0f;
 
-				RenderEngine &re = Context::Instance().RenderEngineInstance();
 				tex_[1] = re.MakeTexture2D(width, height, 1, EF_ABGR32F, 1, EAH_GPU_Read | EAH_GPU_Write);
 				tex_[2] = re.MakeTexture2D(width, height, 1, EF_ABGR32F, 1, EAH_GPU_Read | EAH_GPU_Write);
 			}
@@ -704,8 +710,25 @@ namespace gleam
 			break;
 		}
 
-		float angle = glm::two_pi<float>() * dir_ratio_ + glm::pi<float>() * 0.25f;
-		glm::vec2 step(step_.x * cos(angle), step_.y * sin(angle));
+		float angle = glm::two_pi<float>() * dir_ratio_/* + glm::pi<float>() * 0.25f*/;
+		glm::vec2 step;
+		if (dir_ratio_ < 0.3f)
+		{
+			step = step_;
+		}
+		else if (dir_ratio_ < 0.6f)
+		{
+			step = glm::vec2(-step_.x, step_.y);
+		}
+		else if (dir_ratio_ < 0.9f)
+		{
+			step = glm::vec2(step_.x, -step_.y);
+		}
+		else
+		{
+			step = glm::vec2(-step_.x, -step_.y);
+		}
+		//(step_.x * cos(angle), step_.y * sin(angle)) ;
 		star_streak_pp_->SetParam(step_index_, step);
 	}
 	void StarStreakPPAdaptor::Render()

@@ -38,10 +38,19 @@
     <shader effect="downsize.xml" technique="DownSize4xTech"/>
   </post_process>
 
+  <post_process name="TonemappingWithGlare">
+    <input name="scene_tex"/>
+    <input name="lum_tex"/>
+    <input name="glare_tex"/>
+    <uniform name="exposure"/>
+    <uniform name="gamma"/>
+    <output name="dst"/>
+    <shader effect="tonemapping.xml" technique="TonemappingWithGlareTech"/>
+  </post_process>
+
   <post_process name="Tonemapping">
     <input name="scene_tex"/>
     <input name="lum_tex"/>
-    <input name="streak_tex"/>
     <uniform name="exposure"/>
     <uniform name="gamma"/>
     <output name="dst"/>
@@ -64,5 +73,35 @@
     <input name="src3"/>
     <output name="dst"/>
     <shader effect="HDR_util.xml" technique="StarStreakComposeTech"/>
+  </post_process>
+
+  <post_process name="GaussianBlurCompose">
+    <input name="src0"/>
+    <input name="src1"/>
+    <input name="src2"/>
+    <input name="src3"/>
+    <uniform name="coeff"/>
+    <output name="dst"/>
+    <shader effect="HDR_util.xml" technique="GaussianBlurComposeTech"/>
+  </post_process>
+
+  <post_process name="GlareCompose">
+    <input name="src0"/>
+    <input name="src1"/>
+    <input name="src2"/>
+    <uniform name="mix_coeff"/>
+    <output name="dst"/>
+    <shader effect="HDR_util.xml" technique="GlareComposeTech"/>
+  </post_process>
+
+  <post_process name="GenGhostImage">
+    <input name="src0"/>
+    <input name="src1"/>
+    <input name="src2"/>
+    <input name="src3"/>
+    <uniform name="scalar"/>
+    <uniform name="color_coeff"/>
+    <output name="dst"/>
+    <shader effect="HDR_util.xml" technique="GenGhostImageTech"/>
   </post_process>
 </pp>

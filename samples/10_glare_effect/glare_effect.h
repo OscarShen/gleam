@@ -90,6 +90,14 @@ private:
 	PostProcessPtr downsize_4x_;
 	PostProcessPtr blur_[NUM_LEVEL];
 	PostProcessPtr tonemapping_;
+	PostProcessPtr gen_ghost_image_;
+	PostProcessPtr gaussian_blur_compose_;
+	PostProcessPtr glare_compose_;
+
+	std::shared_ptr<StarStreakPPAdaptor> star_streak_;
+	PostProcessPtr star_streak_compose_;
+	TexturePtr streak_tex_[4];
+	TexturePtr star_streak_tex_final;
 
 	FrameBufferPtr screen_buffer_;
 	TexturePtr screen_tex_;
@@ -100,5 +108,12 @@ private:
 
 	TexturePtr lum_tex_, adapted_lum_tex_[2];
 	TexturePtr compose_tex_[NUM_LEVEL];
+
+	TexturePtr lens_mask_;
+
+	TexturePtr ghost1st_tex_;
+	TexturePtr ghost2nd_tex_;
+
+	TexturePtr glare_tex_;
 };
 #endif // !HDR_H_
