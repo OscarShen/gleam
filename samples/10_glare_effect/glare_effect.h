@@ -96,7 +96,7 @@ private:
 
 	std::shared_ptr<StarStreakPPAdaptor> star_streak_;
 	PostProcessPtr star_streak_compose_;
-	TexturePtr streak_tex_[4];
+	TexturePtr streak_tex_[5];
 	TexturePtr star_streak_tex_final;
 
 	FrameBufferPtr screen_buffer_;

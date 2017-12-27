@@ -172,7 +172,6 @@ uint32_t HDRAdvance::DoUpdate(uint32_t render_index)
 		{
 			star_streak_compose_->InputTexture(i, streak_tex_[i]);
 		}
-		//star_streak_compose_->SetParam(0, glm::vec4(0.3f, 0.3f, 0.25f, 0.20f));
 		star_streak_compose_->OutputTexture(0, star_streak_tex_final);
 		star_streak_compose_->Render();
 		return 0;
@@ -201,15 +200,15 @@ uint32_t HDRAdvance::DoUpdate(uint32_t render_index)
 			scalar_index = gen_ghost_image_->ParamByName("scalar");
 			color_coeff_index = gen_ghost_image_->ParamByName("color_coeff");
 
-			red_shift(camera_ghost_modulation1st[0], 1.0, 0.9, 0.8);
-			red_shift(camera_ghost_modulation1st[1], 1.0, 0.6, 0.5);
-			red_shift(camera_ghost_modulation1st[2], 0.5, 1.0, 0.6);
-			red_shift(camera_ghost_modulation1st[3], 1.0, 0.7, 0.3);
-
-			red_shift(camera_ghost_modulation2nd[0], 0.2, 0.3, 0.7);
-			red_shift(camera_ghost_modulation2nd[0], 0.5, 0.3, 0.2);
-			red_shift(camera_ghost_modulation2nd[0], 0.1, 0.5, 0.2);
-			red_shift(camera_ghost_modulation2nd[0], 0.1, 0.1, 1.0);
+			red_shift(camera_ghost_modulation1st[0], 1.0f, 0.9f, 0.8f);
+			red_shift(camera_ghost_modulation1st[1], 1.0f, 0.6f, 0.5f);
+			red_shift(camera_ghost_modulation1st[2], 0.5f, 1.0f, 0.6f);
+			red_shift(camera_ghost_modulation1st[3], 1.0f, 0.7f, 0.3f);
+															  		
+			red_shift(camera_ghost_modulation2nd[0], 0.2f, 0.3f, 0.7f);
+			red_shift(camera_ghost_modulation2nd[0], 0.5f, 0.3f, 0.2f);
+			red_shift(camera_ghost_modulation2nd[0], 0.1f, 0.5f, 0.2f);
+			red_shift(camera_ghost_modulation2nd[0], 0.1f, 0.1f, 1.0f);
 		}
 
 		gen_ghost_image_->InputTexture(0, blur_texA_[LEVEL_0]);

@@ -612,19 +612,19 @@ namespace gleam
 			std::vector<glm::vec4> star_modulation2nd(4, glm::vec4(0.25f));
 			std::vector<glm::vec4> star_modulation3rd(4, glm::vec4(0.25f));
 
-			ColorModulationRedShift(star_modulation1st[0], 1.0, 0.95, 0.9);
-			ColorModulationRedShift(star_modulation1st[1], 0.8, 1.0, 0.9);
-			ColorModulationRedShift(star_modulation1st[2], 0.9, 0.9, 1.0);
-			ColorModulationRedShift(star_modulation1st[3], 0.9, 1.0, 0.9);
-
-			ColorModulationRedShift(star_modulation2nd[0], 1.0, 0.9, 0.8);
-			ColorModulationRedShift(star_modulation2nd[1], 1.0, 0.6, 0.5);
-			ColorModulationRedShift(star_modulation2nd[2], 0.5, 1.0, 0.6);
-			ColorModulationRedShift(star_modulation2nd[3], 0.6, 0.4, 1.0);
-
-			ColorModulationRedShift(star_modulation3rd[0], 1.0, 0.6, 0.6);
-			ColorModulationRedShift(star_modulation3rd[1], 0.6, 1.0, 0.6);
-			ColorModulationRedShift(star_modulation3rd[2], 0.6, 0.6, 1.0);
+			ColorModulationRedShift(star_modulation1st[0], 1.0f, 0.95f, 0.9f);
+			ColorModulationRedShift(star_modulation1st[1], 0.8f, 1.0f, 0.9f);
+			ColorModulationRedShift(star_modulation1st[2], 0.9f, 0.9f, 1.0f);
+			ColorModulationRedShift(star_modulation1st[3], 0.9f, 1.0f, 0.9f);
+															  			  
+			ColorModulationRedShift(star_modulation2nd[0], 1.0f, 0.9f, 0.8f);
+			ColorModulationRedShift(star_modulation2nd[1], 1.0f, 0.6f, 0.5f);
+			ColorModulationRedShift(star_modulation2nd[2], 0.5f, 1.0f, 0.6f);
+			ColorModulationRedShift(star_modulation2nd[3], 0.6f, 0.4f, 1.0f);
+															  			  
+			ColorModulationRedShift(star_modulation3rd[0], 1.0f, 0.6f, 0.6f);
+			ColorModulationRedShift(star_modulation3rd[1], 0.6f, 1.0f, 0.6f);
+			ColorModulationRedShift(star_modulation3rd[2], 0.6f, 0.6f, 1.0f);
 
 			const float DEC = 0.9f;
 			for (int s = 0; s < 4; ++s)
@@ -710,25 +710,9 @@ namespace gleam
 			break;
 		}
 
-		float angle = glm::two_pi<float>() * dir_ratio_/* + glm::pi<float>() * 0.25f*/;
+		float angle = glm::two_pi<float>() * dir_ratio_ + glm::pi<float>() * 0.25f;
 		glm::vec2 step;
-		if (dir_ratio_ < 0.3f)
-		{
-			step = step_;
-		}
-		else if (dir_ratio_ < 0.6f)
-		{
-			step = glm::vec2(-step_.x, step_.y);
-		}
-		else if (dir_ratio_ < 0.9f)
-		{
-			step = glm::vec2(step_.x, -step_.y);
-		}
-		else
-		{
-			step = glm::vec2(-step_.x, -step_.y);
-		}
-		//(step_.x * cos(angle), step_.y * sin(angle)) ;
+		step = glm::vec2(step_.x * cos(angle), step_.y * sin(angle));
 		star_streak_pp_->SetParam(step_index_, step);
 	}
 	void StarStreakPPAdaptor::Render()
