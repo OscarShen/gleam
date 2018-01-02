@@ -44,7 +44,7 @@ namespace gleam
 		{
 			subrenderables_.assign(first, last);
 		}
-		const RenderablePtr &Subrenderable(size_t id) const { return subrenderables_[id]; }
+		const RenderablePtr &Subrenderable(uint32_t id) const { return subrenderables_[id]; }
 		uint32_t NumSubrenderables() const { return static_cast<uint32_t>(subrenderables_.size()); }
 
 	protected:

@@ -76,6 +76,10 @@ namespace gleam
 
 		void AddToRenderQueue() override;
 
+		// Model does not need render technique, but Mesh needs.
+		// This is not a very effecient method in forward rendering.
+		void BindRenderTechnique(const RenderEffectPtr &effect, RenderTechnique *tech) override;
+
 	protected:
 		virtual void DoLoadModelInfo() { }
 

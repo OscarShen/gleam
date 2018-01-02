@@ -24,25 +24,26 @@ namespace gleam {
 	{
 		this->effect_ = effect;
 		this->technique_ = tech;
+		// prepared for deffered rendering
 
-		ShaderObject &shader = *tech->GetShaderObject(*effect);
-		mvp_ = shader.GetUniformByName("mvp");
-		proj_view_ = shader.GetUniformByName("proj_view");
-		view_model_ = shader.GetUniformByName("view_model");
-		view_ = shader.GetUniformByName("view");
-		model_ = shader.GetUniformByName("model");
-		eye_pos_ = shader.GetUniformByName("eye_pos");
+		//ShaderObject &shader = *tech->GetShaderObject(*effect);
+		//mvp_ = shader.GetUniformByName("mvp");
+		//proj_view_ = shader.GetUniformByName("proj_view");
+		//view_model_ = shader.GetUniformByName("view_model");
+		//view_ = shader.GetUniformByName("view");
+		//model_ = shader.GetUniformByName("model");
+		//eye_pos_ = shader.GetUniformByName("eye_pos");
 
-		albedo_ = shader.GetUniformByName("albedo_color");
-		albedo_tex_ = shader.GetSamplerByName("albedo_tex");
-		metalness_ = shader.GetUniformByName("metalness_color");
-		metalness_tex_ = shader.GetSamplerByName("metalness_tex");
-		glossiness_ = shader.GetUniformByName("glossiness_color");
-		glossiness_tex_ = shader.GetSamplerByName("glossiness_tex");
-		emissive_ = shader.GetUniformByName("emissive_color");
-		emissive_tex_ = shader.GetSamplerByName("emissive_tex");
-		normal_tex_ = shader.GetSamplerByName("normal_tex");
-		height_tex_ = shader.GetSamplerByName("height_tex");
+		//albedo_ = shader.GetUniformByName("albedo_color");
+		//albedo_tex_ = shader.GetSamplerByName("albedo_tex");
+		//metalness_ = shader.GetUniformByName("metalness_color");
+		//metalness_tex_ = shader.GetSamplerByName("metalness_tex");
+		//glossiness_ = shader.GetUniformByName("glossiness_color");
+		//glossiness_tex_ = shader.GetSamplerByName("glossiness_tex");
+		//emissive_ = shader.GetUniformByName("emissive_color");
+		//emissive_tex_ = shader.GetSamplerByName("emissive_tex");
+		//normal_tex_ = shader.GetSamplerByName("normal_tex");
+		//height_tex_ = shader.GetSamplerByName("height_tex");
 	}
 	void Renderable::AddToRenderQueue()
 	{

@@ -284,6 +284,14 @@ namespace gleam {
 		}
 	}
 
+	void Model::BindRenderTechnique(const RenderEffectPtr & effect, RenderTechnique * tech)
+	{
+		for (const auto &mesh : subrenderables_)
+		{
+			mesh->BindRenderTechnique(effect, tech);
+		}
+	}
+
 	struct AssimpMesh
 	{
 		std::string				name;
