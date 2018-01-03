@@ -13,8 +13,22 @@
 #include <render/camera_controller.h>
 using namespace gleam;
 
+class SimpleDefferedRenderLayer
+{
+public:
+	SimpleDefferedRenderLayer();
+
+	uint32_t ShadowPass();
+
+	uint32_t ScenePass();
+	
+private:
+	RenderEffectPtr shadow_effect_;
+};
+
 class Bloom : public Framework3D
 {
+	friend SimpleDefferedRenderLayer;
 public:
 	Bloom();
 
@@ -28,10 +42,18 @@ private:
 	TrackballCameraController controller_;
 
 	SceneObjectPtr gate_so_;
+	TexturePtr diffuse_tex_, glow_tex_;
 
 	FrameBufferPtr scene_fb_;
+	TexturePtr scene_tex_, scene_depth_tex_;
+
 	FrameBufferPtr shadow_fb_;
-	FrameBuffer
+	TexturePtr shadow_depth_tex_, shadow_tex_;
+
+	FrameBufferPtr blur_fb_;
+	FrameBufferPtr halfres_fb_;
+
+	std::shared_ptr<SimpleDefferedRenderLayer> layer;
 };
 
 #endif // !GLEAM_SAMPLE_BLOOM

@@ -164,7 +164,7 @@ namespace gleam {
 	}
 	UniformPtr OGLShaderObject::GetUniformByName(const std::string & uniform_name)
 	{
-		for (const auto &u : uniforms_)
+		for (const auto &u : uniforms_) // add hash
 		{
 			if (u->Name() == uniform_name)
 			{

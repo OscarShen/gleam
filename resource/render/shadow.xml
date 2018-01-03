@@ -1,0 +1,131 @@
+<?xml version='1.0'?>
+
+<effect>
+  <shader type="vertex_shader" name="SimpleShadowVS">
+    <attrib name="pos" usage="position"/>
+    <uniform type="mat4" name="proj_view"/>
+    <code>
+      <![CDATA[
+in vec3 pos;
+
+uniform mat4 proj_view;
+
+void main()
+{
+  gl_Position = proj_view * vec4(pos, 1.0f);
+}
+      ]]>
+    </code>
+  </shader>
+
+  <shader type="fragment_shader" name="SimpleShadowFS">
+    <code>
+      <![CDATA[
+out vec4 FragColor;
+void main()
+{
+  FragColor = vec4(1.0f, 0.0f, 0.0f, 1.0f);
+}
+      ]]>
+    </code>
+  </shader>
+
+  <shader type="vertex_shader" name="ShadowComposeVS">
+    <attrib name="pos" usage="position"/>
+    <attrib name="normal" usage="normal"/>
+    <attrib name="uv" usage="texture_coord"/>
+    <uniform type="mat4" name="mvp"/>
+    <uniform type="mat4" name="light_mat"/>
+    <uniform type="float" name="tile_size"/>
+    <code>
+      <![CDATA[
+in vec3 pos;
+in vec3 normal;
+in vec2 uv;
+
+uniform mat4 mvp;
+uniform mat4 light_mat;
+uniform float tile_size;
+
+out vec3 Normal;
+out vec2 UV;
+out vec4 ShadowUV;
+
+void main()
+{
+  vec4 position = vec4(pos, 1.0f);
+  gl_Position = mvp * position;
+  ShadowUV = light_mat * position;
+  ShadowUV.z -= 0.01f;
+  
+  Normal = normal;
+  UV = uv * tile_size;
+}
+      ]]>
+    </code>
+  </shader>
+
+  <shader type="fragment_shader" name="ShadowComposeFS">
+    <uniform type="vec3" name="light_vec"/>
+    <uniform type="float" name="glow_intensity"/>
+    <uniform type="sampler" name="diffuse_tex">
+      <state name="filtering" value="min_mag_mip_linear"/>
+      <state name="address_u" value="wrap"/>
+      <state name="address_v" value="wrap"/>
+    </uniform>
+    <uniform type="sampler" name="glow_tex" copy="diffuse_tex"/>
+    <uniform type="sampler" name="shadow_tex">
+      <state name="filtering" value="min_mag_mip_linear"/>
+      <state name="address_u" value="clamp"/>
+      <state name="address_v" value="clamp"/>
+      <state name="cmp_func" value="less_equal"/>
+    </uniform>
+    <code>
+      <![CDATA[
+in vec3 Normal;
+in vec2 UV;
+in vec4 ShadowUV;
+
+uniform vec3 light_vec;
+uniform float glow_intensity;
+uniform sampler2D diffuse_tex;
+uniform sampler2D glow_tex;
+uniform sampler2DShadow shadow_tex;
+      
+out vec4 FragColor;
+void main()
+{
+  vec3 normal = normalize(Normal);
+	float shadow_factor = (ShadowUV.w > 0.0) ? texture(shadow_tex,ShadowUV.xyz / ShadowUV.w) : 1.0;
+  vec3 tex = texture(diffuse_tex, UV).rgb;
+  
+  // surface color
+  float diffuse_factor = 0.1f + shadow_factor * clamp(dot(light_vec, normal), 0.0f, 1.0f);
+  vec3 color = tex * diffuse_factor + glow_intensity * texture(glow_tex, UV).rgb;
+  FragColor = vec4(color, 1.0f);
+}
+      ]]>
+    </code>
+  </shader>
+
+  <technique name="SimpleShadowTech">
+    <state name="depth_enable" value="true"/>
+    <state name="depth_func" value="less"/>
+    <state name="cull_mode" value="back"/>
+    <state name="front_face_ccw" value="false"/>
+
+    <state name="vertex_shader" value="SimpleShadowVS"/>
+    <state name="fragment_shader" value="SimpleShadowFS"/>
+  </technique>
+
+  <technique name="ShadowComposeTech">
+    <state name="depth_enable" value="true"/>
+    <state name="depth_func" value="less_equal"/>
+    <state name="cull_mode" value="back"/>
+    <state name="front_face_ccw" value="false"/>
+
+    <state name="vertex_shader" value="ShadowComposeVS"/>
+    <state name="fragment_shader" value="ShadowComposeFS"/>
+  </technique>
+
+</effect>
