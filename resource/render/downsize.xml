@@ -95,16 +95,18 @@ void main()
     <state name="cull_mode" value="none"/>
     <state name="blend_enable" value="false"/>
     <state name="depth_enable" value="false"/>
-           
+    <state name="front_face_ccw" value="true"/>
+
     <state name="vertex_shader" value="DownSize2xVS"/>
     <state name="fragment_shader" value="DownSize2xFS"/>
   </technique>
 
   <technique name="DownSize4xTech">
     <state name="cull_mode" value="none"/>
+    <state name="front_face_ccw" value="true"/>
     <state name="blend_enable" value="false"/>
     <state name="depth_enable" value="false"/>
-    
+
     <state name="vertex_shader" value="DownSize4xVS"/>
     <state name="fragment_shader" value="DownSize4xFS"/>
   </technique>

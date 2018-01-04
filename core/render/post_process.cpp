@@ -712,7 +712,7 @@ namespace gleam
 
 		float angle = glm::two_pi<float>() * dir_ratio_ + glm::pi<float>() * 0.25f;
 		glm::vec2 step;
-		step = glm::vec2(step_.x * cos(angle), step_.y * sin(angle));
+		step = glm::vec2(step_.x * cos(angle), step_.y * sin(angle)) * 1.5f;
 		star_streak_pp_->SetParam(step_index_, step);
 	}
 	void StarStreakPPAdaptor::Render()

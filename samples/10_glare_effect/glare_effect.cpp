@@ -92,9 +92,11 @@ uint32_t HDRAdvance::DoUpdate(uint32_t render_index)
 
 	case 1: // downsize
 	{
+		uint32_t pp_width = 1024, pp_height = 1024;
+
 		downsize_4x_->InputTexture(0, screen_tex_);
 		downsize_4x_->OutputTexture(0, blur_texA_[LEVEL_0]);
-		downsize_4x_->SetParam(0, glm::vec2(2.0f / screen_tex_->Width(0), 2.0f / screen_tex_->Height(0)));
+		downsize_4x_->SetParam(0, glm::vec2(2.0f / pp_width, 2.0f / pp_height));
 		downsize_4x_->Render();
 
 		downsize_4x_->InputTexture(0, blur_texA_[LEVEL_0]);
@@ -326,8 +328,8 @@ void HDRAdvance::Init()
 		h /= 2;
 	}
 
-	w = width / 16;
-	h = height / 16;
+	w = pp_width / 16;
+	h = pp_height / 16;
 	for (int i = 0; i < 2; ++i)
 	{
 		exp_tex_[i] = re.MakeTexture2D(w, h, 1, EF_ABGR32F, 1, EAH_GPU_Read | EAH_GPU_Write);
@@ -401,6 +403,7 @@ void SObject::Cubemap(const TexturePtr & cubemap)
 	}
 }
 
+#define GLARE_EFFECT
 #ifdef GLARE_EFFECT
 int main()
 {

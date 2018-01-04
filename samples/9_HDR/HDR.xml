@@ -86,6 +86,9 @@ void main()
   </shader>
 
   <technique name="RefractTech">
+    <state name="cull_mode" value="none"/>
+    <state name="front_face_ccw" value="true"/>
+           
     <state name="vertex_shader" value="RefractVS"/>
     <state name="fragment_shader" value="RefractFS"/>
   </technique>

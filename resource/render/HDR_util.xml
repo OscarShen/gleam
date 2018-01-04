@@ -329,14 +329,19 @@ void main() {
   </shader>
   
   <technique name="CalcLuminanceTech">
+    <state name="cull_mode" value="none"/>
+    <state name="front_face_ccw" value="true"/>
     <state name="compute_shader" value="CalcLuminanceCS"/>
   </technique>
 
   <technique name="CalcAdaptedLuminanceTech">
+    <state name="cull_mode" value="none"/>
+    <state name="front_face_ccw" value="true"/>
     <state name="compute_shader" value="CalcAdaptedLuminanceCS"/>
   </technique>
 
   <technique name="ExtractHighLightTech">
+    <state name="front_face_ccw" value="true"/>
     <state name="cull_mode" value="none"/>
     <state name="blend_enable" value="false"/>
     
@@ -345,6 +350,7 @@ void main() {
   </technique>
 
   <technique name="StarStreakTech">
+    <state name="front_face_ccw" value="true"/>
     <state name="cull_mode" value="none"/>
     <state name="blend_enable" value="false"/>
 
@@ -353,6 +359,7 @@ void main() {
   </technique>
   
   <technique name="GenGhostImageTech">
+    <state name="front_face_ccw" value="true"/>
     <state name="cull_mode" value="none"/>
     <state name="blend_enable" value="false"/>
 
@@ -361,6 +368,7 @@ void main() {
   </technique>
 
   <technique name="StarStreakComposeTech">
+    <state name="front_face_ccw" value="true"/>
     <state name="cull_mode" value="none"/>
     <state name="blend_enable" value="false"/>
 
@@ -369,6 +377,7 @@ void main() {
   </technique>
 
   <technique name="GaussianBlurComposeTech">
+    <state name="front_face_ccw" value="true"/>
     <state name="cull_mode" value="none"/>
     <state name="blend_enable" value="false"/>
 
@@ -377,6 +386,7 @@ void main() {
   </technique>
   
   <technique name="GlareComposeTech">
+    <state name="front_face_ccw" value="true"/>
     <state name="cull_mode" value="none"/>
     <state name="blend_enable" value="false"/>
 
