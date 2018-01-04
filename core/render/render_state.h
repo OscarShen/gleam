@@ -306,6 +306,8 @@ namespace gleam
 		const BlendStateDesc		&GetBlendStateDesc() const { return blend_state_; }
 
 		virtual void Active() = 0;
+		virtual void ActiveDefault() = 0;
+
 
 	protected:
 		RasterizerStateDesc		raster_state_;
@@ -320,7 +322,7 @@ namespace gleam
 			const DepthStencilStateDesc &depth_stencil_state, const BlendStateDesc &blend_state);
 
 		void Active() override;
-		void ActiveDefault();
+		void ActiveDefault() override;
 
 	public:
 		GLenum		ogl_polygon_mode_;

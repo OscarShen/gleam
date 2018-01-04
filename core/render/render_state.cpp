@@ -7,7 +7,7 @@ namespace gleam {
 		: polygon_mode(PM_Fill),
 		shade_mode(SM_Gouraud),
 		cull_mode(CM_Back),
-		front_face_ccw(false),
+		front_face_ccw(true),
 		polygon_offset_factor(0),
 		polygon_offset_units(0),
 		depth_clip_enable(true),

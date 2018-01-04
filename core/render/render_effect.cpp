@@ -444,9 +444,9 @@ namespace gleam
 			RenderTechnique *inherit_technique = effect.GetTechniqueByName(std::string(inherit_name));
 
 			//raster_state = inherit_technique->shader_->
-			raster_state = render_state_->GetRasterizerStateDesc();
-			depth_stencil_state = render_state_->GetDepthStencilStateDesc();
-			blend_state = render_state_->GetBlendStateDesc();
+			raster_state = inherit_technique->render_state_->GetRasterizerStateDesc();
+			depth_stencil_state = inherit_technique->render_state_->GetDepthStencilStateDesc();
+			blend_state = inherit_technique->render_state_->GetBlendStateDesc();
 			weight_ = inherit_technique->weight_;
 			transparent_ = inherit_technique->transparent_;
 		}
