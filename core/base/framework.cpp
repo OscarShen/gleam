@@ -47,7 +47,10 @@ namespace gleam {
 	}
 	void Framework3D::Create()
 	{
-		Context::Instance().RenderEngineInstance().CreateRenderWindow(name_, settings);
+		RenderEngine &re = Context::Instance().RenderEngineInstance();
+		re.CreateRenderWindow(name_, settings);
+		// Init render state
+		re.CurrentRenderStateObject()->ActiveDefault();
 		this->OnCreate();
 	}
 	void Framework3D::Destroy()

@@ -830,10 +830,6 @@ namespace gleam {
 		RenderEngine::BindFrameBuffer(win_fb);
 		glGenFramebuffers(1, &fbo_blit_src_);
 		glGenFramebuffers(1, &fbo_blit_dst_);
-
-
-		// init render state
-		glEnable(GL_DEPTH_TEST);
 	}
 	SamplerStateObjectPtr OGLRenderEngine::DoMakeSamplerStateObjece(const SamplerStateDesc & desc)
 	{
