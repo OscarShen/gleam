@@ -27,6 +27,7 @@ namespace gleam {
 			Context::Instance().SceneManagerInstance().Update();
 			re.SwapBuffer();
 
+			// should use another thread to handle input
 			InputEngine &ie = Context::Instance().InputEngineInstance();
 			ie.Update();
 		}

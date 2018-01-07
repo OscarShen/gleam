@@ -25,14 +25,14 @@ namespace gleam {
 		void BindUpdateFunc(std::function<void(Camera&, float, float)> const &update_func);
 		void Update(float app_time, float elapsed_time);
 
-		const glm::mat4 &ViewMatrix() const { return view_mat_; }
-		const glm::mat4 &InverseViewMatrix() const { return inv_view_mat_; }
-		const glm::mat4 &ProjMatrix() const { return proj_mat_; }
-		const glm::mat4 &InverseProjMatrix() const { return inv_proj_mat_; }
+		const glm::mat4 &ViewMatrix() const { WARNING(!need_init_, "Camera uninitialized!"); return view_mat_; }
+		const glm::mat4 &InverseViewMatrix() const { WARNING(!need_init_, "Camera uninitialized!"); return inv_view_mat_; }
+		const glm::mat4 &ProjMatrix() const { WARNING(!need_init_, "Camera uninitialized!"); return proj_mat_; }
+		const glm::mat4 &InverseProjMatrix() const { WARNING(!need_init_, "Camera uninitialized!"); return inv_proj_mat_; }
 		const glm::mat4 &ProjViewMatrix() const;
 		const glm::mat4 &InverseProjViewMatrix() const;
-		const glm::mat4 &PrevViewMatrix() const { return prev_view_mat_; }
-		const glm::mat4 &PrevProjMatrix() const { return prev_proj_mat_; }
+		const glm::mat4 &PrevViewMatrix() const { WARNING(!need_init_, "Camera uninitialized!"); return prev_view_mat_; }
+		const glm::mat4 &PrevProjMatrix() const { WARNING(!need_init_, "Camera uninitialized!"); return prev_proj_mat_; }
 
 		const glm::vec3 &EyePos() const
 		{
@@ -81,6 +81,7 @@ namespace gleam {
 		mutable glm::mat4	inv_proj_view_mat_;
 
 		std::function<void(Camera&, float, float)> update_func_;
+		bool need_init_;
 	};
 }
 

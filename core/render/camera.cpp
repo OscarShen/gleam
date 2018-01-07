@@ -2,6 +2,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 namespace gleam {
 	Camera::Camera()
+		: need_init_(true)
 	{
 	}
 	void Camera::ViewParams(glm::vec3 const & eye_pos, glm::vec3 const & lookat)
@@ -15,6 +16,7 @@ namespace gleam {
 		look_at_dist_ = glm::length(lookat - eye_pos);
 
 		proj_view_mat_dirty_ = true;
+		need_init_ = false;
 	}
 	void Camera::ProjParams(float fov, float aspect, float near_plane, float far_plane)
 	{
@@ -27,6 +29,7 @@ namespace gleam {
 		inv_proj_mat_ = glm::inverse(proj_mat_);
 
 		proj_view_mat_dirty_ = true;
+		need_init_ = false;
 	}
 	void Camera::ProjOrthoParams(float w, float h, float near_plane, float far_plane)
 	{
@@ -40,7 +43,7 @@ namespace gleam {
 		inv_proj_mat_ = glm::inverse(proj_mat_);
 
 		proj_view_mat_dirty_ = true;
-
+		need_init_ = false;
 	}
 	void Camera::ProjOrthoCenterParams(float left, float right, float bottom, float top, float near_plane, float far_plane)
 	{
@@ -53,6 +56,7 @@ namespace gleam {
 		inv_proj_mat_ = glm::inverse(proj_mat_);
 
 		proj_view_mat_dirty_ = true;
+		need_init_ = false;
 	}
 	void Camera::BindUpdateFunc(std::function<void(Camera&, float, float)> const & update_func)
 	{
@@ -68,6 +72,7 @@ namespace gleam {
 	}
 	const glm::mat4 & Camera::ProjViewMatrix() const
 	{
+		WARNING(!need_init_, "Camera uninitialized!");
 		if (proj_view_mat_dirty_) {
 			proj_view_mat_ = proj_mat_ * view_mat_;
 			inv_proj_view_mat_ = inv_view_mat_ * inv_proj_mat_;
@@ -77,6 +82,7 @@ namespace gleam {
 	}
 	const glm::mat4 & Camera::InverseProjViewMatrix() const
 	{
+		WARNING(!need_init_, "Camera uninitialized!");
 		if (proj_view_mat_dirty_) {
 			proj_view_mat_ = proj_mat_ * view_mat_;
 			inv_proj_view_mat_ = inv_view_mat_ * inv_proj_mat_;
