@@ -153,12 +153,10 @@ namespace gleam
 	class GaussianBlurPostProcess : public PostProcess
 	{
 	public:
-		GaussianBlurPostProcess(int kernel_radius, bool horizontalf);
+		GaussianBlurPostProcess(int kernel_radius, bool horizontalf, float blur_ratio = 1.0f);
 
 		void InputTexture(uint32_t index, const TexturePtr &texture) override;
 		using PostProcess::InputTexture;
-
-		void KernelRadius(int radius);
 
 		void OnRenderBegin() override;
 
@@ -169,6 +167,10 @@ namespace gleam
 	private:
 		int kernel_radius_;
 		bool hor_dir_;
+		float blur_ratio_;
+
+		RenderTechnique *blur_less8_;
+		RenderTechnique *blur_11_;
 
 		UniformPtr tex_size_;
 		UniformPtr color_weight_;
@@ -177,12 +179,16 @@ namespace gleam
 		glm::vec2 tex_size_u_;
 		std::vector<float> color_weight_u_;
 		std::vector<float> uv_offset_u_;
+
+		// It is only for specified radius blur (radius = 11...)
+		UniformPtr tex_offset_;
+		glm::vec2 tex_offset_u_;
 	};
 
 	class GaussianBlurPostProcessChain : public PostProcessChain
 	{
 	public:
-		GaussianBlurPostProcessChain(int kernel_radius);
+		GaussianBlurPostProcessChain(int kernel_radius, float blur_ratio = 1.0f);
 
 		void InputTexture(uint32_t index, const TexturePtr &tex);
 

@@ -112,7 +112,7 @@ void main()
     <state name="depth_enable" value="true"/>
     <state name="depth_func" value="less"/>
     <state name="cull_mode" value="back"/>
-    <state name="front_face_ccw" value="false"/>
+    <state name="front_face_ccw" value="true"/>
 
     <state name="vertex_shader" value="SimpleShadowVS"/>
     <state name="fragment_shader" value="SimpleShadowFS"/>
@@ -122,7 +122,7 @@ void main()
     <state name="depth_enable" value="true"/>
     <state name="depth_func" value="less_equal"/>
     <state name="cull_mode" value="back"/>
-    <state name="front_face_ccw" value="false"/>
+    <state name="front_face_ccw" value="true"/>
 
     <state name="vertex_shader" value="ShadowComposeVS"/>
     <state name="fragment_shader" value="ShadowComposeFS"/>

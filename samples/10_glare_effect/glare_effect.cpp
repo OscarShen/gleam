@@ -403,7 +403,6 @@ void SObject::Cubemap(const TexturePtr & cubemap)
 	}
 }
 
-#define GLARE_EFFECT
 #ifdef GLARE_EFFECT
 int main()
 {

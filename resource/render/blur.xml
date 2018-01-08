@@ -159,6 +159,86 @@ void main()
     </code>
   </shader>
 
+  <shader type="vertex_shader" name="Blur11VS">
+    <attrib name="pos" usage="position"/>
+    <attrib name="uv" usage="texture_coord"/>
+    <code>
+      <![CDATA[
+in vec3 pos;
+in vec2 uv;
+
+out vec2 UV;
+
+void main()
+{
+  gl_Position = vec4(pos, 1.0f);
+  UV = uv;
+}
+      ]]>
+    </code>
+  </shader>
+
+  <shader type="fragment_shader" name="Blur11FS">
+    <uniform name="uv_offset" type="vec2"/>
+    <uniform name="src" type="sampler">
+      <state name="filtering" value="min_mag_linear_mip_nearest"/>
+      <state name="address_u" value="clamp"/>
+      <state name="address_v" value="clamp"/>
+    </uniform>
+    <code>
+      <![CDATA[
+in vec2 UV;
+
+uniform vec2 uv_offset;
+uniform sampler2D src;
+
+out vec4 FragColor;
+
+void main()
+{
+  vec2 sample_uv = UV;
+
+	sample_uv -= uv_offset*5.0;
+	vec4 temp  = texture(src,sample_uv);
+
+	sample_uv += uv_offset;
+	temp += texture(src,sample_uv);
+
+	sample_uv += uv_offset;
+	temp += 2.0*texture(src,sample_uv);
+
+	sample_uv += uv_offset;
+	temp += 2.0*texture(src,sample_uv);
+
+	sample_uv += uv_offset;
+	temp += 3.0*texture(src,sample_uv);
+
+	sample_uv += uv_offset;
+	temp += 3.0*texture(src,sample_uv);
+
+	sample_uv += uv_offset;
+	temp += 3.0*texture(src,sample_uv);
+
+	sample_uv += uv_offset;
+	temp += 2.0*texture(src,sample_uv);
+
+	sample_uv += uv_offset;
+	temp += 2.0*texture(src,sample_uv);
+
+	sample_uv += uv_offset;
+	temp += texture(src,sample_uv);
+
+	sample_uv += uv_offset;
+	temp += texture(src,sample_uv);
+
+	temp/=21.0;
+
+	FragColor = temp;
+}
+      ]]>
+    </code>
+  </shader>
+
   <technique name="BlurXTech">
     <state name="depth_enable" value="false"/>
     <state name="depth_write_mask" value="0"/>
@@ -179,4 +259,13 @@ void main()
     <state name="fragment_shader" value="BlurYFS"/>
   </technique>
 
+  <technique name="Blur11Tech">
+    <state name="depth_enable" value="false"/>
+    <state name="depth_write_mask" value="0"/>
+    <state name="cull_mode" value="none"/>
+    <state name="front_face_ccw" value="true"/>
+
+    <state name="vertex_shader" value="Blur11VS"/>
+    <state name="fragment_shader" value="Blur11FS"/>
+  </technique>
 </effect>

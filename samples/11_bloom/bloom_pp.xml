@@ -1,0 +1,18 @@
+<?xml version='1.0'?>
+
+<pp>
+  <post_process name="BloomCombinePP">
+    <input name="blur_tex"/>
+    <input name="scene_tex"/>
+    <uniform name="glow_intensity"/>
+    <output name="dst"/>
+    <shader effect="bloom.xml" technique="BloomCombineTech"/>
+  </post_process>
+
+  <post_process name="DownFilterPP">
+    <input name="src"/>
+    <uniform name="uv_offset"/>
+    <output name="dst"/>
+    <shader effect="bloom.xml" technique="DownFilterTech"/>
+  </post_process>
+</pp>

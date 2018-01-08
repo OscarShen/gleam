@@ -447,22 +447,30 @@ namespace gleam
 	{
 		return ResLoader::Instance().QueryT<PostProcess>(std::make_shared<PostProcessLoadingDesc>(xml_name, pp_name));
 	}
-	GaussianBlurPostProcess::GaussianBlurPostProcess(int kernel_radius, bool horizontal)
+	GaussianBlurPostProcess::GaussianBlurPostProcess(int kernel_radius, bool horizontal, float blur_ratio)
 		: PostProcess(std::vector<std::string>(),
 			std::vector<std::string>(1, "src"),
 			std::vector<std::string>(1, "dst"), RenderEffectPtr(), nullptr)
-			, kernel_radius_(kernel_radius), hor_dir_(horizontal)
+			, kernel_radius_(kernel_radius), hor_dir_(horizontal), blur_ratio_(blur_ratio)
 	{
-		assert(kernel_radius > 0 && kernel_radius <= 8);
+		assert((kernel_radius > 0 && kernel_radius <= 8) || (kernel_radius == 11));
+		assert(blur_ratio > 0);
 
 		RenderEffectPtr effect = LoadRenderEffect("blur.xml");
-		RenderTechnique *tech = effect->GetTechniqueByName(hor_dir_ ? "BlurXTech" : "BlurYTech");
-		this->BindRenderTechnique(effect, tech);
-		const ShaderObjectPtr &shader = tech->GetShaderObject(*effect);
-
+		blur_less8_ = effect->GetTechniqueByName(hor_dir_ ? "BlurXTech" : "BlurYTech");
+		//this->BindRenderTechnique(effect, tech);
+		const ShaderObjectPtr &shader = blur_less8_->GetShaderObject(*effect);
 		tex_size_ = shader->GetUniformByName("tex_size");
 		color_weight_ = shader->GetUniformByName("color_weight");
 		uv_offset_ = shader->GetUniformByName("uv_offset");
+
+		blur_11_ = effect->GetTechniqueByName("Blur11Tech");
+		//this->BindRenderTechnique(effect, tech);
+		const ShaderObjectPtr &shader2 = blur_11_->GetShaderObject(*effect);
+
+		tex_offset_ = shader2->GetUniformByName("uv_offset");
+
+		effect_ = effect;
 	}
 	void GaussianBlurPostProcess::InputTexture(uint32_t index, const TexturePtr & texture)
 	{
@@ -470,25 +478,37 @@ namespace gleam
 			PostProcess::InputTexture(index, texture);
 			if (0 == index)
 			{
-				this->CalcSampleOffsets(hor_dir_ ? texture->Width(0) : texture->Height(0), 3.0f);
+				if (kernel_radius_ <= 8)
+				{
+					this->BindRenderTechnique(effect_, blur_less8_);
+					this->CalcSampleOffsets(hor_dir_ ? texture->Width(0) : texture->Height(0), 3.0f);
+				}
+				else if (kernel_radius_ == 11)
+				{
+					this->BindRenderTechnique(effect_, blur_11_);
+					tex_offset_u_ = hor_dir_ ? glm::vec2(blur_ratio_ / texture->Width(0), 0)
+						: glm::vec2(0, blur_ratio_ / texture->Height(0));
+				}
 			}
-		}
-	}
-	void GaussianBlurPostProcess::KernelRadius(int radius)
-	{
-		kernel_radius_ = radius;
-		const TexturePtr &texture = this->InputTexture(0);
-		if (texture)
-		{
-			this->CalcSampleOffsets(hor_dir_ ? texture->Width(0) : texture->Height(0), 3.0f);
 		}
 	}
 	void GaussianBlurPostProcess::OnRenderBegin()
 	{
 		PostProcess::OnRenderBegin();
-		*tex_size_ = tex_size_u_;
-		*color_weight_ = color_weight_u_;
-		*uv_offset_ = uv_offset_u_;
+		if (kernel_radius_ <= 8)
+		{
+			*tex_size_ = tex_size_u_;
+			*color_weight_ = color_weight_u_;
+			*uv_offset_ = uv_offset_u_;
+		}
+		else if (kernel_radius_ == 11)
+		{
+			*tex_offset_ = tex_offset_u_;
+		}
+		else
+		{
+			CHECK_INFO(false, "blur kernel radius error : " << kernel_radius_);
+		}
 	}
 	void GaussianBlurPostProcess::CalcSampleOffsets(uint32_t tex_size, float deviation)
 	{
@@ -527,7 +547,7 @@ namespace gleam
 			color_weight[i] = scale;
 		}
 
-		tex_size_u_ = glm::vec2(static_cast<float>(tex_size), 1.0f / tex_size);
+		tex_size_u_ = glm::vec2(tex_size / blur_ratio_, blur_ratio_ / tex_size);
 		color_weight_u_ = color_weight;
 		uv_offset_u_ = uv_offset;
 	}
@@ -557,10 +577,10 @@ namespace gleam
 			pp->Render();
 		}
 	}
-	GaussianBlurPostProcessChain::GaussianBlurPostProcessChain(int kernel_radius)
+	GaussianBlurPostProcessChain::GaussianBlurPostProcessChain(int kernel_radius, float blur_ratio)
 	{
-		this->Append(std::make_shared<GaussianBlurPostProcess>(kernel_radius, true));
-		this->Append(std::make_shared<GaussianBlurPostProcess>(kernel_radius, false));
+		this->Append(std::make_shared<GaussianBlurPostProcess>(kernel_radius, true, blur_ratio));
+		this->Append(std::make_shared<GaussianBlurPostProcess>(kernel_radius, false, blur_ratio));
 	}
 	void GaussianBlurPostProcessChain::InputTexture(uint32_t index, const TexturePtr & tex)
 	{
