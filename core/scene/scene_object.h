@@ -55,9 +55,6 @@ namespace gleam
 		void BindUpdateFunc(const std::function<void(SceneObject&, float, float)> &func);
 		virtual void Update(float app_time, float elapsed_time);
 
-		void ModelMatrixDirty(bool dirty) { model_matrix_dirty_ = dirty; }
-		bool ModelMatrixDirty() const { return model_matrix_dirty_; }
-
 	protected:
 		uint32_t attrib_;
 

@@ -62,7 +62,6 @@ namespace gleam {
 		if (renderable_)
 		{
 			renderable_->ModelMatrix(abs_model_);
-			this->ModelMatrixDirty(false);
 		}
 	}
 	void SceneObject::OnAttachRenderable(bool add_to_scene)
@@ -101,9 +100,6 @@ namespace gleam {
 		if (update_func_)
 		{
 			update_func_(*this, app_time, elapsed_time);
-			if (this->ModelMatrixDirty()) {
-				this->UpdateAbsModelMatrix();
-			}
 		}
 	}
 	SceneObjectHelper::SceneObjectHelper(uint32_t attrib)

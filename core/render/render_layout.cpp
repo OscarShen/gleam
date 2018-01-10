@@ -98,11 +98,7 @@ namespace gleam {
 		}
 		else
 		{
-			instance_stream_.stream = buffer;
-			instance_stream_.format = vet.ToVector();
-			instance_stream_.vertex_size = bytes;
-			instance_stream_.type = type;
-			instance_stream_.freq = freq;
+			// instance stream
 		}
 
 		streams_dirty_ = true;
@@ -141,36 +137,6 @@ namespace gleam {
 		index_format_ = format;
 
 		streams_dirty_ = true;
-	}
-	void RenderLayout::InstanceStream(const GraphicsBufferPtr & buffer)
-	{
-		instance_stream_.stream = buffer;
-		streams_dirty_ = true;
-	}
-	void RenderLayout::NumInstances(uint32_t n)
-	{
-		force_num_instances_ = n;
-		streams_dirty_ = true;
-	}
-	uint32_t RenderLayout::NumInstances() const
-	{
-		uint32_t n;
-		if (0xFFFFFFFF == force_num_instances_)
-		{
-			if (vertex_streams_.empty())
-			{
-				n = 1;
-			}
-			else
-			{
-				n = vertex_streams_[0].freq;
-			}
-		}
-		else
-		{
-			n = force_num_instances_;
-		}
-		return n;
 	}
 	void RenderLayout::StartVertexLocation(uint32_t location)
 	{
@@ -235,12 +201,6 @@ namespace gleam {
 			re.OverrideBindBufferCache(buffer.GLType(), buffer.GLvbo());
 		}
 
-		if (this->InstanceStream())
-		{
-			OGLGraphicsBuffer &buffer = *checked_pointer_cast<OGLGraphicsBuffer>(this->InstanceStream());
-			re.OverrideBindBufferCache(buffer.GLType(), buffer.GLvbo());
-		}
-
 		if (this->UseIndices())
 		{
 			OGLGraphicsBuffer &stream(*checked_pointer_cast<OGLGraphicsBuffer>(this->GetIndexStream()));
@@ -293,44 +253,6 @@ namespace gleam {
 			}
 		}
 
-		if (this->InstanceStream())
-		{
-			OGLGraphicsBuffer &stream = *checked_pointer_cast<OGLGraphicsBuffer>(this->InstanceStream());
-			const uint32_t instance_size = this->InstanceSize();
-			assert(this->NumInstances() * instance_size <= stream.Size());
-			
-			glVertexArrayVertexBuffer(vao, this->NumVertexStreams(), stream.GLvbo(),
-				this->StartInstanceLocation() * instance_size, instance_size);
-			glVertexArrayBindingDivisor(vao, this->NumVertexStreams(), 1);
-
-			const size_t inst_format_size = this->InstanceStreamFormat().size();
-			uint32_t elem_offset = 0;
-			for (size_t i = 0; i < inst_format_size; ++i)
-			{
-				const VertexElement &vs_elem = this->InstanceStreamFormat()[i];
-
-				GLint attr = gl_shader->GetAttribLocation(vs_elem.usage, vs_elem.usage_index);
-				if (attr != -1)
-				{
-					const GLint num_component = static_cast<GLint>(NumComponents(vs_elem.format));
-					GLenum type;
-					GLboolean normalized;
-					OGLMapping::MappingVertexFormat(type, normalized, vs_elem.format);
-					normalized = (((VEU_Diffuse == vs_elem.usage) || (VEU_Specular == vs_elem.usage)) && !IsFloatFormat(vs_elem.format)) ? GL_TRUE : normalized;
-					GLintptr offset = elem_offset + this->StartInstanceLocation() * instance_size;
-					assert(GL_ARRAY_BUFFER == stream.GLType());
-					stream.Active(true);
-
-					glVertexArrayAttribFormat(vao, attr, num_component, type, normalized, elem_offset);
-					glVertexArrayAttribBinding(vao, attr, this->NumVertexStreams());
-					glEnableVertexArrayAttrib(vao, attr);
-
-					used_streams[attr] = 1;
-				}
-				elem_offset += vs_elem.NumFormatBytes();
-			}
-		}
-
 		for (GLuint i = 0; i < max_vertex_streams; ++i)
 		{
 			if (!used_streams[i])
@@ -347,21 +269,6 @@ namespace gleam {
 			const auto & vertex_stream_format = this->VertexStreamFormat(i);
 			for (const auto &vs_elem : vertex_stream_format)
 			{
-				GLint attr = gl_shader->GetAttribLocation(vs_elem.usage, vs_elem.usage_index);
-				if (attr != -1)
-				{
-					glDisableVertexArrayAttrib(vao, attr);
-				}
-			}
-		}
-		if (this->InstanceStream())
-		{
-			glVertexArrayBindingDivisor(vao, this->NumVertexStreams(), 0);
-
-			const size_t inst_format_size = this->InstanceStreamFormat().size();
-			for (size_t i = 0; i < inst_format_size; ++i)
-			{
-				const VertexElement &vs_elem = this->InstanceStreamFormat()[i];
 				GLint attr = gl_shader->GetAttribLocation(vs_elem.usage, vs_elem.usage_index);
 				if (attr != -1)
 				{

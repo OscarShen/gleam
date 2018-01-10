@@ -20,6 +20,7 @@ namespace gleam
 	}
 	RenderTechnique * RenderEffect::GetTechniqueByName(const std::string & name) const
 	{
+		CHECK_INFO(this, "Render effect does not be initialized...");
 		size_t name_hash = HashRange(name.begin(), name.end());
 		for (const auto &tech : techniques_)
 		{

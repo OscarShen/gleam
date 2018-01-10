@@ -113,17 +113,6 @@ namespace gleam
 
 		void BindIndexStream(const GraphicsBufferPtr &index_stream, ElementFormat format);
 
-
-
-		const GraphicsBufferPtr &InstanceStream() const { return instance_stream_.stream; }
-		void InstanceStream(const GraphicsBufferPtr &buffer);
-		const std::vector<VertexElement> &InstanceStreamFormat() const { return instance_stream_.format; }
-		uint32_t InstanceSize() const { return instance_stream_.vertex_size; }
-		void NumInstances(uint32_t n);
-		uint32_t NumInstances() const;
-
-
-
 		void StartVertexLocation(uint32_t location);
 		uint32_t StartVertexLocation() const { return start_vertex_location_; }
 
@@ -132,8 +121,6 @@ namespace gleam
 
 		void StartInstanceLocation(uint32_t location);
 		uint32_t StartInstanceLocation() const { return start_instance_location_; }
-
-
 
 		void BindIndirectArgs(const GraphicsBufferPtr &args_buff);
 		const GraphicsBufferPtr &GetIndirectArgs() const { return indirect_args_buff_; }
@@ -154,7 +141,6 @@ namespace gleam
 		};
 
 		std::vector<StreamUnit> vertex_streams_;
-		StreamUnit				instance_stream_;
 
 		GraphicsBufferPtr		index_stream_;
 		ElementFormat			index_format_;

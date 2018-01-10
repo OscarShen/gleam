@@ -31,13 +31,17 @@ namespace gleam
 		virtual void AddToRenderQueue();
 
 		virtual void OnRenderBegin();
-		virtual void OnRenderEnd() { }
+		virtual void OnRenderEnd();
+		virtual void OnRepeatRenderBegin(uint32_t i);
+		virtual void OnRepeatRenderEnd(uint32_t i);
 		virtual void Render();
 
-		void AddInstance(const SceneObject *object);
-		void ClearInstance();
-		uint32_t NumInstance() const;
-		const SceneObject *GetInstance(uint32_t index);
+		// repeat instance : multi instances without instance stream.
+		//					 default only have matrix differences.
+		void AddRepeatInstance(SceneObject *object);
+		void ClearRepeatInstances();
+		uint32_t NumRepeatInstance() const;
+		const SceneObject *GetRepeatInstance(uint32_t index);
 
 		template <typename ForwardIterator>
 		void AssignSubrenderable(ForwardIterator first, ForwardIterator last)
@@ -48,11 +52,10 @@ namespace gleam
 		uint32_t NumSubrenderables() const { return static_cast<uint32_t>(subrenderables_.size()); }
 
 	protected:
-		virtual void UpdateInstanceStream();
 		void LoadUniforms();
 
 	protected:
-		std::vector<const SceneObject *> instances_;
+		std::vector<SceneObject *> repeat_instances_;
 
 		RenderEffectPtr effect_;
 		RenderTechnique *technique_;

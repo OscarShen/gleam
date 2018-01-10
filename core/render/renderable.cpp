@@ -51,6 +51,8 @@ namespace gleam {
 	}
 	void Renderable::OnRenderBegin()
 	{
+		// It is used for deffered rendering.
+		// donot use these uniforms now!!!
 		// TODO : Add all this in a uniform buffer
 		if (albedo_)
 			*albedo_ = mtl_ ? mtl_->albedo : glm::vec4(0, 0, 0, 1);
@@ -73,108 +75,62 @@ namespace gleam {
 		if (height_tex_)
 			*height_tex_ = textures_[TS_Height];
 	}
+	void Renderable::OnRenderEnd()
+	{
+	}
+	void Renderable::OnRepeatRenderBegin(uint32_t i)
+	{
+		WARNING(false, "If you're trying to render\
+			the same object several times in the scene, please override OnRepeatRenderBegin().");
+	}
+	void Renderable::OnRepeatRenderEnd(uint32_t i)
+	{
+	}
 	void Renderable::Render()
 	{
-		this->UpdateInstanceStream();
-
 		RenderEngine &re = Context::Instance().RenderEngineInstance();
 
 		const RenderLayout &layout = this->GetRenderLayout();
-		const GraphicsBufferPtr &inst_stream = layout.InstanceStream();
 		const RenderTechnique &tech = *this->GetRenderTechnique();
 		const RenderEffect &effect = *this->GetRenderEffect();
 
-		if (inst_stream)
+		// TODO : Add instance stream rendering
+		//
+		///////////////////////////////////////
+
+		this->OnRenderBegin();
+		this->LoadUniforms();
+		if (repeat_instances_.empty())
 		{
-			if (layout.NumInstances() > 0)
-			{
-				this->OnRenderBegin();
-				this->LoadUniforms();
-				re.Render(effect, tech, layout);
-				this->OnRenderEnd();
-			}
+			re.Render(effect, tech, layout);
 		}
 		else
 		{
-			this->OnRenderBegin();
-			this->LoadUniforms();
-			if (instances_.empty())
+			for (uint32_t i = 0; i < repeat_instances_.size(); ++i)
 			{
+				this->OnRepeatRenderBegin(i);
+				this->LoadUniforms();
 				re.Render(effect, tech, layout);
-			}
-			else
-			{
-				for (uint32_t i = 0; i < instances_.size(); ++i)
-				{
-					// prepare
-					re.Render(effect, tech, layout);
-					// unprepare
-				}
-			}
-			this->OnRenderEnd();
-		}
-	}
-	void Renderable::AddInstance(const SceneObject * object)
-	{
-		instances_.push_back(object);
-	}
-	void Renderable::ClearInstance()
-	{
-		instances_.resize(0);
-	}
-	uint32_t Renderable::NumInstance() const
-	{
-		return static_cast<uint32_t>(instances_.size());
-	}
-	const SceneObject * Renderable::GetInstance(uint32_t index)
-	{
-		return instances_[index];
-	}
-	void Renderable::UpdateInstanceStream()
-	{
-		if (!instances_.empty() && !instances_[0]->InstanceFormat().empty())
-		{
-			const auto &vet = instances_[0]->InstanceFormat();
-			uint32_t size = 0;
-			for (size_t i = 0; i < vet.size(); ++i)
-			{
-				size += vet[i].NumFormatBytes();
-			}
-
-			const uint32_t inst_size = static_cast<uint32_t>(size * instances_.size());
-
-			RenderLayout &layout = this->GetRenderLayout();
-
-			GraphicsBufferPtr inst_stream = layout.InstanceStream();
-			if (inst_stream && (inst_stream->Size() >= inst_size))
-			{
-				for (size_t i = 0; i < instances_.size(); ++i)
-				{
-					assert(layout.InstanceStreamFormat() == instances_[i]->InstanceFormat());
-				}
-			}
-			else
-			{
-				RenderEngine &re = Context::Instance().RenderEngineInstance();
-				inst_stream = re.MakeVertexBuffer(BU_Dynamic, EAH_CPU_Read | EAH_GPU_Read, inst_size, nullptr);
-				layout.BindVertexStream(inst_stream, vet, ST_Instance, 1);
-				layout.InstanceStream(inst_stream);
-			}
-
-			{
-				GraphicsBuffer::Mapper mapper(*inst_stream, BA_Write_Only);
-				for (size_t i = 0; i < instances_.size(); ++i)
-				{
-					const uint8_t *src = static_cast<const uint8_t*>(instances_[i]->InstanceData());
-					std::copy(src, src + size, mapper.Pointer<uint8_t>() + i * size);
-				}
-			}
-
-			for (uint32_t i = 0; i < layout.NumVertexStreams(); ++i)
-			{
-				layout.VertexStreamFrequencyDivider(i, ST_Geometry, static_cast<uint32_t>(instances_.size()));
+				this->OnRepeatRenderEnd(i);
 			}
 		}
+		this->OnRenderEnd();
+	}
+	void Renderable::AddRepeatInstance(SceneObject * object)
+	{
+		repeat_instances_.push_back(object);
+	}
+	void Renderable::ClearRepeatInstances()
+	{
+		repeat_instances_.resize(0);
+	}
+	uint32_t Renderable::NumRepeatInstance() const
+	{
+		return static_cast<uint32_t>(repeat_instances_.size());
+	}
+	const SceneObject * Renderable::GetRepeatInstance(uint32_t index)
+	{
+		return repeat_instances_[index];
 	}
 	void Renderable::LoadUniforms()
 	{

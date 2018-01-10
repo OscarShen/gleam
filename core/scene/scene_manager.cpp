@@ -183,30 +183,42 @@ namespace gleam {
 
 		const auto &scene_objs = scene_objs_;
 
-		for (const auto &obj : scene_objs)
+		for (const SceneObjectPtr &so : scene_objs)
 		{
-			auto so = obj.get();
 			if (0 == so->NumChildren())
 			{
 				auto renderable = so->GetRenderable().get();
 				if (renderable)
 				{
-					renderable->ClearInstance();
+					renderable->ClearRepeatInstances();
 				}
 			}
 		}
 
-		for (const auto &obj : scene_objs)
+		// add some clip operations
+		//
+		///////////////////////////
+		for (const SceneObjectPtr &obj : scene_objs)
 		{
-			auto so = obj.get();
+			SceneObject *so = obj.get();
 			if (0 == so->NumChildren())
 			{
-				auto renderable = so->GetRenderable().get();
+				Renderable *renderable = so->GetRenderable().get();
+
+				const uint32_t attr = so->Attrib();
+				if (attr & SOA_Moveable)
+				{
+					so->UpdateAbsModelMatrix();
+				}
+
 				if (renderable)
 				{
-					renderable->AddToRenderQueue();
+					if (0 == renderable->NumRepeatInstance())
+					{
+						renderable->AddToRenderQueue();
+					}
 				}
-				renderable->AddInstance(so);
+				renderable->AddRepeatInstance(so);
 			}
 		}
 
