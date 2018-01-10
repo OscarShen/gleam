@@ -112,29 +112,10 @@ namespace gleam
 	class BasicPolygon : public Mesh
 	{
 	public:
-		BasicPolygon(const std::string &name, const ModelPtr &model, const glm::vec4 &color)
-			: Mesh(name, model)
-		{
-			RenderEffectPtr effect = LoadRenderEffect("renderable.xml");
-			RenderTechnique *technique = effect->GetTechniqueByName("HelperTec");
-			this->BindRenderTechnique(effect, technique);
-			SetColor(color);
-		}
-
-		void SetColor(const glm::vec4 &color)
-		{
-			ShaderObject &shader = *technique_->GetShaderObject(*effect_);
-			*(shader.GetUniformByName("color")) = color;
-		}
-
-		void OnRenderBegin() override
-		{
-			Framework3D &framework = Context::Instance().FrameworkInstance();
-			ShaderObject &shader = *technique_->GetShaderObject(*effect_);
-
-			glm::mat4 mvp = framework.ActiveCamera().ProjViewMatrix() * model_matrix_;
-			*mvp_ = mvp;
-		}
+		BasicPolygon(const std::string &name, const ModelPtr &model);
+		void SetColor(const glm::vec4 &color);
+		void OnRenderBegin() override;
+		void OnRepeatRenderBegin(uint32_t i) override;
 	};
 
 	template <typename T>

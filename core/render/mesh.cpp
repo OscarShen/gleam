@@ -10,6 +10,7 @@
 #include <render/material.h>
 #include <render/texture.h>
 #include <base/bbox.h>
+#include <scene/scene_object.h>
 #include "camera.h"
 #include "light.h"
 namespace gleam {
@@ -270,10 +271,6 @@ namespace gleam {
 	void Model::ModelMatrix(const glm::mat4 & model)
 	{
 		this->model_matrix_ = model;
-		for (const auto &mesh : subrenderables_)
-		{
-			checked_pointer_cast<Mesh>(mesh)->ModelMatrix(model);
-		}
 	}
 
 	void Model::AddToRenderQueue()
@@ -708,5 +705,36 @@ namespace gleam {
 
 		glm::mat4 mvp = framework.ActiveCamera().ProjViewMatrix() * model_matrix_;
 		*mvp_ = mvp;
+	}
+	BasicPolygon::BasicPolygon(const std::string & name, const ModelPtr & model)
+		: Mesh(name, model)
+	{
+		RenderEffectPtr effect = LoadRenderEffect("renderable.xml");
+		RenderTechnique *technique = effect->GetTechniqueByName("BasicPolygonTech");
+		this->BindRenderTechnique(effect, technique);
+		SetColor(glm::vec4(1.0f, 0, 0, 1.0f)); // default red color
+	}
+	void BasicPolygon::SetColor(const glm::vec4 & color)
+	{
+		ShaderObject &shader = *technique_->GetShaderObject(*effect_);
+		*(shader.GetUniformByName("color")) = color;
+	}
+	void BasicPolygon::OnRenderBegin()
+	{
+		Framework3D &framework = Context::Instance().FrameworkInstance();
+		ShaderObject &shader = *technique_->GetShaderObject(*effect_);
+
+		glm::mat4 mvp = framework.ActiveCamera().ProjViewMatrix() * model_matrix_;
+		*(shader.GetUniformByName("mvp")) = mvp;
+	}
+	void BasicPolygon::OnRepeatRenderBegin(uint32_t i)
+	{
+		Framework3D &framework = Context::Instance().FrameworkInstance();
+		ShaderObject &shader = *technique_->GetShaderObject(*effect_);
+
+		repeat_instances_[i]->UpdateAbsModelMatrix();
+
+		glm::mat4 mvp = framework.ActiveCamera().ProjViewMatrix() * model_matrix_;
+		*(shader.GetUniformByName("mvp")) = mvp;
 	}
 }
