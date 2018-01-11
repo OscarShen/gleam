@@ -1,0 +1,10 @@
+<?xml version='1.0'?>
+
+<pp>
+  <post_process name="FXAADefaultPP">
+    <input name="uSourceTex"/>
+    <uniform name="RCPFrame"/>
+    <output name="dst"/>
+    <shader effect="AA.xml" technique="FXAADefaultTech"/>
+  </post_process>
+</pp>

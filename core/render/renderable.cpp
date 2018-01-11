@@ -99,9 +99,10 @@ namespace gleam {
 		///////////////////////////////////////
 
 		this->OnRenderBegin();
-		this->LoadUniforms();
-		if (repeat_instances_.empty())
+		// renderable not in render queue would be 0
+		if (repeat_instances_.size() <= 1)
 		{
+			this->LoadUniforms();
 			re.Render(effect, tech, layout);
 		}
 		else

@@ -1,0 +1,51 @@
+<?xml version='1.0'?>
+
+<effect>
+  <shader type="vertex_shader" name="ObjectVS">
+    <attrib name="pos" usage="position"/>
+    <attrib name="normal" usage="normal"/>
+    <uniform type="mat4" name="mvp"/>
+    <code>
+      <![CDATA[
+in vec3 pos;
+in vec3 normal;
+
+uniform mat4 mvp;
+
+out float Diffuse;
+
+const vec3 light_dir = vec3(1.0, 1.0, 1.0);
+void main()
+{
+  gl_Position = mvp * vec4(pos, 1.0f);
+  Diffuse = max(dot(normal, light_dir), 0.25f);
+}
+      ]]>
+    </code>
+  </shader>
+
+  <shader type="fragment_shader" name="ObjectFS">
+    <uniform type="vec4" name="color"/>
+    <code>
+      <![CDATA[
+in float Diffuse;
+
+uniform vec4 color;
+
+out vec4 FragColor;
+
+void main()
+{
+  FragColor = color * Diffuse;
+}
+      ]]>
+    </code>
+  </shader>
+
+  <technique name="ObjectTech">
+    <state name="cull_mode" value="back"/>
+
+    <state name="vertex_shader" value="ObjectVS"/>
+    <state name="fragment_shader" value="ObjectFS"/>
+  </technique>
+</effect>

@@ -164,6 +164,13 @@ void main()
     <state name="vertex_shader" value="HelperVS"/>
     <state name="fragment_shader" value="HelperFS"/>
   </technique>
+  
+  <technique name="BasicPolygonTech">
+    <state name="cull_mode" value="none"/>
+
+    <state name="vertex_shader" value="HelperVS"/>
+    <state name="fragment_shader" value="HelperFS"/>
+  </technique>
 
   <technique name="LightPolygon">
     <state name="cull_mode" value="none"/>

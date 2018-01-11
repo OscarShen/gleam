@@ -25,7 +25,6 @@ public:
 		pos_.x = std::sin(app_time) * 2.0f;
 		pos_.z = std::cos(app_time) * 2.0f;
 		so.ModelMatrix(glm::translate(glm::mat4(), pos_));
-		so.ModelMatrixDirty(true);
 	}
 
 private:
