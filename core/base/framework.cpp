@@ -57,6 +57,8 @@ namespace gleam {
 	void Framework3D::Destroy()
 	{
 		this->OnDestroy();
+		Context::Instance().RenderEngineInstance().DestroyRrenderWindow();
+		Context::Destroy();
 	}
 	uint32_t Framework3D::Update(uint32_t render_index)
 	{

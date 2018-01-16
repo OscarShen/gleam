@@ -960,6 +960,15 @@ namespace gleam {
 		this->DoCreateRenderWindow(name, settings);
 		screen_frame_buffer_ = current_frame_buffer_;
 	}
+	void RenderEngine::DestroyRrenderWindow()
+	{
+		if (current_frame_buffer_)
+		{
+			current_frame_buffer_->OnUnbind();
+		}
+		current_frame_buffer_.reset();
+		screen_frame_buffer_.reset();
+	}
 	void RenderEngine::Render(const RenderEffect & effect, const RenderTechnique & tech, const RenderLayout & layout)
 	{
 		this->DoRender(effect, tech, layout);
@@ -1096,6 +1105,11 @@ namespace gleam {
 	void RenderEngine::SwapBuffer()
 	{
 		win->SwapBuffers();
+	}
+	void RenderEngine::Destroy()
+	{
+		current_frame_buffer_.reset();
+		screen_frame_buffer_.reset();
 	}
 	TexturePtr RenderEngine::MakeTexture1D(uint32_t width, uint32_t num_mip_maps, ElementFormat format, uint32_t sample_count, uint32_t access_hint, ArrayRef<ElementInitData> init_data)
 	{

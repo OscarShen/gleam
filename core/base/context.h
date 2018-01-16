@@ -23,7 +23,8 @@ namespace gleam
 		static Context &Instance();
 		static void Destroy();
 
-		void DestroyAll() { }
+		~Context();
+		void DestroyAll();
 
 		RenderEngine &RenderEngineInstance();
 

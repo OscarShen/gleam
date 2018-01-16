@@ -36,6 +36,7 @@ namespace gleam
 		virtual ~RenderEngine() { }
 
 		void CreateRenderWindow(const std::string &name, RenderSettings &settings);
+		void DestroyRrenderWindow();
 
 		void Render(const RenderEffect &effect, const RenderTechnique &tech, const RenderLayout &layout);
 		void RenderCompute(const RenderEffect &effect, const RenderTechnique &tech,
@@ -111,12 +112,7 @@ namespace gleam
 		void SwapBuffer();
 
 	protected:
-		void Destroy()
-		{
-			current_frame_buffer_.reset();
-			screen_frame_buffer_.reset();
-
-		}
+		void Destroy();
 
 	private:
 		virtual void DoCreateRenderWindow(const std::string & name, const RenderSettings &settings) = 0;
