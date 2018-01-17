@@ -1,0 +1,293 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{27018355-C13F-4E12-9C23-6BF865228C1B}</ProjectGuid>
+    <RootNamespace>Gleam</RootNamespace>
+    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v140</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v140</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v140</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v140</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <TargetName>Gleam-core</TargetName>
+    <TargetExt>.lib</TargetExt>
+    <OutDir>.\bin\vc14_x64\</OutDir>
+    <IntDir>./bin/intermediate/Gleam-core/</IntDir>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <SDLCheck>true</SDLCheck>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <SDLCheck>true</SDLCheck>
+      <AdditionalIncludeDirectories>./external/include;./core;./external;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>glew32.lib;OpenGL32.lib;glfw3.lib;assimp-vc140-mt.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+    <Lib>
+      <AdditionalDependencies>opengl32.lib;glew32.lib;glfw3.lib;assimp-vc140-mt.lib;</AdditionalDependencies>
+      <AdditionalLibraryDirectories>./external/lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+    </ClCompile>
+    <Link>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+    </ClCompile>
+    <Link>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClInclude Include="core\base\bbox.h" />
+    <ClInclude Include="core\base\color.hpp" />
+    <ClInclude Include="core\base\context.h" />
+    <ClInclude Include="core\base\framework.h" />
+    <ClInclude Include="core\base\half.h" />
+    <ClInclude Include="core\base\math.h" />
+    <ClInclude Include="core\base\resource_loader.h" />
+    <ClInclude Include="core\base\window.h" />
+    <ClInclude Include="core\gleam.h" />
+    <ClInclude Include="core\input\input_engine.h" />
+    <ClInclude Include="core\input\input_record.h" />
+    <ClInclude Include="core\render\camera_controller.h" />
+    <ClInclude Include="core\render\camera.h" />
+    <ClInclude Include="core\render\compute_renderable.h" />
+    <ClInclude Include="core\render\element_format.h" />
+    <ClInclude Include="core\render\frame_buffer.h" />
+    <ClInclude Include="core\render\graphics_buffer.h" />
+    <ClInclude Include="core\render\light.h" />
+    <ClInclude Include="core\render\mapping.h" />
+    <ClInclude Include="core\render\material.h" />
+    <ClInclude Include="core\render\mesh.h" />
+    <ClInclude Include="core\render\ogl_util.h" />
+    <ClInclude Include="core\render\post_process.h" />
+    <ClInclude Include="core\render\renderable.h" />
+    <ClInclude Include="core\render\render_effect.h" />
+    <ClInclude Include="core\render\render_engine.h" />
+    <ClInclude Include="core\render\render_layout.h" />
+    <ClInclude Include="core\render\render_state.h" />
+    <ClInclude Include="core\render\render_view.h" />
+    <ClInclude Include="core\scene\scene_manager.h" />
+    <ClInclude Include="core\scene\scene_object.h" />
+    <ClInclude Include="core\render\shader_object.h" />
+    <ClInclude Include="core\render\texture.h" />
+    <ClInclude Include="core\render\uniform.h" />
+    <ClInclude Include="core\render\view_port.h" />
+    <ClInclude Include="core\scene\vector_scene.h" />
+    <ClInclude Include="core\util\array_ref.hpp" />
+    <ClInclude Include="core\util\hash.h" />
+    <ClInclude Include="core\util\noncopyable.hpp" />
+    <ClInclude Include="core\util\timer.h" />
+    <ClInclude Include="external\include\stb_image\stb_image.h" />
+    <ClInclude Include="external\include\tinyXML\tinystr.h" />
+    <ClInclude Include="external\include\tinyXML\tinyxml.h" />
+    <ClInclude Include="samples\10_glare_effect\glare_effect.h" />
+    <ClInclude Include="samples\11_bloom\bloom.h" />
+    <ClInclude Include="samples\1_triangle\triangle.h" />
+    <ClInclude Include="samples\9_HDR\HDR.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="core\base\bbox.cpp" />
+    <ClCompile Include="core\base\color.inl" />
+    <ClCompile Include="core\base\context.cpp" />
+    <ClCompile Include="core\base\framework.cpp" />
+    <ClCompile Include="core\base\half.cpp" />
+    <ClCompile Include="core\base\math.cpp" />
+    <ClCompile Include="core\base\resource_loader.cpp" />
+    <ClCompile Include="core\base\window.cpp" />
+    <ClCompile Include="core\input\input_engine.cpp" />
+    <ClCompile Include="core\render\camera_controller.cpp" />
+    <ClCompile Include="core\render\camera.cpp" />
+    <ClCompile Include="core\render\compute_renderable.cpp" />
+    <ClCompile Include="core\render\element_format.cpp" />
+    <ClCompile Include="core\render\frame_buffer.cpp" />
+    <ClCompile Include="core\render\graphics_buffer.cpp" />
+    <ClCompile Include="core\render\light.cpp" />
+    <ClCompile Include="core\render\mapping.cpp" />
+    <ClCompile Include="core\render\mesh.cpp" />
+    <ClCompile Include="core\render\ogl_util.cpp" />
+    <ClCompile Include="core\render\post_process.cpp" />
+    <ClCompile Include="core\render\renderable.cpp" />
+    <ClCompile Include="core\render\render_effect.cpp" />
+    <ClCompile Include="core\render\render_engine.cpp" />
+    <ClCompile Include="core\render\render_layout.cpp" />
+    <ClCompile Include="core\render\render_state.cpp" />
+    <ClCompile Include="core\render\render_view.cpp" />
+    <ClCompile Include="core\scene\scene_manager.cpp" />
+    <ClCompile Include="core\scene\scene_object.cpp" />
+    <ClCompile Include="core\render\shader_object.cpp" />
+    <ClCompile Include="core\render\texture.cpp" />
+    <ClCompile Include="core\render\uniform.cpp" />
+    <ClCompile Include="core\render\view_port.cpp" />
+    <ClCompile Include="core\scene\vector_scene.cpp" />
+    <ClCompile Include="core\util\timer.cpp" />
+    <ClCompile Include="external\include\tinyXML\tinystr.cpp" />
+    <ClCompile Include="external\include\tinyXML\tinyxml.cpp" />
+    <ClCompile Include="external\include\tinyXML\tinyxmlerror.cpp" />
+    <ClCompile Include="external\include\tinyXML\tinyxmlparser.cpp" />
+    <ClCompile Include="samples\10_glare_effect\glare_effect.cpp" />
+    <ClCompile Include="samples\11_bloom\bloom.cpp" />
+    <ClCompile Include="samples\2_line\line.cpp" />
+    <ClCompile Include="samples\3_teapot\teapot.cpp" />
+    <ClCompile Include="samples\1_triangle\triangle.cpp" />
+    <ClCompile Include="samples\4_basic_lighting\basic_lighting.cpp" />
+    <ClCompile Include="samples\5_height_mapping\height_mapping.cpp" />
+    <ClCompile Include="samples\6_refract\refract.cpp" />
+    <ClCompile Include="samples\7_terrain\terrain.cpp" />
+    <ClCompile Include="samples\8_vertex_displacement\displacement.cpp" />
+    <ClCompile Include="samples\9_HDR\HDR.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="samples\1_triangle\triangle.xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Xml Include="resource\render\AA.xml">
+      <SubType>Designer</SubType>
+    </Xml>
+    <Xml Include="resource\render\AA_pp.xml">
+      <SubType>Designer</SubType>
+    </Xml>
+    <Xml Include="resource\render\base.xml">
+      <SubType>Designer</SubType>
+    </Xml>
+    <Xml Include="resource\render\base_pp.xml">
+      <SubType>Designer</SubType>
+    </Xml>
+    <Xml Include="resource\render\blur.xml">
+      <SubType>Designer</SubType>
+    </Xml>
+    <Xml Include="resource\render\downsize.xml">
+      <SubType>Designer</SubType>
+    </Xml>
+    <Xml Include="resource\render\lighting.xml">
+      <SubType>Designer</SubType>
+    </Xml>
+    <Xml Include="resource\render\LightPolygon.xml" />
+    <Xml Include="resource\render\renderable.xml">
+      <SubType>Designer</SubType>
+    </Xml>
+    <Xml Include="resource\render\shadow.xml">
+      <SubType>Designer</SubType>
+    </Xml>
+    <Xml Include="resource\render\skybox.xml">
+      <SubType>Designer</SubType>
+    </Xml>
+    <Xml Include="resource\render\tonemapping.xml">
+      <SubType>Designer</SubType>
+    </Xml>
+    <Xml Include="samples\11_bloom\bloom_pp.xml" />
+    <Xml Include="samples\11_bloom\bloom.xml" />
+    <Xml Include="samples\4_basic_lighting\basic_light.xml">
+      <SubType>Designer</SubType>
+    </Xml>
+    <Xml Include="samples\5_height_mapping\HeightMapping.xml">
+      <SubType>Designer</SubType>
+    </Xml>
+    <Xml Include="samples\6_refract\refract.xml">
+      <SubType>Designer</SubType>
+    </Xml>
+    <Xml Include="samples\7_terrain\terrain.xml">
+      <SubType>Designer</SubType>
+    </Xml>
+    <Xml Include="samples\8_vertex_displacement\VertexDisplacement.xml">
+      <SubType>Designer</SubType>
+    </Xml>
+    <Xml Include="samples\9_HDR\HDR.xml">
+      <SubType>Designer</SubType>
+    </Xml>
+    <Xml Include="resource\render\HDR_pp.xml">
+      <SubType>Designer</SubType>
+    </Xml>
+    <Xml Include="resource\render\HDR_util.xml">
+      <SubType>Designer</SubType>
+    </Xml>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

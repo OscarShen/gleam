@@ -5,9 +5,6 @@
 /x64/Debug
 /x64/Release
 /.vs/Gleam/v14
-/Gleam.vcxproj.user
-/Gleam.vcxproj.filters
-/Gleam.vcxproj
 /Gleam.VC.VC.opendb
 /Gleam.VC.db
-/Gleam.sln
+/bin
