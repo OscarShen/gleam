@@ -1,0 +1,10 @@
+<?xml version='1.0'?>
+
+<pp>
+  <post_process name="FXAADefaultPP">
+    <input name="left"/>
+    <input name="right"/>
+    <output name="dst"/>
+    <shader effect="base.xml" technique="HalfScreenTech"/>
+  </post_process>
+</pp>

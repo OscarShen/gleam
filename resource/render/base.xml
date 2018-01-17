@@ -1,0 +1,51 @@
+<?xml version='1.0'?>
+
+<effect>
+  <shader type="vertex_shader" name="FullQuadVS">
+    <attrib name="pos" usage="position"/>
+    <attrib name="uv" usage="texture_coord"/>
+    <code>
+      <![CDATA[
+in vec3 pos;
+in vec2 uv;
+
+out vec2 UV;
+
+void main()
+{
+  gl_Position = vec4(pos, 1.0f);
+  UV = uv;
+}
+      ]]>
+    </code>
+  </shader>
+
+  <shader type="fragment_shader" name="HalfScreenFS">
+    <uniform sampler="sampler" name="src">
+      <state name="filtering" value="min_mag_mip_linear"/>
+      <state name="address_u" value="clamp"/>
+      <state name="address_v" value="clamp"/>
+    </uniform>
+    <uniform type="float" name="left"/>
+    <code>
+      <![CDATA[
+in vec2 UV;
+uniform float left;
+out vec4 FragColor;
+
+void main()
+{
+  vec4 color;
+  if((left > 0.5f && UV.x < 0.5f) || (left <= 0.5f && UV.y >= 0.5f)) discard;
+  
+  FragColor = texture(src, UV);
+}
+      ]]>
+    </code>
+  </shader>
+
+  <technique name="HalfScreenTech">
+    <state name="vertex_shader" value="FullQuadVS"/>
+    <state name="fragment_shader" value="HalfScreenFS"/>
+  </technique>
+</effect>

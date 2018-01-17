@@ -57,6 +57,8 @@ private:
 
 	FrameBufferPtr scene_fb_;
 	TexturePtr scene_tex_, scene_depth_tex_;
+
+	bool use_fxaa;
 };
 
 #endif // !SAMPLE_FXAA_H_

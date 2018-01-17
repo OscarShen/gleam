@@ -1,11 +1,16 @@
 #include "FXAA.h"
 #include <base/context.h>
+#include <base/window.h>
 #include <render/mesh.h>
 #include <render/frame_buffer.h>
 #include <render/post_process.h>
 #include <render/view_port.h>
 #include <scene/scene_object.h>
+#include <input/input_engine.h>
+#include <input/input_record.h>
 #include <glm/gtc/matrix_transform.hpp>
+
+#include <GLFW/glfw3.h>
 
 LineSphere::LineSphere(uint32_t num_slice, const glm::vec4 &color, float scale)
 {
@@ -105,13 +110,13 @@ void LineSphere::GenLineSphere(uint32_t num_slice, float scale)
 	RenderEngine &re = Context::Instance().RenderEngineInstance();
 	layout_ = re.MakeRenderLayout();
 
-	GraphicsBufferPtr pos_vb = re.MakeVertexBuffer(BU_Static, EAH_GPU_Read | EAH_Immutable, xyzs.size() * sizeof(glm::vec3), xyzs.data());
+	GraphicsBufferPtr pos_vb = re.MakeVertexBuffer(BU_Static, EAH_GPU_Read | EAH_Immutable, static_cast<uint32_t>(xyzs.size() * sizeof(glm::vec3)), xyzs.data());
 	layout_->BindVertexStream(pos_vb, VertexElement(VEU_Position, 0, EF_BGR32F));
 	layout_->TopologyType(TT_LineList);
 }
 
 FXAA::FXAA()
-	: Framework3D("FXAA Sample")
+	: Framework3D("FXAA Sample. open(close) FXAA -- space key")
 {
 	ResLoader::Instance().AddPath("../../samples/12_FXAA");
 }
@@ -138,10 +143,10 @@ void FXAA::OnCreate()
 	std::shared_ptr<FxaaSceneObject> loop_fxso[2];
 	loop_fxso[0] = std::make_shared<FxaaSceneObject>(loop, SOA_Cullable);
 	loop_fxso[1] = std::make_shared<FxaaSceneObject>(loop, SOA_Cullable);
-	loop_fxso[0]->ModelMatrix(glm::scale(glm::mat4(), glm::vec3(0.04)));
+	loop_fxso[0]->ModelMatrix(glm::scale(glm::mat4(), glm::vec3(0.04f)));
 	loop_fxso[0]->SetColor(glm::vec4(0.5f, 0.5f, 0.8f, 1.0f));
 	loop_fxso[1]->SetColor(glm::vec4(0.5f, 0.5f, 0.8f, 1.0f));
-	loop_fxso[1]->ModelMatrix(glm::scale(glm::mat4(), glm::vec3(0.04)) *
+	loop_fxso[1]->ModelMatrix(glm::scale(glm::mat4(), glm::vec3(0.04f)) *
 		glm::rotate(glm::mat4(), glm::pi<float>() * 0.5f, glm::vec3(1.0f, 0, 0)));
 	loop_so_[0] = loop_fxso[0];
 	loop_so_[1] = loop_fxso[1];
@@ -165,6 +170,25 @@ void FXAA::OnCreate()
 	scene_fb_->GetViewport()->camera = re.DefaultFrameBuffer()->GetViewport()->camera;
 
 	fxaa_ = LoadPostProcess("AA_pp.xml", "FXAADefaultPP");
+	use_fxaa = true;
+
+	Context::Instance().InputEngineInstance().Register([&]() mutable {
+
+		static float acc_time = 0;
+
+		acc_time += Context::Instance().InputEngineInstance().ElapsedTime();
+
+		if (acc_time > 0.5f)
+		{
+			RenderEngine &re = Context::Instance().RenderEngineInstance();
+			InputRecord &record = re.GetWindow()->GetInputRecord();
+			if (record.keys[GLFW_KEY_SPACE])
+			{
+				acc_time = 0;
+				use_fxaa = !use_fxaa;
+			}
+		}
+	});
 }
 
 uint32_t FXAA::DoUpdate(uint32_t render_index)
@@ -177,8 +201,12 @@ uint32_t FXAA::DoUpdate(uint32_t render_index)
 		Color clear_color(0.2f, 0.4f, 0.6f, 1);
 		re.DefaultFrameBuffer()->Clear(CBM_Color | CBM_Depth, clear_color, 1.0f, 0);
 		scene_fb_->Clear(CBM_Color | CBM_Depth, clear_color, 1.0f, 0);
-		float aaa = 2.0f;
-		if (glm::mod<float>(app_time_, aaa) < 1.0f)
+		return 0;
+	}
+
+	case 1:
+	{
+		if (use_fxaa)
 		{
 			re.BindFrameBuffer(scene_fb_);
 			return UR_NeedFlush;
@@ -189,7 +217,7 @@ uint32_t FXAA::DoUpdate(uint32_t render_index)
 		}
 	}
 
-	case 1:
+	case 2:
 	{
 		fxaa_->InputTexture(0, scene_tex_);
 		fxaa_->OutputTexture(0, TexturePtr());
@@ -203,14 +231,6 @@ uint32_t FXAA::DoUpdate(uint32_t render_index)
 	}
 	return 0;
 }
-
-int main()
-{
-	FXAA app;
-	app.Create();
-	app.Run();
-}
-
 void FxaaSceneObject::SetColor(const glm::vec4 & color)
 {
 	this->color_ = color;
@@ -219,4 +239,11 @@ void FxaaSceneObject::SetColor(const glm::vec4 & color)
 const glm::vec4 & FxaaSceneObject::GetColor() const
 {
 	return color_;
+}
+
+int main()
+{
+	FXAA app;
+	app.Create();
+	app.Run();
 }
