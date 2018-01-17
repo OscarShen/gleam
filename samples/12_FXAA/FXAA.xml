@@ -1,6 +1,7 @@
 <?xml version='1.0'?>
 
 <effect>
+  <include name="renderable.xml"/>
   <shader type="vertex_shader" name="ObjectVS">
     <attrib name="pos" usage="position"/>
     <attrib name="normal" usage="normal"/>
@@ -47,5 +48,19 @@ void main()
 
     <state name="vertex_shader" value="ObjectVS"/>
     <state name="fragment_shader" value="ObjectFS"/>
+  </technique>
+
+  <technique name="ObjectTech">
+    <state name="cull_mode" value="back"/>
+
+    <state name="vertex_shader" value="ObjectVS"/>
+    <state name="fragment_shader" value="ObjectFS"/>
+  </technique>
+
+  <technique name="FXAAHelperTech" inherit="HelperTec">
+    <state name="line_width" value="2"/>
+
+    <state name="vertex_shader" value="HelperVS"/>
+    <state name="fragment_shader" value="HelperFS"/>
   </technique>
 </effect>

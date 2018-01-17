@@ -15,8 +15,8 @@
 LineSphere::LineSphere(uint32_t num_slice, const glm::vec4 &color, float scale)
 {
 	RenderEngine &re = Context::Instance().RenderEngineInstance();
-	RenderEffectPtr effect = LoadRenderEffect("renderable.xml");
-	RenderTechnique *technique = effect->GetTechniqueByName("HelperTec");
+	RenderEffectPtr effect = LoadRenderEffect("FXAA.xml");
+	RenderTechnique *technique = effect->GetTechniqueByName("FXAAHelperTech");
 	this->BindRenderTechnique(effect, technique);
 
 	const ShaderObjectPtr &shader = technique->GetShaderObject(*effect);
@@ -153,7 +153,7 @@ void FXAA::OnCreate()
 	loop_so_[0]->AddToSceneManager();
 	loop_so_[1]->AddToSceneManager();
 
-	glLineWidth(2.0f);
+	//glLineWidth(2.0f);
 	
 	ModelPtr triangle = LoadModel("triangle.obj", EAH_Immutable, CreateModelFunc<Model>(), CreateMeshFunc<FxaaMesh>());
 	std::shared_ptr<FxaaSceneObject> triangle_fxso = std::make_shared<FxaaSceneObject>(triangle, SOA_Cullable);

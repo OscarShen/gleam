@@ -507,6 +507,11 @@ namespace gleam
 				std::string value = state_node->Attribute("value");
 				BoolFromString(raster_state.multisample_enable, value);
 			}
+			else if ("line_width" == state_name)
+			{
+				const char * value = state_node->Attribute("value");
+				raster_state.line_width = boost::lexical_cast<float>(value);
+			}
 			else if ("alpha_to_coverage_enable" == state_name)
 			{
 				std::string value = state_node->Attribute("value");

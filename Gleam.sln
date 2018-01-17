@@ -7,7 +7,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Gleam", "Gleam.vcxproj", "{
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "sample", "sample", "{052FBEB6-0721-4DE8-94C8-A3E460968947}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "fxaa", "build\fxaa.vcxproj", "{F3BCD1AF-0E87-4BC3-AFC8-292016534301}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "fxaa", "build\vc14\fxaa.vcxproj", "{F3BCD1AF-0E87-4BC3-AFC8-292016534301}"
 	ProjectSection(ProjectDependencies) = postProject
 		{27018355-C13F-4E12-9C23-6BF865228C1B} = {27018355-C13F-4E12-9C23-6BF865228C1B}
 	EndProjectSection

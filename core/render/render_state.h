@@ -220,6 +220,7 @@ namespace gleam
 		bool				depth_clip_enable;
 		bool				scissor_enable;
 		bool				multisample_enable;
+		float				line_width;
 
 		RasterizerStateDesc();
 	};

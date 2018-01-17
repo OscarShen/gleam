@@ -18,6 +18,15 @@
       <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\samples\12_FXAA\FXAA.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\samples\12_FXAA\FXAA.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Xml Include="..\..\samples\12_FXAA\FXAA.xml" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{F3BCD1AF-0E87-4BC3-AFC8-292016534301}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
@@ -74,10 +83,10 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <OutDir>../bin/vc14_x64/</OutDir>
-    <IntDir>../bin/intermediate/fxaa/</IntDir>
+    <OutDir>../../bin/vc14_x64/</OutDir>
+    <IntDir>../../bin/intermediate/fxaa/</IntDir>
     <TargetName>fxaa-sample</TargetName>
-    <LibraryPath>../bin/vc14_x64;$(LibraryPath)</LibraryPath>
+    <LibraryPath>../../bin/vc14_x64;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
@@ -107,7 +116,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>../external/include;../core;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../../external/include;../../core;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -153,15 +162,6 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
   </ItemDefinitionGroup>
-  <ItemGroup>
-    <ClCompile Include="..\samples\12_FXAA\FXAA.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="..\samples\12_FXAA\FXAA.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <Xml Include="..\samples\12_FXAA\FXAA.xml" />
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

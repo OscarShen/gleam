@@ -12,7 +12,8 @@ namespace gleam {
 		polygon_offset_units(0),
 		depth_clip_enable(true),
 		scissor_enable(false),
-		multisample_enable(true)
+		multisample_enable(true),
+		line_width(1.0f)
 	{
 	}
 	DepthStencilStateDesc::DepthStencilStateDesc()
@@ -174,6 +175,11 @@ namespace gleam {
 			{
 				glDisable(GL_MULTISAMPLE);
 			}
+		}
+
+		if (cur_raster_state.line_width != raster_state_.line_width)
+		{
+			glLineWidth(raster_state_.line_width);
 		}
 
 		if (cur_depth_stencil_state.depth_enable != depth_stencil_state_.depth_enable)
@@ -482,6 +488,8 @@ namespace gleam {
 		glLogicOp(OGLMapping::Mapping(default_blend_state.logic_op[0]));
 
 		glBlendColor(1, 1, 1, 1);
+
+		glLineWidth(1.0f);
 	}
 	OGLSamplerStateObject::OGLSamplerStateObject(const SamplerStateDesc & sampler_state)
 		: SamplerStateObject(sampler_state)
