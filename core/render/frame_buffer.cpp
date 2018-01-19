@@ -147,7 +147,10 @@ namespace gleam {
 		if (fbo_ != 0)
 		{
 			assert(GL_FRAMEBUFFER_COMPLETE == glCheckNamedFramebufferStatus(fbo_, GL_FRAMEBUFFER));
-			re.EnableFramebufferSRGB(IsSRGB(color_views_[0]->Format()));
+			if (color_views_.size() > 0)
+			{
+				re.EnableFramebufferSRGB(IsSRGB(color_views_[0]->Format()));
+			}
 
 			std::vector<GLenum> targets(color_views_.size());
 			for (size_t i = 0; i < color_views_.size(); ++i)

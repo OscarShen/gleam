@@ -174,6 +174,28 @@ namespace gleam {
 	{
 		return scene_objs_[index];
 	}
+
+	void SceneManager::RenderStateChange(const RenderEffectPtr & effect, RenderTechnique * tech, RenderStateChangeFlag flag)
+	{
+		switch (flag)
+		{
+		case gleam::RSC_ALL:
+		{
+			for (SceneObjectPtr &so : scene_objs_)
+			{
+				if (so->NumChildren() == 0)
+				{
+					so->GetRenderable()->BindRenderTechnique(effect, tech);
+				}
+			}
+			break;
+		}
+		default:
+			CHECK_INFO(false, "Does not have another flag of render state chang flag : " << flag);
+			break;
+		}
+	}
+
 	void SceneManager::Flush()
 	{
 		RenderEngine &re = Context::Instance().RenderEngineInstance();

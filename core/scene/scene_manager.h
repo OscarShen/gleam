@@ -12,6 +12,11 @@
 #include <boost/noncopyable.hpp>
 namespace gleam
 {
+	enum RenderStateChangeFlag
+	{
+		RSC_ALL, // change all so
+	};
+
 	class SceneManager : boost::noncopyable
 	{
 	public:
@@ -38,6 +43,8 @@ namespace gleam
 		uint32_t NumSceneObjects() const;
 		SceneObjectPtr &GetSceneObject(uint32_t index);
 		const SceneObjectPtr &GetSceneObject(uint32_t index) const;
+
+		void RenderStateChange(const RenderEffectPtr &effect, RenderTechnique *tech, RenderStateChangeFlag flag = RSC_ALL);
 
 		void AddRenderable(Renderable *renderable);
 
