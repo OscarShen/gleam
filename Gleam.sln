@@ -12,6 +12,11 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "fxaa", "build\vc14\fxaa.vcx
 		{27018355-C13F-4E12-9C23-6BF865228C1B} = {27018355-C13F-4E12-9C23-6BF865228C1B}
 	EndProjectSection
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pcss", "build\vc14\pcss.vcxproj", "{58E919C9-E8E0-43E7-B3BA-66A8CF6CBD13}"
+	ProjectSection(ProjectDependencies) = postProject
+		{27018355-C13F-4E12-9C23-6BF865228C1B} = {27018355-C13F-4E12-9C23-6BF865228C1B}
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -56,11 +61,28 @@ Global
 		{F3BCD1AF-0E87-4BC3-AFC8-292016534301}.RelWithDebInfo|x64.Build.0 = Release|x64
 		{F3BCD1AF-0E87-4BC3-AFC8-292016534301}.RelWithDebInfo|x86.ActiveCfg = Release|Win32
 		{F3BCD1AF-0E87-4BC3-AFC8-292016534301}.RelWithDebInfo|x86.Build.0 = Release|Win32
+		{58E919C9-E8E0-43E7-B3BA-66A8CF6CBD13}.Debug|x64.ActiveCfg = Debug|x64
+		{58E919C9-E8E0-43E7-B3BA-66A8CF6CBD13}.Debug|x64.Build.0 = Debug|x64
+		{58E919C9-E8E0-43E7-B3BA-66A8CF6CBD13}.Debug|x86.ActiveCfg = Debug|Win32
+		{58E919C9-E8E0-43E7-B3BA-66A8CF6CBD13}.Debug|x86.Build.0 = Debug|Win32
+		{58E919C9-E8E0-43E7-B3BA-66A8CF6CBD13}.MinSizeRel|x64.ActiveCfg = Release|x64
+		{58E919C9-E8E0-43E7-B3BA-66A8CF6CBD13}.MinSizeRel|x64.Build.0 = Release|x64
+		{58E919C9-E8E0-43E7-B3BA-66A8CF6CBD13}.MinSizeRel|x86.ActiveCfg = Release|Win32
+		{58E919C9-E8E0-43E7-B3BA-66A8CF6CBD13}.MinSizeRel|x86.Build.0 = Release|Win32
+		{58E919C9-E8E0-43E7-B3BA-66A8CF6CBD13}.Release|x64.ActiveCfg = Release|x64
+		{58E919C9-E8E0-43E7-B3BA-66A8CF6CBD13}.Release|x64.Build.0 = Release|x64
+		{58E919C9-E8E0-43E7-B3BA-66A8CF6CBD13}.Release|x86.ActiveCfg = Release|Win32
+		{58E919C9-E8E0-43E7-B3BA-66A8CF6CBD13}.Release|x86.Build.0 = Release|Win32
+		{58E919C9-E8E0-43E7-B3BA-66A8CF6CBD13}.RelWithDebInfo|x64.ActiveCfg = Release|x64
+		{58E919C9-E8E0-43E7-B3BA-66A8CF6CBD13}.RelWithDebInfo|x64.Build.0 = Release|x64
+		{58E919C9-E8E0-43E7-B3BA-66A8CF6CBD13}.RelWithDebInfo|x86.ActiveCfg = Release|Win32
+		{58E919C9-E8E0-43E7-B3BA-66A8CF6CBD13}.RelWithDebInfo|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{F3BCD1AF-0E87-4BC3-AFC8-292016534301} = {052FBEB6-0721-4DE8-94C8-A3E460968947}
+		{58E919C9-E8E0-43E7-B3BA-66A8CF6CBD13} = {052FBEB6-0721-4DE8-94C8-A3E460968947}
 	EndGlobalSection
 EndGlobal

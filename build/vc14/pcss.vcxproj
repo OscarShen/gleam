@@ -18,19 +18,10 @@
       <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="..\..\samples\12_FXAA\FXAA.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="..\..\samples\12_FXAA\FXAA.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <Xml Include="..\..\samples\12_FXAA\FXAA.xml" />
-  </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{F3BCD1AF-0E87-4BC3-AFC8-292016534301}</ProjectGuid>
+    <ProjectGuid>{58E919C9-E8E0-43E7-B3BA-66A8CF6CBD13}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>fxaa</RootNamespace>
+    <RootNamespace>pcss</RootNamespace>
     <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -84,8 +75,8 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
     <OutDir>../../bin/vc14_x64/</OutDir>
-    <IntDir>../../bin/intermediate/fxaa/</IntDir>
-    <TargetName>fxaa-sample-d</TargetName>
+    <IntDir>../../bin/intermediate/pcss/</IntDir>
+    <TargetName>pcss-sample-d</TargetName>
     <LibraryPath>../../bin/vc14_x64;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -121,8 +112,6 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <IgnoreAllDefaultLibraries>
-      </IgnoreAllDefaultLibraries>
       <AdditionalDependencies>Gleam-core-d.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
@@ -162,6 +151,12 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
   </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\samples\13_PCSS\pcss.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\samples\13_PCSS\pcss.cpp" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

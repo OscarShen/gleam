@@ -69,7 +69,7 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <TargetName>Gleam-core</TargetName>
+    <TargetName>Gleam-core-d</TargetName>
     <TargetExt>.lib</TargetExt>
     <OutDir>.\bin\vc14_x64\</OutDir>
     <IntDir>./bin/intermediate/Gleam-core/</IntDir>
