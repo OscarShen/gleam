@@ -20,10 +20,13 @@ private:
 	SceneObjectPtr podium_;
 
 	FrameBufferPtr shadow_fb_;
-	TexturePtr shadow_depth_tex_;
+	TexturePtr shadow_tex_, shadow_depth_tex_;
 
 	RenderEffectPtr shadow_effect_;
 	RenderTechnique *simple_shadow_tec_;
+
+	RenderEffectPtr pcss_effect_;
+	RenderTechnique *depth_prepass_tech_;
 
 	TrackballCameraController controller_;
 };

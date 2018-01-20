@@ -1,0 +1,38 @@
+<?xml version='1.0'?>
+
+<effect>
+  <shader type="vertex_shader" name="DepthPrepassVS">
+    <attrib name="pos" usage="position"/>
+    <uniform type="mat4" name="mvp"/>
+    <code>
+      <![CDATA[
+in vec3 pos;
+
+uniform mat4 mvp;
+
+void main()
+{
+  gl_Position = mvp * vec4(pos, 1.0f);
+}
+      ]]>
+    </code>
+  </shader>
+
+  <shader type="fragment_shader" name="DepthPrepassFS">
+    <code>
+      <![CDATA[
+out vec4 FragColor;
+
+void main()
+{
+  FragColor = vec4(1.0f, 0, 0, 1.0f);
+}
+      ]]>
+    </code>
+  </shader>
+
+  <technique name="DepthPrepassTech">
+    <state name="vertex_shader" value="DepthPrepassVS"/>
+    <state name="fragment_shader" value="DepthPrepassFS"/>
+  </technique>
+</effect>

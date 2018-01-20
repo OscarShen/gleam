@@ -3,8 +3,11 @@
 #include <render/render_engine.h>
 #include <render/mesh.h>
 #include <render/frame_buffer.h>
+#include <render/view_port.h>
 #include <scene/scene_manager.h>
 #include <scene/scene_object.h>
+
+#include <glm/gtc/matrix_transform.hpp>
 
 static const uint32_t LIGHT_RES = 1024;
 
@@ -25,6 +28,21 @@ public:
 		//{
 		//	*diffuse_tex_u_ = textures_[TS_Albedo];
 		//}
+		const ShaderObjectPtr &shader = technique_->GetShaderObject(*effect_);
+		auto &camera = Context::Instance().FrameworkInstance().ActiveCamera();
+
+		UniformPtr mvp = shader->GetUniformByName("mvp");
+		if (mvp)
+		{
+			*mvp = camera.ProjViewMatrix() * this->ModelMatrix();
+		}
+		UniformPtr proj_view = shader->GetUniformByName("proj_view");
+		if (proj_view)
+		{
+			*proj_view = camera.ProjViewMatrix();
+		}
+
+
 	}
 
 private:
@@ -48,6 +66,7 @@ private:
 PCSS::PCSS()
 	: Framework3D("pcss sample")
 {
+	ResLoader::Instance().AddPath("../../samples/13_pcss");
 }
 
 void PCSS::OnCreate()
@@ -58,6 +77,7 @@ void PCSS::OnCreate()
 	this->LookAt(glm::vec3(-0.644995f, 0.614183f, 0.660632f) * 1.5f, glm::vec3());
 	this->Proj(0.1f, 100.0f);
 	controller_.AttachCamera(this->ActiveCamera());
+	controller_.SetScalers(0.05f, 0.1f);
 
 	ModelPtr knoght_model = LoadModel("knight.obj", EAH_Immutable, CreateModelFunc<Model>(), CreateMeshFunc<PCSSMesh>());
 	knight_ = std::make_shared<SceneObjectHelper>(knoght_model, SOA_Cullable);
@@ -69,28 +89,49 @@ void PCSS::OnCreate()
 	shadow_effect_ = LoadRenderEffect("shadow.xml");
 	simple_shadow_tec_ = shadow_effect_->GetTechniqueByName("SimpleShadowTech");
 
+	pcss_effect_ = LoadRenderEffect("pcss.xml");
+	depth_prepass_tech_ = pcss_effect_->GetTechniqueByName("DepthPrepassTech");
+
 	shadow_fb_ = re.MakeFrameBuffer();
 	shadow_depth_tex_ = re.MakeTexture2D(LIGHT_RES, LIGHT_RES, 1, EF_D32F, 1, EAH_GPU_Read | EAH_GPU_Write);
+	shadow_tex_ = re.MakeTexture2D(LIGHT_RES, LIGHT_RES, 1, EF_ABGR8, 1, EAH_GPU_Read | EAH_GPU_Write);
 	shadow_fb_->Attach(ATT_DepthStencil, re.Make2DDepthStencilRenderView(*shadow_depth_tex_, 0));
+	shadow_fb_->Attach(ATT_Color0, re.Make2DRenderView(*shadow_tex_, 0));
 	re.BindFrameBuffer(shadow_fb_);
+	// shadow framebuffer use light matrix
+	shadow_fb_->GetViewport()->camera = std::make_shared<Camera>();
+	this->LookAt(glm::vec3(3.57088f, 6.989f, 5.19698f) * 1.5f, glm::vec3(0));
+	this->Proj(10.0f, 32.0f);
+	//vp->camera->ViewParams(glm::vec3(10.0f), glm::vec3());
+	//vp->camera->ProjParams(90.0f, static_cast<float>(LIGHT_RES) / LIGHT_RES, 0.1f, 100.0f);
+	//shadow_fb_->SetViewport(vp);
 }
 
 uint32_t PCSS::DoUpdate(uint32_t render_index)
 {
+	RenderEngine &re = Context::Instance().RenderEngineInstance();
+	SceneManager &sm = Context::Instance().SceneManagerInstance();
 	switch (render_index)
 	{
 	case 0:
 	{
-		RenderEngine &re = Context::Instance().RenderEngineInstance();
 		Color clear_color(0.2f, 0.4f, 0.6f, 1.0f);
 		re.DefaultFrameBuffer()->Clear(CBM_Color | CBM_Depth, clear_color, 1.0f, 0);
+		shadow_fb_->Clear(CBM_Depth, clear_color, 1.0f, 0);
 		return 0;
 	}
 
 	case 1:
 	{
-		SceneManager &sm = Context::Instance().SceneManagerInstance();
+		re.BindFrameBuffer(shadow_fb_);
 		sm.RenderStateChange(shadow_effect_, simple_shadow_tec_);
+		return UR_NeedFlush;
+	}
+
+	case 2:
+	{
+		re.BindFrameBuffer(FrameBufferPtr());
+		sm.RenderStateChange(pcss_effect_, depth_prepass_tech_);
 		return UR_NeedFlush | UR_Finished;
 	}
 

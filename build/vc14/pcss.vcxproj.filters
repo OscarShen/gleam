@@ -7,6 +7,9 @@
     <Filter Include="头文件">
       <UniqueIdentifier>{843e3316-73c5-4bfc-aad3-84363e7e63aa}</UniqueIdentifier>
     </Filter>
+    <Filter Include="资源文件">
+      <UniqueIdentifier>{e2182bce-457f-453e-896b-e5ca1712bbd5}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\samples\13_PCSS\pcss.h">
@@ -17,5 +20,10 @@
     <ClCompile Include="..\..\samples\13_PCSS\pcss.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Xml Include="pcss.xml">
+      <Filter>资源文件</Filter>
+    </Xml>
   </ItemGroup>
 </Project>

@@ -25,7 +25,7 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <Xml Include="..\..\samples\12_FXAA\FXAA.xml">
+    <Xml Include="..\..\samples\13_PCSS\pcss.xml">
       <Filter>资源文件</Filter>
     </Xml>
   </ItemGroup>

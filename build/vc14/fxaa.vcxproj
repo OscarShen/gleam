@@ -25,7 +25,7 @@
     <ClInclude Include="..\..\samples\12_FXAA\FXAA.h" />
   </ItemGroup>
   <ItemGroup>
-    <Xml Include="..\..\samples\12_FXAA\FXAA.xml" />
+    <Xml Include="..\..\samples\13_PCSS\pcss.xml" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{F3BCD1AF-0E87-4BC3-AFC8-292016534301}</ProjectGuid>
