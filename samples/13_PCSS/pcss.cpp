@@ -15,38 +15,63 @@ class PCSSMesh : public Mesh
 {
 public:
 	PCSSMesh(const std::string &name, const ModelPtr &model)
-		: Mesh(name, model)
+		: Mesh(name, model), pcss_pass_(false)
 	{
-		RenderEffectPtr effect = LoadRenderEffect("shadow.xml");
-		RenderTechnique *tech = effect->GetTechniqueByName("SimpleShadowTech");
-		diffuse_tex_u_ = tech->GetShaderObject(*effect)->GetSamplerByName("diffuse");
 	}
 
 	void OnRenderBegin() override
 	{
-		//if (textures_[TS_Albedo])
-		//{
-		//	*diffuse_tex_u_ = textures_[TS_Albedo];
-		//}
 		const ShaderObjectPtr &shader = technique_->GetShaderObject(*effect_);
-		auto &camera = Context::Instance().FrameworkInstance().ActiveCamera();
+		PCSS *app = checked_cast<PCSS*>(&Context::Instance().FrameworkInstance());
+		auto &camera = app->ActiveCamera();
 
 		UniformPtr mvp = shader->GetUniformByName("mvp");
 		if (mvp)
-		{
 			*mvp = camera.ProjViewMatrix() * this->ModelMatrix();
-		}
 		UniformPtr proj_view = shader->GetUniformByName("proj_view");
 		if (proj_view)
-		{
 			*proj_view = camera.ProjViewMatrix();
+		UniformPtr model = shader->GetUniformByName("model");
+		if (model)
+			*model = this->ModelMatrix();
+
+		// pcss shader
+		if (pcss_pass_)
+		{
+			UniformPtr light_clip_to_tex = shader->GetUniformByName("light_clip_to_tex");
+			const glm::mat4 clip2tex = glm::translate(glm::scale(glm::mat4(), glm::vec3(0.5f)), glm::vec3(0.5f));
+			const CameraPtr &light_camera = app->LightCamera();
+			*light_clip_to_tex = clip2tex * light_camera->ProjViewMatrix();
+			*(shader->GetUniformByName("light_view")) = light_camera->ViewMatrix();
+			*(shader->GetUniformByName("light_pos")) = light_camera->EyePos();
+			*(shader->GetUniformByName("podium_center")) = glm::vec3(0.0192440003f, -0.228235498, -0.323256999);
+
+			if (textures_[TS_Albedo]) // for ground, knight, podium
+				*(shader->GetSamplerByName("diffuse_tex")) = textures_[TS_Albedo];
+			else
+				*(shader->GetSamplerByName("diffuse_tex")) = 0;
+
+			if (textures_[TS_Normal]) // for ground
+				*(shader->GetSamplerByName("normal_tex")) = textures_[TS_Normal];
+			else
+				*(shader->GetSamplerByName("normal_tex")) = 0;
+
+			*(shader->GetSamplerByName("shadow_map_depth")) = app->ShadowDepthTexture();
+			*(shader->GetSamplerByName("shadow_map_pcf")) = app->ShadowDepthTexture();
+
+			*(shader->GetUniformByName("light_radius_uv")) = glm::vec2(0.5f);
+			*(shader->GetUniformByName("light_z_near")) = light_camera->NearPlane();
+			*(shader->GetUniformByName("light_z_far")) = light_camera->FarPlane();
 		}
+	}
 
-
+	void PCSSPass(bool b)
+	{
+		this->pcss_pass_ = b;
 	}
 
 private:
-	UniformPtr diffuse_tex_u_;
+	bool pcss_pass_;
 };
 
 class PCSSGround : public RenderablePlane
@@ -72,12 +97,14 @@ PCSS::PCSS()
 void PCSS::OnCreate()
 {
 	RenderEngine &re = Context::Instance().RenderEngineInstance();
-	re.BindFrameBuffer(re.DefaultFrameBuffer());
+	const FrameBufferPtr &default_fb = re.DefaultFrameBuffer();
+	re.BindFrameBuffer(default_fb);
 
 	this->LookAt(glm::vec3(-0.644995f, 0.614183f, 0.660632f) * 1.5f, glm::vec3());
 	this->Proj(0.1f, 100.0f);
 	controller_.AttachCamera(this->ActiveCamera());
 	controller_.SetScalers(0.05f, 0.1f);
+	render_camera_ = default_fb->GetViewport()->camera;
 
 	ModelPtr knoght_model = LoadModel("knight.obj", EAH_Immutable, CreateModelFunc<Model>(), CreateMeshFunc<PCSSMesh>());
 	knight_ = std::make_shared<SceneObjectHelper>(knoght_model, SOA_Cullable);
@@ -86,11 +113,10 @@ void PCSS::OnCreate()
 	podium_ = std::make_shared<SceneObjectHelper>(podium_model, SOA_Cullable);
 	podium_->AddToSceneManager();
 
-	shadow_effect_ = LoadRenderEffect("shadow.xml");
-	simple_shadow_tec_ = shadow_effect_->GetTechniqueByName("SimpleShadowTech");
-
 	pcss_effect_ = LoadRenderEffect("pcss.xml");
-	depth_prepass_tech_ = pcss_effect_->GetTechniqueByName("DepthPrepassTech");
+	shadow_depth_offset_ = pcss_effect_->GetTechniqueByName("PcssShadowDepthOffsetTech");
+	shadow_color_ = pcss_effect_->GetTechniqueByName("SimpleShadowTech");
+	pcss_tech_ = pcss_effect_->GetTechniqueByName("PCSSTech");
 
 	shadow_fb_ = re.MakeFrameBuffer();
 	shadow_depth_tex_ = re.MakeTexture2D(LIGHT_RES, LIGHT_RES, 1, EF_D32F, 1, EAH_GPU_Read | EAH_GPU_Write);
@@ -98,13 +124,18 @@ void PCSS::OnCreate()
 	shadow_fb_->Attach(ATT_DepthStencil, re.Make2DDepthStencilRenderView(*shadow_depth_tex_, 0));
 	shadow_fb_->Attach(ATT_Color0, re.Make2DRenderView(*shadow_tex_, 0));
 	re.BindFrameBuffer(shadow_fb_);
+
+	// TODO : add frustum projection matrix modification
 	// shadow framebuffer use light matrix
 	shadow_fb_->GetViewport()->camera = std::make_shared<Camera>();
-	this->LookAt(glm::vec3(3.57088f, 6.989f, 5.19698f) * 1.5f, glm::vec3(0));
-	this->Proj(10.0f, 32.0f);
-	//vp->camera->ViewParams(glm::vec3(10.0f), glm::vec3());
-	//vp->camera->ProjParams(90.0f, static_cast<float>(LIGHT_RES) / LIGHT_RES, 0.1f, 100.0f);
-	//shadow_fb_->SetViewport(vp);
+	shadow_fb_->GetViewport()->camera->ViewParams(glm::vec3(3.57088f, 6.989f, 5.19698f) * 1.5f, glm::vec3(0));
+	shadow_fb_->GetViewport()->camera->ProjParams(25.0f, 1.0f, 10.0f, 32.0f);
+	light_camera_ = shadow_fb_->GetViewport()->camera;
+
+	screen_fb_ = re.MakeFrameBuffer();
+	screen_color_tex_ = re.MakeTexture2D(default_fb->Width(), default_fb->Height(), 1, EF_ABGR8, 1, EAH_GPU_Read | EAH_GPU_Write);
+	screen_depth_tex_ = re.MakeTexture2D(default_fb->Width(), default_fb->Height(), 1, EF_D32F, 1, EAH_GPU_Read | EAH_GPU_Write);
+	screen_fb_->GetViewport()->camera = render_camera_;
 }
 
 uint32_t PCSS::DoUpdate(uint32_t render_index)
@@ -115,23 +146,31 @@ uint32_t PCSS::DoUpdate(uint32_t render_index)
 	{
 	case 0:
 	{
-		Color clear_color(0.2f, 0.4f, 0.6f, 1.0f);
+		Color clear_color(0, 0, 0, 0);
 		re.DefaultFrameBuffer()->Clear(CBM_Color | CBM_Depth, clear_color, 1.0f, 0);
-		shadow_fb_->Clear(CBM_Depth, clear_color, 1.0f, 0);
+		shadow_fb_->Clear(CBM_Color | CBM_Depth, clear_color, 1.0f, 0);
+		screen_fb_->Clear(CBM_Color | CBM_Depth, clear_color, 1.0f, 0);
 		return 0;
 	}
 
 	case 1:
 	{
 		re.BindFrameBuffer(shadow_fb_);
-		sm.RenderStateChange(shadow_effect_, simple_shadow_tec_);
+		sm.RenderStateChange(pcss_effect_, shadow_depth_offset_);
 		return UR_NeedFlush;
 	}
 
 	case 2:
 	{
-		re.BindFrameBuffer(FrameBufferPtr());
-		sm.RenderStateChange(pcss_effect_, depth_prepass_tech_);
+		// To reduce overdraw, do a depth prepass to layout z
+		re.BindFrameBuffer(screen_fb_);
+		sm.RenderStateChange(pcss_effect_, shadow_color_);
+		return UR_NeedFlush;
+	}
+
+	case 3:
+	{
+		sm.RenderStateChange(pcss_effect_, pcss_tech_);
 		return UR_NeedFlush | UR_Finished;
 	}
 

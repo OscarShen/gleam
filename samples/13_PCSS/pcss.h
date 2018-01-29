@@ -15,6 +15,12 @@ public:
     void OnCreate() override;
 	uint32_t DoUpdate(uint32_t render_index) override;
 
+	const CameraPtr &LightCamera() const { return light_camera_; }
+	const CameraPtr &RenderCamera() const { return render_camera_; }
+	const TexturePtr &ShadowDepthTexture() const { return shadow_depth_tex_; }
+	const SceneObjectPtr &GetKnightSO() const { return knight_; }
+	const SceneObjectPtr &GetPodiumSO() const { return podium_; }
+
 private:
 	SceneObjectPtr knight_;
 	SceneObjectPtr podium_;
@@ -22,13 +28,15 @@ private:
 	FrameBufferPtr shadow_fb_;
 	TexturePtr shadow_tex_, shadow_depth_tex_;
 
-	RenderEffectPtr shadow_effect_;
-	RenderTechnique *simple_shadow_tec_;
+	FrameBufferPtr screen_fb_;
+	TexturePtr screen_color_tex_, screen_depth_tex_;
 
 	RenderEffectPtr pcss_effect_;
-	RenderTechnique *depth_prepass_tech_;
+	RenderTechnique *shadow_depth_offset_, *shadow_color_, *pcss_tech_;
 
 	TrackballCameraController controller_;
+	CameraPtr light_camera_;
+	CameraPtr render_camera_;
 };
 
 #endif // !GLEAM_SAMPLE_PCSS_H_
