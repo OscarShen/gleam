@@ -1,6 +1,172 @@
 <?xml version='1.0'?>
 
 <effect>
+  
+  <shader type="header" name="PcssShadowFunc">
+    <code>
+      <![CDATA[
+const vec2 Poisson32[32] = vec2[](
+    vec2(-0.975402, -0.0711386),
+    vec2(-0.920347, -0.41142),
+    vec2(-0.883908, 0.217872),
+    vec2(-0.884518, 0.568041),
+    vec2(-0.811945, 0.90521),
+    vec2(-0.792474, -0.779962),
+    vec2(-0.614856, 0.386578),
+    vec2(-0.580859, -0.208777),
+    vec2(-0.53795, 0.716666),
+    vec2(-0.515427, 0.0899991),
+    vec2(-0.454634, -0.707938),
+    vec2(-0.420942, 0.991272),
+    vec2(-0.261147, 0.588488),
+    vec2(-0.211219, 0.114841),
+    vec2(-0.146336, -0.259194),
+    vec2(-0.139439, -0.888668),
+    vec2(0.0116886, 0.326395),
+    vec2(0.0380566, 0.625477),
+    vec2(0.0625935, -0.50853),
+    vec2(0.125584, 0.0469069),
+    vec2(0.169469, -0.997253),
+    vec2(0.320597, 0.291055),
+    vec2(0.359172, -0.633717),
+    vec2(0.435713, -0.250832),
+    vec2(0.507797, -0.916562),
+    vec2(0.545763, 0.730216),
+    vec2(0.56859, 0.11655),
+    vec2(0.743156, -0.505173),
+    vec2(0.736442, -0.189734),
+    vec2(0.843562, 0.357036),
+    vec2(0.865413, 0.763726),
+    vec2(0.872005, -0.927)
+);      
+
+vec2 SearchRegionRadiusUV(vec2 light_radius_uv, vec2 light_z_near, float z_world)
+{
+    return light_radius_uv * (z_world - light_z_near) / z_world;
+}
+
+float BorderDepthTexture(sampler2D tex, vec2 uv)
+{
+  	return ((uv.x <= 1.0) && (uv.y <= 1.0) &&
+	 (uv.x >= 0.0) && (uv.y >= 0.0)) ? textureLod(tex, uv, 0.0).z : 1.0;
+}
+
+float BorderPcfTexture(sampler2DShadow tex, vec3 uvz)
+{
+  return ((uvz.x <= 1.0) && (uvz.y <= 1.0) &&
+	 (uvz.x >= 0.0) && (uvz.y >= 0.0)) ? texture(tex, uvz) : 
+	 ((uvz.z <= 1.0) ? 1.0 : 0.0);
+}
+
+float BiasedZ(
+  float z0,
+  vec2 dz_duv,
+  vec2 offset)
+{
+  return z0 + dot(dz_duv, offset);
+}
+
+void FindBlocker(
+  out float accumBlockerDepth, 
+  out float numBlockers,
+  out float maxBlockers,
+  sampler2D shadowMapDepth,
+  vec2 uv,
+  float z0,
+  vec2 dz_duv,
+  vec2 searchRegionRadiusUV)
+{
+  accumBlockerDepth = 0;
+  numBlockers = 0;
+  maxBlockers = 32.0;
+  
+  for(int i = 0; i < 32; ++i)
+  {
+    vec2 offset = Poisson32[i] * searchRegionRadiusUV;
+    float shadowMapDepth = BorderDepthTexture(shadowMapDepth, uv);
+    float z = BiasedZ(z0, dz_duv, offset);
+    if(shadowMapDepth < z)
+    {
+      accumBlockerDepth += shadowMapDepth;
+      maxBlockers++;
+    }
+  }
+}
+
+float zClipToEye(float z, float light_z_near, float light_z_far)
+{
+  return light_z_far * light_z_near / (light_z_far - z * (light_z_far, light_z_near));
+}
+
+vec2 PenumbraRadiusUV(vec2 light_radius_uv, float zReceiver, float zBlocker)
+{
+  return light_radius_uv * (zReceiver - zBlocker) / zBlocker;
+}
+
+vec2 ProjectToLightUV(
+  float light_z_near,
+  vec2 size_uv,
+  float z_world)
+{
+  return size_uv * light_z_near / z_world;
+}
+
+float PcfFilter(
+  sampler2D shadowMapPcf,
+  vec2 uv, 
+  float z0,
+  vec2 dz_duv,
+  vec2 filter_radius_uv)
+{
+  float sum = 0;
+  for(int i = 0; i < 32; ++i)
+  {
+    vec2 offset = Poisson32[i] * filter_radius_uv;
+    float z = BiasedZ(z0, dz_duv, offset);
+    sum += BorderPcfTexture(shadowMapPcf, vec3(uv + offset, z));
+  }
+  return sum / 32.0;
+}
+      
+float PcssShadow(
+  sampler2D shadowMapDepth,
+  sampler2DShadow shadowMapPcf,
+  vec2 light_radius_uv,
+  vec2 light_z_near,
+  vec2 light_z_far,
+  vec2 uv,
+  float z,
+  vec2 dz_duv,
+  float z_eye)
+{
+  // ------------------------
+  // STEP 1: blocker search
+  // ------------------------
+  float accumBlockerDepth, numBlockers, maxBlockers;
+  vec2 searchRegionRadiusUV = SearchRegionRadiusUV(light_radius_uv, light_z_near, z_eye);
+  FindBlocker(accumBlockerDepth, numBlockers, maxBlockers, shadowMapDepth, uv, z, dz_duv, searchRegionRadiusUV);
+
+  // Early out if not in the penumbra
+  if (numBlockers == 0.0)
+      return 1.0;
+      
+  // ------------------------
+  // STEP 2: penumbra size
+  // ------------------------
+  float avgBlockerDepth = accumBlockerDepth / numBlockers;
+  float avgBlockerDepthWorld = zClipToEye(avgBlockerDepth, light_z_near, light_z_far);
+  vec2 penumbraRadius = PenumbraRadiusUV(light_radius_uv, zEye, avgBlockerDepthWorld);
+  vec2 filterRadius = ProjectToLightUV(light_z_near, penumbraRadius, zEye);
+  
+  // ------------------------
+  // STEP 3: filtering
+  // ------------------------
+  return PcfFilter(shadowMapPcf, uv, z, dz_duv, filterRadius);
+}
+      ]]>
+    </code>
+  </shader>
+  
   <shader type="vertex_shader" name="SimpleShadowVS">
     <attrib name="pos" usage="position"/>
     <uniform type="mat4" name="proj_view"/>

@@ -1,38 +1,196 @@
 <?xml version='1.0'?>
 
 <effect>
-  <shader type="vertex_shader" name="DepthPrepassVS">
+  <include name="shadow.xml"/>
+  <shader type="vertex_shader" name="PCSSVS">
     <attrib name="pos" usage="position"/>
-    <uniform type="mat4" name="mvp"/>
+    <attrib name="normal" usage="normal"/>
+    <uniform type="mat4" name="model"/>
+    <uniform type="mat4" name="proj_view"/>
+    <uniform type="mat4" name="light_clip_to_tex"/>
     <code>
       <![CDATA[
 in vec3 pos;
+in vec3 normal;
 
-uniform mat4 mvp;
+uniform mat4 model;
+uniform mat4 proj_view;
+uniform mat4 light_clip_to_tex;
+
+out vec4 WorldPos;
+out vec4 LightPos;
+out vec3 Normal;
 
 void main()
 {
-  gl_Position = mvp * vec4(pos, 1.0f);
+  vec4 world_pos = model * vec4(pos, 1.0f);
+  WorldPos = world_pos;
+  
+  Normal = normal;
+  
+  LightPos = light_clip_to_tex * world_pos;
+  
+  gl_Position = proj_view * world_pos;
 }
       ]]>
     </code>
   </shader>
 
-  <shader type="fragment_shader" name="DepthPrepassFS">
+  <shader type="fragment_shader" name="PCSSFS">
+    <header name="PcssShadowFunc"/>
+    <uniform type="mat4" name="light_view"/>
+    <uniform type="vec3" name="light_pos"/>
+    <uniform type="sampler" name="diffuse_tex">
+      <state name="filtering" value="min_mag_mip_linear"/>
+      <state name="address_u" value="wrap"/>
+      <state name="address_v" value="wrap"/>
+    </uniform>
+    <uniform type="sampler" name="normal_tex" copy="diffuse_tex"/>
+    <uniform type="vec3" name="podium_center"/>
+    <uniform type="sampler" name="shadow_map_depth">
+      <state name="filtering" value="min_mag_mip_nearest"/>
+      <state name="address_u" value="clamp"/>
+      <state name="address_v" value="clamp"/>
+    </uniform>
+    <uniform type="sampler" name="shadow_map_pcf">
+      <state name="filtering" value="min_mag_mip_nearest"/>
+      <state name="address_u" value="clamp"/>
+      <state name="address_v" value="clamp"/>
+      <state name="cmp_func" value="less_equal"/>
+    </uniform>
+    <uniform type="vec2" name="light_radius_uv"/>
+    <uniform type="float" name="light_z_near"/>
+    <uniform type="float" name="light_z_far"/>
     <code>
       <![CDATA[
+in vec4 WorldPos;
+in vec4 LightPos;
+in vec3 Normal;
+
+uniform mat4 light_view;
+uniform vec3 light_pos;
+uniform sampler2D diffuse_tex;
+uniform sampler2D normal_tex;
+
+uniform vec3 podium_center; // for podium to map texture
+
+uniform sampler2D shadow_map_depth;
+uniform sampler2DShadow shadow_map_pcf;
+
+uniform vec2 light_radius_uv;
+uniform float light_z_near;
+uniform float light_z_far;
+
 out vec4 FragColor;
+
+// jocobian matrix
+vec2 DepthGradient(vec2 uv, float z)
+{
+  vec2 dz_duv = vec2(0.0, 0.0);
+  
+  vec3 duvdist_dx = dFdx(vec3(uv,z));
+  vec3 duvdist_dy = dFdy(vec3(uv,z));
+  
+  dz_duv.x = duvdist_dy.y * duvdist_dx.z;
+  dz_duv.x -= duvdist_dx.y * duvdist_dy.z;
+  
+  dz_duv.y = duvdist_dx.x * duvdist_dy.z;
+  dz_duv.y -= duvdist_dy.x * duvdist_dx.z;
+  
+  float det = (duvdist_dx.x * duvdist_dy.y) - (duvdist_dx.y * duvdist_dy.x);
+  dz_duv /= det;
+  
+  return dz_duv;
+}
+
+vec2 CubeMapTexCoords(vec3 v)
+{
+  vec2 uv;
+  if (abs(v.x) > abs(v.y) && abs(v.x) > abs(v.z))
+      uv = vec2(v.y / abs(v.x), v.z / abs(v.x));
+  if (abs(v.y) > abs(v.x) && abs(v.y) > abs(v.z))
+      uv = vec2(v.x / abs(v.y), v.z / abs(v.y));
+  else
+      uv = vec2(v.x / abs(v.z), v.y / abs(v.z));
+  return uv * 0.5 + 0.5;
+}
+
+vec4 Shade(vec3 world_pos, vec3 normal)
+{
+  vec3 light_dir = normalize(LightPos - world_pos);
+  if(diffuse_tex != 0 && normal_tex != 0)
+  {
+    vec2 uv = (world_pos.xz * 0.5f + 0.5f) * 2.0f;
+    vec3 diffuse = texture(diffuse_tex, uv).xyz;
+    normal = texture(normal_tex, uv).xzy * 2.0 - 1.0;
+    diffuse *= max(dot(light_dir, normal), 0);
+    diffuse *= pow(dot(light_dir, normalize(LightPos)), 40.0);
+    return vec4 (diffuse, 1.0);
+  }
+  else if(diffuse_tex != 0 && normal_tex == 0)
+  {
+      vec2 uv = CubeMapTexCoords(normalize(world_pos.xyz - podium_center));
+      vec3 diffuse = texture(diffuse_tex, uv).xyz * 1.2;
+      diffuse *= max(dot(light_dir, normal), 0);
+      return vec4(diffuse, 1.0);
+  }
+  else
+  {
+    float x = max(dot(light_dir, normal), 0);
+    vec4 diffuse = vec4 (x, x, x, 1.0);
+    return diffuse;
+  }
+}
+
+bool IsBlack(vec3 c)
+{
+    return (dot(c, c) == 0.0);
+}
 
 void main()
 {
-  FragColor = vec4(1.0f, 0, 0, 1.0f);
+  vec2 uv = LightPos.xy / LightPos.w;
+  float z = LightPos.z / LightPos.w;
+  
+  vec2 dz_duv = DepthGradient(uv, z);
+  vec4 color = shade(WorldPos.xyz, Normal);
+  if(IsBlack(color.rgb))
+  {
+    FragColor = color;
+  }
+  else
+  {
+    float zEye = -(light_view * WorldPosition).z;
+    float shadow = PcssShadow(
+                            shadow_map_depth,
+                            shadow_map_pcf,
+                            light_radius_uv,
+                            light_z_near,
+                            light_z_far,
+                            uv,
+                            z,
+                            dz_duv,
+                            zEye);
+    FragColor = color * shadow;
+  }
 }
       ]]>
     </code>
   </shader>
 
-  <technique name="DepthPrepassTech">
-    <state name="vertex_shader" value="DepthPrepassVS"/>
-    <state name="fragment_shader" value="DepthPrepassFS"/>
+  <technique name="PcssShadowDepthOffsetTech" inherit="SimpleShadowTech">
+    <state name="polygon_offset_factor" value="4.0"/>
+    <state name="polygon_offset_units" value="32.0"/>
+    
+    <state name="vertex_shader" value="SimpleShadowVS"/>
+    <state name="fragment_shader" value="SimpleShadowFS"/>
   </technique>
+
+  <technique name="PCSSTech">
+    <state name="depth_func" value="equal"/>
+    
+    <state name="vertex_shader" value="PCSSVS"/>
+    <state name="fragment_shader" value="PCSSFS"/>
+  </technique>
+  
 </effect>
