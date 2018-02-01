@@ -40,7 +40,7 @@ const vec2 Poisson32[32] = vec2[](
     vec2(0.872005, -0.927)
 );      
 
-vec2 SearchRegionRadiusUV(vec2 light_radius_uv, vec2 light_z_near, float z_world)
+vec2 SearchRegionRadiusUV(vec2 light_radius_uv, float light_z_near, float z_world)
 {
     return light_radius_uv * (z_world - light_z_near) / z_world;
 }
@@ -51,10 +51,10 @@ float BorderDepthTexture(sampler2D tex, vec2 uv)
 	 (uv.x >= 0.0) && (uv.y >= 0.0)) ? textureLod(tex, uv, 0.0).z : 1.0;
 }
 
-float BorderPcfTexture(sampler2DShadow tex, vec3 uvz)
+float BorderPcfTexture(sampler2DShadow shadowMapPcf, vec3 uvz)
 {
   return ((uvz.x <= 1.0) && (uvz.y <= 1.0) &&
-	 (uvz.x >= 0.0) && (uvz.y >= 0.0)) ? texture(tex, uvz) : 
+	 (uvz.x >= 0.0) && (uvz.y >= 0.0)) ? texture(shadowMapPcf, uvz) : 
 	 ((uvz.z <= 1.0) ? 1.0 : 0.0);
 }
 
@@ -88,7 +88,7 @@ void FindBlocker(
     if(shadowMapDepth < z)
     {
       accumBlockerDepth += shadowMapDepth;
-      maxBlockers++;
+      numBlockers++;
     }
   }
 }
@@ -112,7 +112,7 @@ vec2 ProjectToLightUV(
 }
 
 float PcfFilter(
-  sampler2D shadowMapPcf,
+  sampler2DShadow shadowMapPcf,
   vec2 uv, 
   float z0,
   vec2 dz_duv,
@@ -132,8 +132,8 @@ float PcssShadow(
   sampler2D shadowMapDepth,
   sampler2DShadow shadowMapPcf,
   vec2 light_radius_uv,
-  vec2 light_z_near,
-  vec2 light_z_far,
+  float light_z_near,
+  float light_z_far,
   vec2 uv,
   float z,
   vec2 dz_duv,
@@ -155,8 +155,8 @@ float PcssShadow(
   // ------------------------
   float avgBlockerDepth = accumBlockerDepth / numBlockers;
   float avgBlockerDepthWorld = zClipToEye(avgBlockerDepth, light_z_near, light_z_far);
-  vec2 penumbraRadius = PenumbraRadiusUV(light_radius_uv, zEye, avgBlockerDepthWorld);
-  vec2 filterRadius = ProjectToLightUV(light_z_near, penumbraRadius, zEye);
+  vec2 penumbraRadius = PenumbraRadiusUV(light_radius_uv, z_eye, avgBlockerDepthWorld);
+  vec2 filterRadius = ProjectToLightUV(light_z_near, penumbraRadius, z_eye);
   
   // ------------------------
   // STEP 3: filtering

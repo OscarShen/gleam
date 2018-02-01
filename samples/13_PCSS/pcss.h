@@ -18,12 +18,9 @@ public:
 	const CameraPtr &LightCamera() const { return light_camera_; }
 	const CameraPtr &RenderCamera() const { return render_camera_; }
 	const TexturePtr &ShadowDepthTexture() const { return shadow_depth_tex_; }
-	const SceneObjectPtr &GetKnightSO() const { return knight_; }
-	const SceneObjectPtr &GetPodiumSO() const { return podium_; }
 
 private:
-	SceneObjectPtr knight_;
-	SceneObjectPtr podium_;
+	std::vector<SceneObjectPtr> mesh_so_;
 
 	FrameBufferPtr shadow_fb_;
 	TexturePtr shadow_tex_, shadow_depth_tex_;

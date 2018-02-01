@@ -46,22 +46,28 @@ public:
 			*(shader->GetUniformByName("light_pos")) = light_camera->EyePos();
 			*(shader->GetUniformByName("podium_center")) = glm::vec3(0.0192440003f, -0.228235498, -0.323256999);
 
+			int i = 0;
 			if (textures_[TS_Albedo]) // for ground, knight, podium
+			{
 				*(shader->GetSamplerByName("diffuse_tex")) = textures_[TS_Albedo];
-			else
-				*(shader->GetSamplerByName("diffuse_tex")) = 0;
+				++i;
+			}
 
 			if (textures_[TS_Normal]) // for ground
+			{
 				*(shader->GetSamplerByName("normal_tex")) = textures_[TS_Normal];
-			else
-				*(shader->GetSamplerByName("normal_tex")) = 0;
+				++i;
+			}
 
+			*(shader->GetUniformByName("use_textures")) = i;
 			*(shader->GetSamplerByName("shadow_map_depth")) = app->ShadowDepthTexture();
 			*(shader->GetSamplerByName("shadow_map_pcf")) = app->ShadowDepthTexture();
 
 			*(shader->GetUniformByName("light_radius_uv")) = glm::vec2(0.5f);
 			*(shader->GetUniformByName("light_z_near")) = light_camera->NearPlane();
 			*(shader->GetUniformByName("light_z_far")) = light_camera->FarPlane();
+
+			pcss_pass_ = false;
 		}
 	}
 
@@ -107,11 +113,19 @@ void PCSS::OnCreate()
 	render_camera_ = default_fb->GetViewport()->camera;
 
 	ModelPtr knoght_model = LoadModel("knight.obj", EAH_Immutable, CreateModelFunc<Model>(), CreateMeshFunc<PCSSMesh>());
-	knight_ = std::make_shared<SceneObjectHelper>(knoght_model, SOA_Cullable);
-	knight_->AddToSceneManager();
+	SceneObjectPtr knight_so = std::make_shared<SceneObjectHelper>(knoght_model, SOA_Cullable);
+	knight_so->AddToSceneManager();
+	for (uint32_t i = 0; i < knight_so->NumChildren(); ++i)
+	{
+		mesh_so_.push_back(knight_so->Child(i));
+	}
 	ModelPtr podium_model = LoadModel("podium.obj", EAH_Immutable, CreateModelFunc<Model>(), CreateMeshFunc<PCSSMesh>());
-	podium_ = std::make_shared<SceneObjectHelper>(podium_model, SOA_Cullable);
-	podium_->AddToSceneManager();
+	SceneObjectPtr podium_so = std::make_shared<SceneObjectHelper>(podium_model, SOA_Cullable);
+	podium_so->AddToSceneManager();
+	for (uint32_t i = 0; i < podium_so->NumChildren(); ++i)
+	{
+		mesh_so_.push_back(podium_so->Child(i));
+	}
 
 	pcss_effect_ = LoadRenderEffect("pcss.xml");
 	shadow_depth_offset_ = pcss_effect_->GetTechniqueByName("PcssShadowDepthOffsetTech");
@@ -135,6 +149,8 @@ void PCSS::OnCreate()
 	screen_fb_ = re.MakeFrameBuffer();
 	screen_color_tex_ = re.MakeTexture2D(default_fb->Width(), default_fb->Height(), 1, EF_ABGR8, 1, EAH_GPU_Read | EAH_GPU_Write);
 	screen_depth_tex_ = re.MakeTexture2D(default_fb->Width(), default_fb->Height(), 1, EF_D32F, 1, EAH_GPU_Read | EAH_GPU_Write);
+	screen_fb_->Attach(ATT_DepthStencil, re.Make2DDepthStencilRenderView(*screen_depth_tex_, 0));
+	screen_fb_->Attach(ATT_Color0, re.Make2DRenderView(*screen_color_tex_, 0));
 	screen_fb_->GetViewport()->camera = render_camera_;
 }
 
@@ -170,7 +186,12 @@ uint32_t PCSS::DoUpdate(uint32_t render_index)
 
 	case 3:
 	{
+		re.BindFrameBuffer(FrameBufferPtr());
 		sm.RenderStateChange(pcss_effect_, pcss_tech_);
+		for (const SceneObjectPtr &mesh_r : mesh_so_)
+		{
+			checked_pointer_cast<PCSSMesh>(mesh_r->GetRenderable())->PCSSPass(true);
+		}
 		return UR_NeedFlush | UR_Finished;
 	}
 

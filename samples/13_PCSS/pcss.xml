@@ -46,6 +46,7 @@ void main()
       <state name="address_v" value="wrap"/>
     </uniform>
     <uniform type="sampler" name="normal_tex" copy="diffuse_tex"/>
+    <uniform type="float" name="use_textures"/>
     <uniform type="vec3" name="podium_center"/>
     <uniform type="sampler" name="shadow_map_depth">
       <state name="filtering" value="min_mag_mip_nearest"/>
@@ -63,6 +64,7 @@ void main()
     <uniform type="float" name="light_z_far"/>
     <code>
       <![CDATA[
+      
 in vec4 WorldPos;
 in vec4 LightPos;
 in vec3 Normal;
@@ -71,6 +73,7 @@ uniform mat4 light_view;
 uniform vec3 light_pos;
 uniform sampler2D diffuse_tex;
 uniform sampler2D normal_tex;
+uniform float use_textures;
 
 uniform vec3 podium_center; // for podium to map texture
 
@@ -117,26 +120,26 @@ vec2 CubeMapTexCoords(vec3 v)
 
 vec4 Shade(vec3 world_pos, vec3 normal)
 {
-  vec3 light_dir = normalize(LightPos - world_pos);
-  if(diffuse_tex != 0 && normal_tex != 0)
+  vec3 light_dir = normalize(light_pos - world_pos);
+  if(use_textures > 1.5)
   {
     vec2 uv = (world_pos.xz * 0.5f + 0.5f) * 2.0f;
     vec3 diffuse = texture(diffuse_tex, uv).xyz;
     normal = texture(normal_tex, uv).xzy * 2.0 - 1.0;
     diffuse *= max(dot(light_dir, normal), 0);
-    diffuse *= pow(dot(light_dir, normalize(LightPos)), 40.0);
+    diffuse *= pow(dot(light_dir, normalize(light_pos)), 40.0);
     return vec4 (diffuse, 1.0);
   }
-  else if(diffuse_tex != 0 && normal_tex == 0)
+  else if(use_textures > 0.5)
   {
       vec2 uv = CubeMapTexCoords(normalize(world_pos.xyz - podium_center));
       vec3 diffuse = texture(diffuse_tex, uv).xyz * 1.2;
-      diffuse *= max(dot(light_dir, normal), 0);
+      diffuse *= max(dot(light_dir, normal), 0.0);
       return vec4(diffuse, 1.0);
   }
   else
   {
-    float x = max(dot(light_dir, normal), 0);
+    float x = max(dot(light_dir, normal), 0.0);
     vec4 diffuse = vec4 (x, x, x, 1.0);
     return diffuse;
   }
@@ -153,16 +156,15 @@ void main()
   float z = LightPos.z / LightPos.w;
   
   vec2 dz_duv = DepthGradient(uv, z);
-  vec4 color = shade(WorldPos.xyz, Normal);
+  vec4 color = Shade(WorldPos.xyz, Normal);
   if(IsBlack(color.rgb))
   {
     FragColor = color;
   }
   else
   {
-    float zEye = -(light_view * WorldPosition).z;
-    float shadow = PcssShadow(
-                            shadow_map_depth,
+    float z_eye = -(light_view * WorldPos).z;
+    float shadow = PcssShadow(shadow_map_depth,
                             shadow_map_pcf,
                             light_radius_uv,
                             light_z_near,
@@ -170,7 +172,7 @@ void main()
                             uv,
                             z,
                             dz_duv,
-                            zEye);
+                            z_eye);
     FragColor = color * shadow;
   }
 }

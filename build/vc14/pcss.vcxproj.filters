@@ -22,7 +22,7 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <Xml Include="pcss.xml">
+    <Xml Include="..\..\samples\13_PCSS\pcss.xml">
       <Filter>资源文件</Filter>
     </Xml>
   </ItemGroup>
