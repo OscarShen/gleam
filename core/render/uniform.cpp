@@ -123,9 +123,14 @@ namespace gleam {
 	}
 	void OGLUniformSampler::Load()
 	{
-		OGLTexture &gl_texture = *checked_pointer_cast<OGLTexture>(data_.texture);
+		GLuint gl_tex = 0;
 		OGLSamplerStateObject &gl_sampler_state = *checked_pointer_cast<OGLSamplerStateObject>(data_.sampler_state);
-		glBindTextureUnit(data_.texture_unit, gl_texture.GLTexture());
+		if (data_.texture)
+		{
+			OGLTexture &gl_texture = *checked_pointer_cast<OGLTexture>(data_.texture);
+			gl_tex = gl_texture.GLTexture();
+		}
+		glBindTextureUnit(data_.texture_unit, gl_tex);
 		glBindSampler(data_.texture_unit, gl_sampler_state.GLSampler());
 		if (dirty_)
 		{
@@ -372,9 +377,13 @@ namespace gleam {
 	}
 	void OGLUniformImage::Load()
 	{
-		OGLTexture &gl_texture = *checked_pointer_cast<OGLTexture>(data_.texture);
-		GLuint tex_id = gl_texture.GLTexture();
-		glBindImageTextures(data_.texture_unit, 1, &tex_id);
+		GLuint gl_tex = 0;
+		if (data_.texture)
+		{
+			OGLTexture &gl_texture = *checked_pointer_cast<OGLTexture>(data_.texture);
+			gl_tex = gl_texture.GLTexture();
+		}
+		glBindImageTextures(data_.texture_unit, 1, &gl_tex);
 		if (dirty_)
 		{
 			glProgramUniform1i(program_, location_, data_.texture_unit);
