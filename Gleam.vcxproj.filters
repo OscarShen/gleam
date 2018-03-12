@@ -153,9 +153,6 @@
     <ClInclude Include="samples\10_glare_effect\glare_effect.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="samples\11_bloom\bloom.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="core\base\window.cpp">
@@ -290,9 +287,6 @@
     <ClCompile Include="samples\10_glare_effect\glare_effect.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="samples\11_bloom\bloom.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="external\include\tinyXML\tinystr.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
@@ -323,8 +317,6 @@
     <Xml Include="resource\render\HDR_util.xml" />
     <Xml Include="resource\render\HDR_pp.xml" />
     <Xml Include="resource\render\shadow.xml" />
-    <Xml Include="samples\11_bloom\bloom.xml" />
-    <Xml Include="samples\11_bloom\bloom_pp.xml" />
     <Xml Include="resource\render\AA.xml" />
     <Xml Include="resource\render\AA_pp.xml" />
     <Xml Include="resource\render\base.xml" />

@@ -188,6 +188,7 @@ uint32_t Bloom::DoUpdate(uint32_t render_index)
 	return 0;
 }
 
+#define BLOOMAPP
 #ifdef BLOOMAPP
 int main()
 {

@@ -167,7 +167,6 @@
     <ClInclude Include="external\include\tinyXML\tinystr.h" />
     <ClInclude Include="external\include\tinyXML\tinyxml.h" />
     <ClInclude Include="samples\10_glare_effect\glare_effect.h" />
-    <ClInclude Include="samples\11_bloom\bloom.h" />
     <ClInclude Include="samples\1_triangle\triangle.h" />
     <ClInclude Include="samples\9_HDR\HDR.h" />
   </ItemGroup>
@@ -211,7 +210,6 @@
     <ClCompile Include="external\include\tinyXML\tinyxmlerror.cpp" />
     <ClCompile Include="external\include\tinyXML\tinyxmlparser.cpp" />
     <ClCompile Include="samples\10_glare_effect\glare_effect.cpp" />
-    <ClCompile Include="samples\11_bloom\bloom.cpp" />
     <ClCompile Include="samples\2_line\line.cpp" />
     <ClCompile Include="samples\3_teapot\teapot.cpp" />
     <ClCompile Include="samples\1_triangle\triangle.cpp" />
@@ -260,8 +258,6 @@
     <Xml Include="resource\render\tonemapping.xml">
       <SubType>Designer</SubType>
     </Xml>
-    <Xml Include="samples\11_bloom\bloom_pp.xml" />
-    <Xml Include="samples\11_bloom\bloom.xml" />
     <Xml Include="samples\4_basic_lighting\basic_light.xml">
       <SubType>Designer</SubType>
     </Xml>
