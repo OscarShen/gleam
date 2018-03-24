@@ -97,11 +97,13 @@ void main() {
   </shader>
 
   <technique name="BasicLight">
+    <state name="cull_mode" value="none"/>
     <state name="vertex_shader" value="BasicLightVS"/>
     <state name="fragment_shader" value="BasicLightFS"/>
   </technique>
 
   <technique name="Lamp">
+    <state name="cull_mode" value="none"/>
     <state name="vertex_shader" value="ColorVS"/>
     <state name="fragment_shader" value="ColorFS"/>
   </technique>

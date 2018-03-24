@@ -19,7 +19,7 @@
 using namespace gleam;
 
 HDRAdvance::HDRAdvance()
-	:Framework3D("HDR")
+	:Framework3D("glare effect sample")
 {
 	ResLoader::Instance().AddPath("../../samples/9_HDR");
 	ResLoader::Instance().AddPath("../../samples/10_glare_effect");
@@ -308,6 +308,7 @@ void HDRAdvance::Init()
 	screen_tex_ = re.MakeTexture2D(width, height, 1, EF_ABGR32F, 1, EAH_GPU_Read | EAH_GPU_Write);
 	screen_buffer_->Attach(ATT_Color0, re.Make2DRenderView(*screen_tex_, 0));
 	screen_buffer_->Attach(ATT_DepthStencil, re.Make2DDepthStencilRenderView(width, height, EF_D16, 1));
+	screen_buffer_->GetViewport()->camera = default_fb->GetViewport()->camera;
 
 	uint32_t w = pp_width / 4;
 	uint32_t h = pp_height / 4;
@@ -389,10 +390,9 @@ void Object::OnRenderBegin()
 }
 
 SObject::SObject()
-	: SceneObjectHelper(SOA_Cullable)
+	: SceneObjectHelper(LoadModel("venus.obj", EAH_GPU_Read | EAH_Immutable,
+		CreateModelFunc<Model>(), CreateMeshFunc<Object>()), SOA_Cullable)
 {
-	renderable_ = LoadModel("venus.obj", EAH_GPU_Read | EAH_Immutable,
-		CreateModelFunc<Model>(), CreateMeshFunc<Object>());
 }
 
 void SObject::Cubemap(const TexturePtr & cubemap)
@@ -403,6 +403,7 @@ void SObject::Cubemap(const TexturePtr & cubemap)
 	}
 }
 
+#define GLARE_EFFECT
 #ifdef GLARE_EFFECT
 int main()
 {

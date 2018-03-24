@@ -44,6 +44,13 @@ public:
 		*(shader.GetUniformByName("light_color")) = glm::vec3(1.0f);
 		light_pos_ = shader.GetUniformByName("light_pos");
 		eye_pos_ = shader.GetUniformByName("eye_pos");
+
+		proj_view_ = shader.GetUniformByName("proj_view");
+		model_ = shader.GetUniformByName("model");
+
+		albedo_ = shader.GetUniformByName("albedo_color");
+		metalness_ = shader.GetUniformByName("metalness_color");
+		glossiness_ = shader.GetUniformByName("glossiness_color");
 	}
 
 	void OnRenderBegin() override
@@ -70,6 +77,8 @@ public:
 		RenderEffectPtr effect = LoadRenderEffect("basic_light.xml");
 		RenderTechnique *technique = effect->GetTechniqueByName("Lamp");
 		this->BindRenderTechnique(effect, technique);
+
+		mvp_ = technique->GetShaderObject(*effect)->GetUniformByName("mvp");
 	}
 
 	void OnRenderBegin() override
@@ -79,6 +88,9 @@ public:
 		glm::mat4 mvp = framework.ActiveCamera().ProjViewMatrix() * model_matrix_;
 		*mvp_ = mvp;
 	}
+
+private:
+	UniformPtr mvp_;
 };
 
 class BasicLightingFramework : public Framework3D
@@ -212,11 +224,9 @@ private:
 	TrackballCameraController controller;
 };
 
-#ifdef BasicLightAPP
 void main()
 {
 	BasicLightingFramework app;
 	app.Create();
 	app.Run();
 }
-#endif // LineAPP

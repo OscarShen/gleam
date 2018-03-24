@@ -135,22 +135,13 @@
     <ClInclude Include="core\util\array_ref.hpp">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="samples\1_triangle\triangle.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="core\render\light.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="samples\9_HDR\HDR.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="core\render\compute_renderable.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="core\render\post_process.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="samples\10_glare_effect\glare_effect.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
@@ -248,43 +239,13 @@
     <ClCompile Include="core\render\mesh.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="samples\1_triangle\triangle.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="samples\2_line\line.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="samples\3_teapot\teapot.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="samples\4_basic_lighting\basic_lighting.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="core\render\light.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="samples\5_height_mapping\height_mapping.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="samples\6_refract\refract.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="samples\7_terrain\terrain.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="samples\9_HDR\HDR.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="samples\8_vertex_displacement\displacement.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="core\render\compute_renderable.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="core\render\post_process.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="samples\10_glare_effect\glare_effect.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="external\include\tinyXML\tinystr.cpp">
@@ -302,15 +263,9 @@
   </ItemGroup>
   <ItemGroup>
     <Xml Include="resource\render\renderable.xml" />
-    <Xml Include="samples\4_basic_lighting\basic_light.xml" />
     <Xml Include="resource\render\lighting.xml" />
     <Xml Include="resource\render\LightPolygon.xml" />
-    <Xml Include="samples\5_height_mapping\HeightMapping.xml" />
     <Xml Include="resource\render\skybox.xml" />
-    <Xml Include="samples\6_refract\refract.xml" />
-    <Xml Include="samples\7_terrain\terrain.xml" />
-    <Xml Include="samples\8_vertex_displacement\VertexDisplacement.xml" />
-    <Xml Include="samples\9_HDR\HDR.xml" />
     <Xml Include="resource\render\downsize.xml" />
     <Xml Include="resource\render\blur.xml" />
     <Xml Include="resource\render\tonemapping.xml" />
@@ -321,8 +276,5 @@
     <Xml Include="resource\render\AA_pp.xml" />
     <Xml Include="resource\render\base.xml" />
     <Xml Include="resource\render\base_pp.xml" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="samples\1_triangle\triangle.xml" />
   </ItemGroup>
 </Project>

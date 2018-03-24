@@ -166,9 +166,6 @@
     <ClInclude Include="external\include\stb_image\stb_image.h" />
     <ClInclude Include="external\include\tinyXML\tinystr.h" />
     <ClInclude Include="external\include\tinyXML\tinyxml.h" />
-    <ClInclude Include="samples\10_glare_effect\glare_effect.h" />
-    <ClInclude Include="samples\1_triangle\triangle.h" />
-    <ClInclude Include="samples\9_HDR\HDR.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="core\base\bbox.cpp" />
@@ -209,19 +206,6 @@
     <ClCompile Include="external\include\tinyXML\tinyxml.cpp" />
     <ClCompile Include="external\include\tinyXML\tinyxmlerror.cpp" />
     <ClCompile Include="external\include\tinyXML\tinyxmlparser.cpp" />
-    <ClCompile Include="samples\10_glare_effect\glare_effect.cpp" />
-    <ClCompile Include="samples\2_line\line.cpp" />
-    <ClCompile Include="samples\3_teapot\teapot.cpp" />
-    <ClCompile Include="samples\1_triangle\triangle.cpp" />
-    <ClCompile Include="samples\4_basic_lighting\basic_lighting.cpp" />
-    <ClCompile Include="samples\5_height_mapping\height_mapping.cpp" />
-    <ClCompile Include="samples\6_refract\refract.cpp" />
-    <ClCompile Include="samples\7_terrain\terrain.cpp" />
-    <ClCompile Include="samples\8_vertex_displacement\displacement.cpp" />
-    <ClCompile Include="samples\9_HDR\HDR.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="samples\1_triangle\triangle.xml" />
   </ItemGroup>
   <ItemGroup>
     <Xml Include="resource\render\AA.xml">
@@ -256,24 +240,6 @@
       <SubType>Designer</SubType>
     </Xml>
     <Xml Include="resource\render\tonemapping.xml">
-      <SubType>Designer</SubType>
-    </Xml>
-    <Xml Include="samples\4_basic_lighting\basic_light.xml">
-      <SubType>Designer</SubType>
-    </Xml>
-    <Xml Include="samples\5_height_mapping\HeightMapping.xml">
-      <SubType>Designer</SubType>
-    </Xml>
-    <Xml Include="samples\6_refract\refract.xml">
-      <SubType>Designer</SubType>
-    </Xml>
-    <Xml Include="samples\7_terrain\terrain.xml">
-      <SubType>Designer</SubType>
-    </Xml>
-    <Xml Include="samples\8_vertex_displacement\VertexDisplacement.xml">
-      <SubType>Designer</SubType>
-    </Xml>
-    <Xml Include="samples\9_HDR\HDR.xml">
       <SubType>Designer</SubType>
     </Xml>
     <Xml Include="resource\render\HDR_pp.xml">

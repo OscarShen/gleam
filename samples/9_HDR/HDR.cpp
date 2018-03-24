@@ -42,10 +42,9 @@ void HDRObject::OnRenderBegin()
 }
 
 HdrSceneObject::HdrSceneObject()
-	: SceneObjectHelper(SOA_Cullable)
+	: SceneObjectHelper(LoadModel("venus.obj", EAH_GPU_Read | EAH_Immutable,
+		CreateModelFunc<Model>(), CreateMeshFunc<HDRObject>()), SOA_Cullable)
 {
-	renderable_ = LoadModel("venus.obj", EAH_GPU_Read | EAH_Immutable,
-		CreateModelFunc<Model>(), CreateMeshFunc<HDRObject>());
 }
 
 void HdrSceneObject::Cubemap(const TexturePtr & cubemap)
@@ -196,11 +195,9 @@ void HDR::Init()
 	adapted_lum_tex_[1] = re.MakeTexture2D(1, 1, 1, EF_ABGR32F, 1, EAH_GPU_Read | EAH_GPU_Write);
 }
 
-#ifdef HDR_APP
 int main()
 {
 	HDR hdr;
 	hdr.Create();
 	hdr.Run();
 }
-#endif

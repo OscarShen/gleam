@@ -53,11 +53,9 @@ private:
 	SceneObjectPtr box_;
 };
 
-#ifdef TERRAIN_APP
 int main()
 {
 	TerrainFramework app;
 	app.Create();
 	app.Run();
 }
-#endif // TERRAIN_APP

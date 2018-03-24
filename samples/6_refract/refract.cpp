@@ -21,7 +21,14 @@ public:
 
 		this->BindRenderTechnique(effect_, technique_);
 
-		*(technique_->GetShaderObject(*effect_)->GetUniformByName("eta")) = glm::vec3(1/1.11, 1/1.12, 1/1.13);
+		ShaderObjectPtr shader = technique_->GetShaderObject(*effect_);
+
+
+		proj_view_ = shader->GetUniformByName("proj_view");
+		model_ = shader->GetUniformByName("model");
+		eye_pos_ = shader->GetUniformByName("eye_pos");
+
+		*(shader->GetUniformByName("eta")) = glm::vec3(1/1.11, 1/1.12, 1/1.13);
 	}
 
 	void CubeMap(const TexturePtr &cubemap)
@@ -41,16 +48,20 @@ public:
 		*model_ = model_matrix_;
 		*eye_pos_ = camera.EyePos();
 	}
+
+private:
+	UniformPtr proj_view_;
+	UniformPtr model_;
+	UniformPtr eye_pos_;
 };
 
 class RefractorSceneObject : public SceneObjectHelper
 {
 public:
 	RefractorSceneObject(const TexturePtr &cubemap)
-		: SceneObjectHelper(SOA_Cullable)
+		: SceneObjectHelper(LoadModel("teapot.obj", EAH_GPU_Read | EAH_Immutable,
+			CreateModelFunc<Model>(), CreateMeshFunc<Refractor>()), SOA_Cullable)
 	{
-		renderable_ = LoadModel("teapot.obj", EAH_GPU_Read | EAH_Immutable,
-			CreateModelFunc<Model>(), CreateMeshFunc<Refractor>());
 		for (uint32_t i = 0; i < renderable_->NumSubrenderables(); ++i)
 		{
 			checked_pointer_cast<Refractor>(renderable_->Subrenderable(i))->CubeMap(cubemap);
@@ -107,11 +118,9 @@ private:
 	TrackballCameraController controller_;
 };
 
-#ifdef REFRACT_APP
 int main()
 {
 	Refract app;
 	app.Create();
 	app.Run();
 }
-#endif // REFRACT_APP

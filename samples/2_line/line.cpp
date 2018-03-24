@@ -23,6 +23,7 @@ public:
 		this->BindRenderTechnique(effect, technique);
 		ShaderObject &shader = *technique_->GetShaderObject(*effect_);
 		*(shader.GetUniformByName("color")) = glm::vec4(1.0f, 0, 0, 1.0f);
+		mvp_ = shader.GetUniformByName("mvp");
 	}
 
 	void OnRenderBegin() override
@@ -85,11 +86,9 @@ private:
 	//FirstPersonCameraController controller;
 };
 
-#ifdef LineAPP
 void main()
 {
 	LineFramework app;
 	app.Create();
 	app.Run();
 }
-#endif // LineAPP

@@ -126,7 +126,7 @@ void PCSS::OnCreate()
 	{
 		mesh_so_.push_back(podium_so->Child(i));
 	}
-
+	glm::inverse(glm::mat4());
 	pcss_effect_ = LoadRenderEffect("pcss.xml");
 	shadow_depth_offset_ = pcss_effect_->GetTechniqueByName("PcssShadowDepthOffsetTech");
 	shadow_color_ = pcss_effect_->GetTechniqueByName("SimpleShadowTech");

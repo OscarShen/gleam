@@ -22,6 +22,8 @@ public:
 		RenderTechnique *technique = effect->GetTechniqueByName("TexTec");
 		this->BindRenderTechnique(effect, technique);
 		ShaderObject &shader = *technique_->GetShaderObject(*effect_);
+		mvp_ = shader.GetUniformByName("mvp");
+		albedo_tex_ = shader.GetSamplerByName("albedo_tex");
 	}
 
 	void OnRenderBegin() override
@@ -78,11 +80,9 @@ private:
 	//FirstPersonCameraController controller;
 };
 
-#ifdef TeapotAPP
 void main()
 {
 	TeapotFramework app;
 	app.Create();
 	app.Run();
 }
-#endif // LineAPP

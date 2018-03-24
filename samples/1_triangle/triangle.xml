@@ -31,6 +31,7 @@ void main()
 
 	<technique name="Triangle">
 		<state name="polygon_mode" value="line"/>
+    <state name="cull_mode" value="none"/>
 
 		<state name="vertex_shader" value="TriangleVS"/>
 		<state name="fragment_shader" value="TriangleFS"/>

@@ -214,12 +214,10 @@ private:
 	LightPtr light_;
 };
 
-#ifdef HEIGHT_MAPPING_ADD
 int main()
 {
 	HeightMapping app;
 	app.Create();
 	app.Run();
 }
-#endif // HEIGHT_MAPPING_ADD
 

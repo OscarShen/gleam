@@ -49,12 +49,9 @@ namespace gleam {
 	}
 }
 
-#ifdef TriangleAPP
-
 int main()
 {
 	gleam::TriangleApp app;
 	app.Create();
 	app.Run();
 }
-#endif // TriangleAPP

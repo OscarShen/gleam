@@ -63,3 +63,10 @@ private:
 	SceneObjectPtr flag_;
 };
 
+// 由于法线的 displacement 问题没有解决，暂时放弃
+int main()
+{
+	VertexDisplacement app;
+	app.Create();
+	app.Run();
+}
