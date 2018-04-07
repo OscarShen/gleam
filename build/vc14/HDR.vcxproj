@@ -158,6 +158,9 @@
     <ClInclude Include="..\..\samples\9_HDR\HDR.h" />
   </ItemGroup>
   <ItemGroup>
+    <Xml Include="..\..\resource\render\HDR_pp.xml" />
+    <Xml Include="..\..\resource\render\HDR_util.xml" />
+    <Xml Include="..\..\resource\render\tonemapping.xml" />
     <Xml Include="..\..\samples\9_HDR\HDR.xml" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

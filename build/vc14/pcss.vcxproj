@@ -158,6 +158,7 @@
     <ClCompile Include="..\..\samples\13_PCSS\pcss.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <Xml Include="..\..\resource\render\shadow.xml" />
     <Xml Include="..\..\samples\13_PCSS\pcss.xml">
       <SubType>Designer</SubType>
     </Xml>

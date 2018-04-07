@@ -23,6 +23,15 @@
     <Xml Include="..\..\samples\9_HDR\HDR.xml">
       <Filter>资源文件</Filter>
     </Xml>
+    <Xml Include="..\..\resource\render\HDR_pp.xml">
+      <Filter>资源文件</Filter>
+    </Xml>
+    <Xml Include="..\..\resource\render\HDR_util.xml">
+      <Filter>资源文件</Filter>
+    </Xml>
+    <Xml Include="..\..\resource\render\tonemapping.xml">
+      <Filter>资源文件</Filter>
+    </Xml>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\samples\9_HDR\HDR.h">
