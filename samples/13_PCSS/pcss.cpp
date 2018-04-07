@@ -39,12 +39,13 @@ public:
 		if (pcss_pass_)
 		{
 			UniformPtr light_clip_to_tex = shader->GetUniformByName("light_clip_to_tex");
-			const glm::mat4 clip2tex = glm::translate(glm::scale(glm::mat4(), glm::vec3(0.5f)), glm::vec3(0.5f));
 			const CameraPtr &light_camera = app->LightCamera();
-			*light_clip_to_tex = clip2tex * light_camera->ProjViewMatrix();
 			*(shader->GetUniformByName("light_view")) = light_camera->ViewMatrix();
 			*(shader->GetUniformByName("light_pos")) = light_camera->EyePos();
 			*(shader->GetUniformByName("podium_center")) = glm::vec3(0.0192440003f, -0.228235498, -0.323256999);
+			glm::mat4 scale = glm::translate(glm::mat4(), glm::vec3(0.5f));
+			scale = glm::scale(scale, glm::vec3(0.5f));
+			*(shader->GetUniformByName("light_proj_view")) = scale * light_camera->ProjViewMatrix();
 
 			int i = 0;
 			if (textures_[TS_Albedo]) // for ground, knight, podium
@@ -63,7 +64,7 @@ public:
 			*(shader->GetSamplerByName("shadow_map_depth")) = app->ShadowDepthTexture();
 			*(shader->GetSamplerByName("shadow_map_pcf")) = app->ShadowDepthTexture();
 
-			*(shader->GetUniformByName("light_radius_uv")) = glm::vec2(0.5f);
+			*(shader->GetUniformByName("light_radius_uv")) = glm::vec2(0.05f);
 			*(shader->GetUniformByName("light_z_near")) = light_camera->NearPlane();
 			*(shader->GetUniformByName("light_z_far")) = light_camera->FarPlane();
 
@@ -78,6 +79,7 @@ public:
 
 private:
 	bool pcss_pass_;
+	FrameBufferPtr shadow_fb_;
 };
 
 class PCSSGround : public RenderablePlane
@@ -126,7 +128,19 @@ void PCSS::OnCreate()
 	{
 		mesh_so_.push_back(podium_so->Child(i));
 	}
-	glm::inverse(glm::mat4());
+
+	ModelPtr ground_model = LoadModel("plane.obj", EAH_Immutable, CreateModelFunc<Model>(), CreateMeshFunc<PCSSMesh>());
+	MaterialPtr ground_mat = ground_model->GetMaterial(0);
+	ground_mat->tex_names[TS_Normal] = "lichen6_normal.jpg";
+	ground_mat->tex_names[TS_Albedo] = "lichen6.png";
+	checked_pointer_cast<Mesh>(ground_model->Subrenderable(0))->LoadMeshInfo();
+	SceneObjectPtr ground_so = std::make_shared<SceneObjectHelper>(ground_model, SOA_Cullable | SOA_Moveable);
+	ground_so->AddToSceneManager();
+	glm::mat4 g_trans = glm::translate(glm::mat4(), glm::vec3(0, -0.35f, 0));
+	g_trans = glm::scale(g_trans, glm::vec3(3.0f));
+	ground_so->ModelMatrix(g_trans);
+	mesh_so_.push_back(ground_so->Child(0));
+
 	pcss_effect_ = LoadRenderEffect("pcss.xml");
 	shadow_depth_offset_ = pcss_effect_->GetTechniqueByName("PcssShadowDepthOffsetTech");
 	shadow_color_ = pcss_effect_->GetTechniqueByName("SimpleShadowTech");
@@ -143,7 +157,7 @@ void PCSS::OnCreate()
 	// shadow framebuffer use light matrix
 	shadow_fb_->GetViewport()->camera = std::make_shared<Camera>();
 	shadow_fb_->GetViewport()->camera->ViewParams(glm::vec3(3.57088f, 6.989f, 5.19698f) * 1.5f, glm::vec3(0));
-	shadow_fb_->GetViewport()->camera->ProjParams(25.0f, 1.0f, 10.0f, 32.0f);
+	shadow_fb_->GetViewport()->camera->ProjParams(25.5f, 1.0f, 13.0f, 29.0f);
 	light_camera_ = shadow_fb_->GetViewport()->camera;
 
 	screen_fb_ = re.MakeFrameBuffer();
@@ -162,6 +176,12 @@ uint32_t PCSS::DoUpdate(uint32_t render_index)
 	{
 	case 0:
 	{
+		static Timer timer;
+		if (timer.Elapsed() > 1.0f)
+		{
+			timer.Restart();
+			std::cout << "FPS : " << this->FPS() << std::endl;
+		}
 		Color clear_color(0, 0, 0, 0);
 		re.DefaultFrameBuffer()->Clear(CBM_Color | CBM_Depth, clear_color, 1.0f, 0);
 		shadow_fb_->Clear(CBM_Color | CBM_Depth, clear_color, 1.0f, 0);
