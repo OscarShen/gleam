@@ -37,7 +37,7 @@ uint32_t SimpleRenderLayer::ShadowPass()
 		glm::mat4 shadow_proj = glm::ortho(-xs, xs, -ys, ys, -zs, zs);
 		glm::mat4 shadow_mvp = shadow_proj * shadow_view;
 
-		*(shader->GetUniformByName("proj_view")) = shadow_mvp;
+		*(shader->GetUniformByName("mvp")) = shadow_mvp;
 	}
 	return UR_NeedFlush;
 }
