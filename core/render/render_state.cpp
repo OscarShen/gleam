@@ -138,6 +138,14 @@ namespace gleam {
 		if ((cur_raster_state.polygon_offset_factor != raster_state_.polygon_offset_factor)
 			|| (cur_raster_state.polygon_offset_units != raster_state_.polygon_offset_units))
 		{
+			if (raster_state_.polygon_offset_factor > 0 && raster_state_.polygon_offset_units > 0)
+			{
+				glEnable(GL_POLYGON_OFFSET_FILL);
+			}
+			else
+			{
+				glDisable(GL_POLYGON_OFFSET_FILL);
+			}
 			glPolygonOffset(raster_state_.polygon_offset_factor, raster_state_.polygon_offset_units);
 		}
 

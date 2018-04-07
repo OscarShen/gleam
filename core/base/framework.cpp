@@ -71,7 +71,7 @@ namespace gleam {
 
 			if (accumulate_time_ > 1)
 			{
-				fps_ = static_cast<float>(num_frames_) / total_num_frames_;
+				fps_ = static_cast<float>(num_frames_);
 				accumulate_time_ = 0;
 				num_frames_ = 0;
 			}
