@@ -9,6 +9,8 @@
 
 #include <glm/gtc/matrix_transform.hpp>
 
+#include <boost/lexical_cast.hpp>
+
 static const uint32_t LIGHT_RES = 1024;
 
 class PCSSMesh : public Mesh
@@ -97,7 +99,7 @@ private:
 };
 
 PCSS::PCSS()
-	: Framework3D("pcss sample")
+	: Framework3D("PCSS Sample.")
 {
 	ResLoader::Instance().AddPath("../../samples/13_pcss");
 }
@@ -172,15 +174,17 @@ uint32_t PCSS::DoUpdate(uint32_t render_index)
 {
 	RenderEngine &re = Context::Instance().RenderEngineInstance();
 	SceneManager &sm = Context::Instance().SceneManagerInstance();
+	Framework3D &app = Context::Instance().FrameworkInstance();
 	switch (render_index)
 	{
 	case 0:
 	{
 		static Timer timer;
-		if (timer.Elapsed() > 1.0f)
+		if (timer.Elapsed() > 2.0f)
 		{
+			const std::string name = "PCSS Sample. FPS : ";
+			re.SetRenderWindowTitle(name + boost::lexical_cast<std::string>(this->FPS()));
 			timer.Restart();
-			std::cout << "FPS : " << this->FPS() << std::endl;
 		}
 		Color clear_color(0, 0, 0, 0);
 		re.DefaultFrameBuffer()->Clear(CBM_Color | CBM_Depth, clear_color, 1.0f, 0);

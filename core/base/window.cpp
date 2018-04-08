@@ -54,6 +54,11 @@ namespace gleam {
 		glfwPollEvents();
 	}
 
+	void GLFWWnd::SetWindowTitle(const std::string & title)
+	{
+		glfwSetWindowTitle(wnd_, title.c_str());
+	}
+
 	void GLFWWnd::SwapBuffers()
 	{
 		glfwSwapBuffers(wnd_);

@@ -20,6 +20,7 @@ namespace gleam {
 		virtual void Clear() const { }
 		virtual void Close() { }
 		virtual void Update() = 0;
+		virtual void SetWindowTitle(const std::string &title) = 0;
 
 		bool Running() const { return running_; }
 
@@ -46,6 +47,8 @@ namespace gleam {
 		void Clear() const override;
 		void Close() override;
 		void Update() override;
+
+		void SetWindowTitle(const std::string &title) override;
 
 		void SwapBuffers() override;
 

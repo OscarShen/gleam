@@ -819,6 +819,11 @@ namespace gleam {
 		}
 	}
 
+	void OGLRenderEngine::DoSetRenderWindowTitle(const std::string & name)
+	{
+		win->SetWindowTitle(name);
+	}
+
 	void OGLRenderEngine::DoCreateRenderWindow(const std::string & name, const RenderSettings & settings)
 	{
 		win = std::make_shared<GLFWWnd>(name, settings.width, settings.height);
@@ -959,6 +964,10 @@ namespace gleam {
 	{
 		this->DoCreateRenderWindow(name, settings);
 		screen_frame_buffer_ = current_frame_buffer_;
+	}
+	void RenderEngine::SetRenderWindowTitle(const std::string & name)
+	{
+		this->DoSetRenderWindowTitle(name);
 	}
 	void RenderEngine::DestroyRrenderWindow()
 	{

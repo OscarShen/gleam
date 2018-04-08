@@ -36,6 +36,7 @@ namespace gleam
 		virtual ~RenderEngine() { }
 
 		void CreateRenderWindow(const std::string &name, RenderSettings &settings);
+		void SetRenderWindowTitle(const std::string &name);
 		void DestroyRrenderWindow();
 
 		void Render(const RenderEffect &effect, const RenderTechnique &tech, const RenderLayout &layout);
@@ -115,6 +116,7 @@ namespace gleam
 		void Destroy();
 
 	private:
+		virtual void DoSetRenderWindowTitle(const std::string &name) = 0;
 		virtual void DoCreateRenderWindow(const std::string & name, const RenderSettings &settings) = 0;
 		virtual SamplerStateObjectPtr DoMakeSamplerStateObjece(const SamplerStateDesc &desc) = 0;
 		virtual RenderStateObjectPtr DoMakeRenderStateObject(const RasterizerStateDesc &raster_state,
@@ -218,6 +220,7 @@ namespace gleam
 		void MemoryBarrier(uint32_t barrier_op) override;
 
 	private:
+		void DoSetRenderWindowTitle(const std::string &name) override;
 		void DoCreateRenderWindow(const std::string & name, const RenderSettings &settings);
 		SamplerStateObjectPtr DoMakeSamplerStateObjece(const SamplerStateDesc &desc) override;
 		RenderStateObjectPtr DoMakeRenderStateObject(const RasterizerStateDesc &raster_state,
