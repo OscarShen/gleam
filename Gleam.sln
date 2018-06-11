@@ -20,6 +20,9 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "glare_effect", "build\vc14\glare_effect.vcxproj", "{A61FBA2B-807A-4A9B-B488-2EDCD80AA505}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "bloom", "build\vc14\bloom.vcxproj", "{EF9C16FB-6E9F-47CC-A195-AF3F52038D94}"
+	ProjectSection(ProjectDependencies) = postProject
+		{27018355-C13F-4E12-9C23-6BF865228C1B} = {27018355-C13F-4E12-9C23-6BF865228C1B}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "HDR", "build\vc14\HDR.vcxproj", "{0725EAAD-201D-476B-8CE9-AAE0D4559131}"
 EndProject
