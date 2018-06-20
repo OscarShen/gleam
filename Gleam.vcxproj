@@ -248,6 +248,7 @@
     <Xml Include="resource\render\HDR_util.xml">
       <SubType>Designer</SubType>
     </Xml>
+    <Xml Include="samples\14_instance\grass.xml" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

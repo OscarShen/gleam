@@ -1,0 +1,114 @@
+<?xml version='1.0'?>
+
+<effect>
+  <shader type="vertex_shader" name="DownSize2xVS">
+    <attrib name="pos" usage="position"/>
+    <attrib name="uv" usage="texture_coord"/>
+    <code>
+      <![CDATA[
+in vec3 pos;
+in vec2 uv;
+
+out vec2 UV;
+void main()
+{
+  gl_Position = vec4(pos, 1.0f);
+  UV = uv;
+}
+      ]]>
+    </code>
+  </shader>
+
+  <shader type="fragment_shader" name="DownSize2xFS">
+    <uniform type="sampler" name="tex">
+      <state name="filtering" value="min_mag_mip_linear"/>
+      <state name="address_u" value="clamp"/>
+      <state name="address_v" value="clamp"/>
+    </uniform>
+    <code>
+      <![CDATA[
+in vec2 UV;
+uniform sampler2D tex;
+out vec4 FragColor0;
+void main()
+{
+  FragColor0 = texture(tex, UV);
+}
+      ]]>
+    </code>
+  </shader>
+
+  <shader type="vertex_shader" name="DownSize4xVS">
+    <attrib name="pos" usage="position"/>
+    <attrib name="uv" usage="texture_coord"/>
+    <uniform type="vec2" name="twoTexelSize"/>
+    <code>
+      <![CDATA[
+in vec3 pos;
+in vec2 uv;
+
+uniform vec2 twoTexelSize;
+
+out vec2 UV1;
+out vec2 UV2;
+out vec2 UV3;
+out vec2 UV4;
+
+void main()
+{
+  gl_Position = vec4(pos, 1.0f);
+  UV1 = uv;
+  UV2 = uv + vec2(twoTexelSize.x, 0);
+  UV3 = uv + vec2(twoTexelSize.x, twoTexelSize.y);
+  UV4 = uv + vec2(0, twoTexelSize.y);
+}
+      ]]>
+    </code>
+  </shader>
+
+  <shader type="fragment_shader" name="DownSize4xFS">
+    <uniform type="sampler" name="tex">
+      <state name="filtering" value="min_mag_mip_linear"/>
+      <state name="address_u" value="clamp"/>
+      <state name="address_v" value="clamp"/>
+    </uniform>
+    <code>
+      <![CDATA[
+in vec2 UV1;
+in vec2 UV2;
+in vec2 UV3;
+in vec2 UV4;
+uniform sampler2D tex;
+out vec4 FragColor0;
+void main()
+{
+  FragColor0 = (texture(tex, UV1) + 
+                texture(tex, UV2) +
+                texture(tex, UV3) +
+                texture(tex, UV4)) * 0.25;
+}
+      ]]>
+    </code>
+  </shader>
+
+  <technique name="DownSize2xTech">
+    <state name="cull_mode" value="none"/>
+    <state name="blend_enable" value="false"/>
+    <state name="depth_enable" value="false"/>
+    <state name="front_face_ccw" value="true"/>
+
+    <state name="vertex_shader" value="DownSize2xVS"/>
+    <state name="fragment_shader" value="DownSize2xFS"/>
+  </technique>
+
+  <technique name="DownSize4xTech">
+    <state name="cull_mode" value="none"/>
+    <state name="front_face_ccw" value="true"/>
+    <state name="blend_enable" value="false"/>
+    <state name="depth_enable" value="false"/>
+
+    <state name="vertex_shader" value="DownSize4xVS"/>
+    <state name="fragment_shader" value="DownSize4xFS"/>
+  </technique>
+
+</effect>

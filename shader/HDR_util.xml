@@ -1,0 +1,396 @@
+<?xml version='1.0'?>
+
+<effect>
+  <shader type="compute_shader" name="CalcLuminanceCS">
+    <uniform type="image" name="inputImage"/>
+    <uniform type="image" name="outputImage"/>
+    <code>
+      <![CDATA[
+layout(local_size_x = 1, local_size_y = 1) in;
+layout(rgba32f) readonly restrict uniform image2D inputImage;
+layout(rgba32f) writeonly restrict uniform image2D outputImage;
+
+const vec3 LUMINANCE_VECTOR = vec3(0.2125, 0.7154, 0.0721);
+void main()
+{
+  float logLumSum = 0;
+  ivec2 size = imageSize(inputImage);
+  for(int j = 0; j < size.y; ++j)
+  {
+    for(int i = 0; i < size.x; ++i)
+    {
+		  logLumSum += (dot(imageLoad(inputImage, ivec2(i,j)).rgb, LUMINANCE_VECTOR));
+    }
+  }
+  logLumSum /= size.x * size.y;
+  float val = logLumSum;
+  imageStore(outputImage, ivec2(0, 0), vec4(val, val, val, val));
+}
+      ]]>
+    </code>
+  </shader>
+
+  <shader type="compute_shader" name="CalcAdaptedLuminanceCS">
+    <uniform type="image" name="currentImage"/>
+    <uniform type="image" name="lastImage"/>
+    <uniform type="image" name="outputImage"/>
+    <uniform type="float" name="elapsedTime"/>
+    <code>
+      <![CDATA[
+layout(local_size_x = 1, local_size_y = 1) in;
+layout(rgba32f) readonly restrict uniform image2D currentImage;
+layout(rgba32f) readonly restrict uniform image2D lastImage;
+layout(rgba32f) writeonly restrict uniform image2D outputImage;
+uniform float elapsedTime;
+void main()
+{
+  float currentLum = imageLoad(currentImage, ivec2(0,0)).r;
+  float lastLum = imageLoad(lastImage, ivec2(0,0)).r;
+  float newLum = lastLum + (currentLum - lastLum) * (1.0 - pow(0.98f, 30.0f * elapsedTime));
+  imageStore(outputImage, ivec2(0,0), vec4(newLum,newLum,newLum,newLum));
+}
+      ]]>
+    </code>
+  </shader>
+
+  <shader type="vertex_shader" name="ExtractHighLightVS">
+    <attrib name="pos" usage="position"/>
+    <attrib name="uv" usage="texture_coord"/>
+    <code>
+      <![CDATA[
+in vec3 pos;
+in vec2 uv;
+
+out vec2 UV;
+
+void main() {
+  gl_Position = vec4(pos, 1.0f);
+  UV = uv;
+}
+      ]]>
+    </code>
+  </shader>
+
+  <shader type="fragment_shader" name="ExtractHighLightFS">
+    <uniform type="float" name="threshold"/>
+    <uniform type="float" name="scalar"/>
+    <uniform type="sampler" name="src">
+      <state name="filtering" value="min_mag_linear_mip_nearest"/>
+      <state name="address_u" value="clamp"/>
+      <state name="address_v" value="clamp"/>
+    </uniform>
+    <code>
+      <![CDATA[
+in vec2 UV;
+
+uniform float threshold;
+uniform float scalar;
+uniform sampler2D src;
+
+out vec4 FragColor;
+
+void main() {
+  FragColor = max((texture(src, UV) - threshold) * scalar, vec4(0));
+}
+      ]]>
+    </code>
+  </shader>
+
+  <shader type="vertex_shader" name="StarStreakVS">
+    <attrib name="pos" usage="position"/>
+    <attrib name="uv" usage="texture_coord"/>
+    <uniform type="vec2" name="step_size"/>
+    <uniform type="float" name="stride"/>
+    <code>
+      <![CDATA[
+in vec3 pos;
+in vec2 uv;
+uniform vec2 step_size;
+uniform float stride;
+
+out vec2 UV0;
+out vec2 UV1;
+out vec2 UV2;
+out vec2 UV3;
+void main()
+{
+  UV0 = uv;
+  UV1 = uv + step_size * stride;
+  UV2 = uv + step_size * stride * 2;
+  UV3 = uv + step_size * stride * 3;
+  gl_Position = vec4(pos, 1.0f);
+}
+      ]]>
+    </code>
+  </shader>
+
+  <shader type="fragment_shader" name="StarStreakFS">
+    <uniform type="vec4" name="color_coeff" array_size="4"/>
+    <uniform type="sampler" name="src">
+      <state name="filtering" value="min_mag_linear_mip_nearest"/>
+      <state name="address_u" value="clamp"/>
+      <state name="address_v" value="clamp"/>
+    </uniform>
+    <code>
+      <![CDATA[
+in vec2 UV0;
+in vec2 UV1;
+in vec2 UV2;
+in vec2 UV3;
+
+uniform vec4 color_coeff[4];
+uniform sampler2D src;
+
+out vec4 FragColor;
+
+void main() {
+  FragColor = texture(src, UV0) * color_coeff[0] +
+              texture(src, UV1) * color_coeff[1] +
+              texture(src, UV2) * color_coeff[2] +
+              texture(src, UV3) * color_coeff[3];
+}
+      ]]>
+    </code>
+  </shader>
+  
+    <shader type="vertex_shader" name="ComposeVS">
+    <attrib name="pos" usage="position"/>
+    <attrib name="uv" usage="texture_coord"/>
+    <code>
+      <![CDATA[
+in vec3 pos;
+in vec2 uv;
+
+out vec2 UV;
+
+void main()
+{
+  gl_Position = vec4(pos, 1.0f);
+  UV = uv;
+}
+      ]]>
+    </code>
+  </shader>
+
+  <shader type="fragment_shader" name="StarStreakComposeFS">
+    <uniform type="sampler" name="src0">
+      <state name="filtering" value="min_mag_linear_mip_nearest"/>
+      <state name="address_u" value="clamp"/>
+      <state name="address_v" value="clamp"/>
+    </uniform>
+    <uniform type="sampler" name="src1" copy="src0"/>
+    <uniform type="sampler" name="src2" copy="src0"/>
+    <uniform type="sampler" name="src3" copy="src0"/>
+    <code>
+      <![CDATA[
+in vec2 UV;
+
+uniform sampler2D src0;
+uniform sampler2D src1;
+uniform sampler2D src2;
+uniform sampler2D src3;
+
+out vec4 FragColor;
+
+void main() {
+  vec4 color1 = max(texture(src0, UV), texture(src1, UV));
+  vec4 color2 = max(texture(src2, UV), texture(src3, UV));
+  FragColor = max(color1, color2);
+}
+      ]]>
+    </code>
+  </shader>
+
+  <shader type="vertex_shader" name="GenGhostImageVS">
+    <attrib name="pos" usage="position"/>
+    <attrib name="uv" usage="texture_coord"/>
+    <uniform type="vec4" name="scalar"/>
+    <code>
+      <![CDATA[
+in vec3 pos;
+in vec2 uv;
+
+uniform vec4 scalar;
+
+out vec2 UV0;
+out vec2 UV1;
+out vec2 UV2;
+out vec2 UV3;
+
+void main()
+{
+  gl_Position = vec4(pos, 1.0f);
+  UV0 = (uv - 0.5f) * scalar[0] + 0.5f;
+  UV1 = (uv - 0.5f) * scalar[1] + 0.5f;
+  UV2 = (uv - 0.5f) * scalar[2] + 0.5f;
+  UV3 = (uv - 0.5f) * scalar[3] + 0.5f;
+}
+      ]]>
+    </code>
+  </shader>
+
+  <shader type="fragment_shader" name="GenGhostImageFS">
+    <uniform type="sampler" name="src0">
+      <state name="filtering" value="min_mag_linear_mip_nearest"/>
+      <state name="address_u" value="clamp"/>
+      <state name="address_v" value="clamp"/>
+    </uniform>
+    <uniform type="sampler" name="src1" copy="src0"/>
+    <uniform type="sampler" name="src2" copy="src0"/>
+    <uniform type="sampler" name="src3" copy="src0"/>
+    <uniform type="vec4" name="color_coeff" array_size="4"/>
+    <code>
+      <![CDATA[
+in vec2 UV0;
+in vec2 UV1;
+in vec2 UV2;
+in vec2 UV3;
+
+uniform vec4 color_coeff[4];
+
+uniform sampler2D src0;
+uniform sampler2D src1;
+uniform sampler2D src2;
+uniform sampler2D src3;
+
+out vec4 FragColor;
+
+void main() {
+	gl_FragColor =   texture(src0, UV0) * texture(src3, UV0).g * color_coeff[0] 
+                 + texture(src0, UV1) * texture(src3, UV1).g * color_coeff[1]
+                 + texture(src1, UV2) * texture(src3, UV2).g * color_coeff[2]
+                 + texture(src2, UV3) * texture(src3, UV3).g * color_coeff[3];
+}
+      ]]>
+    </code>
+  </shader>
+
+  <shader type="fragment_shader" name="GaussianBlurComposeFS">
+    <uniform type="vec4" name="coeff"/>
+    <uniform type="sampler" name="src0">
+      <state name="filtering" value="min_mag_linear_mip_nearest"/>
+      <state name="address_u" value="clamp"/>
+      <state name="address_v" value="clamp"/>
+    </uniform>
+    <uniform type="sampler" name="src1" copy="src0"/>
+    <uniform type="sampler" name="src2" copy="src0"/>
+    <uniform type="sampler" name="src3" copy="src0"/>
+    <code>
+      <![CDATA[
+in vec2 UV;
+
+uniform vec4 coeff;
+
+uniform sampler2D src0;
+uniform sampler2D src1;
+uniform sampler2D src2;
+uniform sampler2D src3;
+
+out vec4 FragColor;
+
+void main() {
+  FragColor = texture(src0, UV) * coeff.x +
+              texture(src1, UV) * coeff.y +
+              texture(src2, UV) * coeff.z +
+              texture(src3, UV) * coeff.w;
+}
+      ]]>
+    </code>
+  </shader>
+
+  <shader type="fragment_shader" name="GlareComposeFS">
+    <uniform type="vec4" name="mix_coeff"/>
+    <uniform type="sampler" name="src0">
+      <state name="filtering" value="min_mag_linear_mip_nearest"/>
+      <state name="address_u" value="clamp"/>
+      <state name="address_v" value="clamp"/>
+    </uniform>
+    <uniform type="sampler" name="src1" copy="src0"/>
+    <uniform type="sampler" name="src2" copy="src0"/>
+    <code>
+      <![CDATA[
+in vec2 UV;
+
+uniform vec4 mix_coeff;
+
+uniform sampler2D src0;
+uniform sampler2D src1;
+uniform sampler2D src2;
+
+out vec4 FragColor;
+
+void main() {
+  FragColor = texture(src0, UV) * mix_coeff.x +
+              texture(src1, UV) * mix_coeff.y +
+              texture(src2, UV) * mix_coeff.z;
+}
+      ]]>
+    </code>
+  </shader>
+  
+  <technique name="CalcLuminanceTech">
+    <state name="cull_mode" value="none"/>
+    <state name="front_face_ccw" value="true"/>
+    <state name="compute_shader" value="CalcLuminanceCS"/>
+  </technique>
+
+  <technique name="CalcAdaptedLuminanceTech">
+    <state name="cull_mode" value="none"/>
+    <state name="front_face_ccw" value="true"/>
+    <state name="compute_shader" value="CalcAdaptedLuminanceCS"/>
+  </technique>
+
+  <technique name="ExtractHighLightTech">
+    <state name="front_face_ccw" value="true"/>
+    <state name="cull_mode" value="none"/>
+    <state name="blend_enable" value="false"/>
+    
+    <state name="vertex_shader" value="ExtractHighLightVS"/>
+    <state name="fragment_shader" value="ExtractHighLightFS"/>
+  </technique>
+
+  <technique name="StarStreakTech">
+    <state name="front_face_ccw" value="true"/>
+    <state name="cull_mode" value="none"/>
+    <state name="blend_enable" value="false"/>
+
+    <state name="vertex_shader" value="StarStreakVS"/>
+    <state name="fragment_shader" value="StarStreakFS"/>
+  </technique>
+  
+  <technique name="GenGhostImageTech">
+    <state name="front_face_ccw" value="true"/>
+    <state name="cull_mode" value="none"/>
+    <state name="blend_enable" value="false"/>
+
+    <state name="vertex_shader" value="GenGhostImageVS"/>
+    <state name="fragment_shader" value="GenGhostImageFS"/>
+  </technique>
+
+  <technique name="StarStreakComposeTech">
+    <state name="front_face_ccw" value="true"/>
+    <state name="cull_mode" value="none"/>
+    <state name="blend_enable" value="false"/>
+
+    <state name="vertex_shader" value="ComposeVS"/>
+    <state name="fragment_shader" value="StarStreakComposeFS"/>
+  </technique>
+
+  <technique name="GaussianBlurComposeTech">
+    <state name="front_face_ccw" value="true"/>
+    <state name="cull_mode" value="none"/>
+    <state name="blend_enable" value="false"/>
+
+    <state name="vertex_shader" value="ComposeVS"/>
+    <state name="fragment_shader" value="GaussianBlurComposeFS"/>
+  </technique>
+  
+  <technique name="GlareComposeTech">
+    <state name="front_face_ccw" value="true"/>
+    <state name="cull_mode" value="none"/>
+    <state name="blend_enable" value="false"/>
+
+    <state name="vertex_shader" value="ComposeVS"/>
+    <state name="fragment_shader" value="GlareComposeFS"/>
+  </technique>
+</effect>

@@ -103,7 +103,6 @@ namespace gleam
 			StreamType type = ST_Geometry, uint32_t freq = 1);
 
 
-
 		bool UseIndices() const { return this->NumIndices() != 0; }
 		void NumIndices(uint32_t n);
 		uint32_t NumIndices() const;
@@ -112,6 +111,16 @@ namespace gleam
 		ElementFormat IndexStreamFormat() const { return index_format_; }
 
 		void BindIndexStream(const GraphicsBufferPtr &index_stream, ElementFormat format);
+
+		// instance stream
+		const GraphicsBufferPtr &InstanceStream() const { return instance_stream_.stream; }
+		void InstanceStream(const GraphicsBufferPtr &buffer);
+		const std::vector<VertexElement> InstanceStreamFormat() const { return instance_stream_.format; }
+		uint32_t InstanceSize() const { return instance_stream_.vertex_size; }
+		void NumInstances(uint32_t n);
+		uint32_t Numinstances() const;
+
+
 
 		void StartVertexLocation(uint32_t location);
 		uint32_t StartVertexLocation() const { return start_vertex_location_; }
@@ -141,6 +150,7 @@ namespace gleam
 		};
 
 		std::vector<StreamUnit> vertex_streams_;
+		StreamUnit instance_stream_;
 
 		GraphicsBufferPtr		index_stream_;
 		ElementFormat			index_format_;

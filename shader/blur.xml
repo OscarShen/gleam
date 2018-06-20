@@ -1,0 +1,271 @@
+<?xml version='1.0'?>
+
+<effect>
+  <shader type="vertex_shader" name="BlurXVS">
+    <attrib name="pos" usage="position"/>
+    <attrib name="uv" usage="texture_coord"/>
+    <uniform name="uv_offset" type="float" array_size="8"/>
+    <code>
+      <![CDATA[
+in vec3 pos;
+in vec2 uv;
+
+uniform float uv_offset[8];
+
+out vec4 UV0;
+out vec4 UV1;
+out vec4 UV2;
+out vec4 UV3;
+
+out vec2 OriUV;
+
+void main()
+{
+  gl_Position = vec4(pos, 1.0f);
+  
+  vec4 tex[4];
+  for(int i = 0; i < 4; ++i)
+  {
+    tex[i] = uv.xyxy + vec4(uv_offset[i * 2], 0, uv_offset[i * 2 + 1], 0);
+  }
+  UV0 = tex[0];
+  UV1 = tex[1];
+  UV2 = tex[2];
+  UV3 = tex[3];
+  
+  OriUV = uv;
+}
+      ]]>
+    </code>
+  </shader>
+
+  <shader type="fragment_shader" name="BlurXFS">
+    <uniform name="color_weight" type="float" array_size="8"/>
+    <uniform name="tex_size" type="vec2"/>
+    <uniform name="src" type="sampler">
+      <state name="filtering" value="min_mag_linear_mip_nearest"/>
+      <state name="address_u" value="clamp"/>
+      <state name="address_v" value="clamp"/>
+    </uniform>
+    <code>
+      <![CDATA[
+in vec4 UV0;
+in vec4 UV1;
+in vec4 UV2;
+in vec4 UV3;
+
+in vec2 OriUV;
+
+uniform float color_weight[8];
+uniform vec2 tex_size;
+uniform sampler2D src;
+
+out vec4 FragColor;
+
+void main()
+{
+  vec2 offset = vec2((floor(OriUV.x * tex_size.x) + 0.5f) * tex_size.y - OriUV.x, 0);
+  vec4 color = vec4(0, 0, 0, 1);
+  vec4 uv[4] = { UV0, UV1, UV2, UV3 };
+  
+  for(int i = 0; i < 4; ++i)
+  {
+    uv[i] += offset.xyxy;
+    color.rgb += texture(src, uv[i].xy).rgb * color_weight[i * 2 + 0];
+    color.rgb += texture(src, uv[i].zw).rgb * color_weight[i * 2 + 1];
+  }
+  FragColor = color;
+}
+      ]]>
+    </code>
+  </shader>
+
+  <shader type="vertex_shader" name="BlurYVS">
+    <attrib name="pos" usage="position"/>
+    <attrib name="uv" usage="texture_coord"/>
+    <uniform name="uv_offset" type="float" array_size="8"/>
+    <code>
+      <![CDATA[
+in vec3 pos;
+in vec2 uv;
+
+uniform float uv_offset[8];
+
+out vec4 UV0;
+out vec4 UV1;
+out vec4 UV2;
+out vec4 UV3;
+
+out vec2 OriUV;
+
+void main()
+{
+  gl_Position = vec4(pos, 1.0f);
+  
+  vec4 tex[4];
+  for(int i = 0; i < 4; ++i)
+  {
+    tex[i] = uv.xyxy + vec4(0, uv_offset[i * 2], 0, uv_offset[i * 2 + 1]);
+  }
+  UV0 = tex[0];
+  UV1 = tex[1];
+  UV2 = tex[2];
+  UV3 = tex[3];
+  
+  OriUV = uv;
+}
+      ]]>
+    </code>
+  </shader>
+
+  <shader type="fragment_shader" name="BlurYFS">
+    <uniform name="color_weight" type="float" array_size="8"/>
+    <uniform name="tex_size" type="vec2"/>
+    <uniform name="src" type="sampler">
+      <state name="filtering" value="min_mag_linear_mip_nearest"/>
+      <state name="address_u" value="clamp"/>
+      <state name="address_v" value="clamp"/>
+    </uniform>
+    <code>
+      <![CDATA[
+in vec4 UV0;
+in vec4 UV1;
+in vec4 UV2;
+in vec4 UV3;
+
+in vec2 OriUV;
+
+uniform float color_weight[8];
+uniform vec2 tex_size;
+uniform sampler2D src;
+
+out vec4 FragColor;
+
+void main()
+{
+  vec2 offset = vec2(0, (floor(OriUV.y * tex_size.x) + 0.5f) * tex_size.y - OriUV.y);
+  vec4 color = vec4(0, 0, 0, 1);
+  vec4 uv[4] = { UV0, UV1, UV2, UV3 };
+  
+  for(int i = 0; i < 4; ++i)
+  {
+    uv[i] += offset.xyxy;
+    color.rgb += texture(src, uv[i].xy).rgb * color_weight[i * 2 + 0];
+    color.rgb += texture(src, uv[i].zw).rgb * color_weight[i * 2 + 1];
+  }
+  FragColor = color;
+}
+      ]]>
+    </code>
+  </shader>
+
+  <shader type="vertex_shader" name="Blur11VS">
+    <attrib name="pos" usage="position"/>
+    <attrib name="uv" usage="texture_coord"/>
+    <code>
+      <![CDATA[
+in vec3 pos;
+in vec2 uv;
+
+out vec2 UV;
+
+void main()
+{
+  gl_Position = vec4(pos, 1.0f);
+  UV = uv;
+}
+      ]]>
+    </code>
+  </shader>
+
+  <shader type="fragment_shader" name="Blur11FS">
+    <uniform name="uv_offset" type="vec2"/>
+    <uniform name="src" type="sampler">
+      <state name="filtering" value="min_mag_linear_mip_nearest"/>
+      <state name="address_u" value="clamp"/>
+      <state name="address_v" value="clamp"/>
+    </uniform>
+    <code>
+      <![CDATA[
+in vec2 UV;
+
+uniform vec2 uv_offset;
+uniform sampler2D src;
+
+out vec4 FragColor;
+
+void main()
+{
+  vec2 sample_uv = UV;
+
+	sample_uv -= uv_offset*5.0;
+	vec4 temp  = texture(src,sample_uv);
+
+	sample_uv += uv_offset;
+	temp += texture(src,sample_uv);
+
+	sample_uv += uv_offset;
+	temp += 2.0*texture(src,sample_uv);
+
+	sample_uv += uv_offset;
+	temp += 2.0*texture(src,sample_uv);
+
+	sample_uv += uv_offset;
+	temp += 3.0*texture(src,sample_uv);
+
+	sample_uv += uv_offset;
+	temp += 3.0*texture(src,sample_uv);
+
+	sample_uv += uv_offset;
+	temp += 3.0*texture(src,sample_uv);
+
+	sample_uv += uv_offset;
+	temp += 2.0*texture(src,sample_uv);
+
+	sample_uv += uv_offset;
+	temp += 2.0*texture(src,sample_uv);
+
+	sample_uv += uv_offset;
+	temp += texture(src,sample_uv);
+
+	sample_uv += uv_offset;
+	temp += texture(src,sample_uv);
+
+	temp/=21.0;
+
+	FragColor = temp;
+}
+      ]]>
+    </code>
+  </shader>
+
+  <technique name="BlurXTech">
+    <state name="depth_enable" value="false"/>
+    <state name="depth_write_mask" value="0"/>
+    <state name="cull_mode" value="none"/>
+    <state name="front_face_ccw" value="true"/>
+
+    <state name="vertex_shader" value="BlurXVS"/>
+    <state name="fragment_shader" value="BlurXFS"/>
+  </technique>
+
+  <technique name="BlurYTech">
+    <state name="depth_enable" value="false"/>
+    <state name="depth_write_mask" value="0"/>
+    <state name="cull_mode" value="none"/>
+    <state name="front_face_ccw" value="true"/>
+    
+    <state name="vertex_shader" value="BlurYVS"/>
+    <state name="fragment_shader" value="BlurYFS"/>
+  </technique>
+
+  <technique name="Blur11Tech">
+    <state name="depth_enable" value="false"/>
+    <state name="depth_write_mask" value="0"/>
+    <state name="cull_mode" value="none"/>
+    <state name="front_face_ccw" value="true"/>
+
+    <state name="vertex_shader" value="Blur11VS"/>
+    <state name="fragment_shader" value="Blur11FS"/>
+  </technique>
+</effect>

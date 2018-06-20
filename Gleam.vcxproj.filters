@@ -276,5 +276,6 @@
     <Xml Include="resource\render\AA_pp.xml" />
     <Xml Include="resource\render\base.xml" />
     <Xml Include="resource\render\base_pp.xml" />
+    <Xml Include="samples\14_instance\grass.xml" />
   </ItemGroup>
 </Project>
