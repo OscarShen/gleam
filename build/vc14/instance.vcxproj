@@ -74,10 +74,11 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <ExecutablePath>../../external/include;../../core;%(AdditionalIncludeDirectories)</ExecutablePath>
+    <ExecutablePath>$(VC_ExecutablePath_x64);$(WindowsSDK_ExecutablePath);$(VS_ExecutablePath);$(MSBuild_ExecutablePath);$(FxCopDir);$(PATH);</ExecutablePath>
     <OutDir>../../bin/vc14_x64/</OutDir>
     <IntDir>../../bin/intermediate/instance/</IntDir>
     <TargetName>instance-sample-d</TargetName>
+    <LibraryPath>../../bin/vc14_x64;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
@@ -156,6 +157,11 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\samples\14_instance\instance.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Xml Include="..\..\samples\14_instance\instance.xml">
+      <SubType>Designer</SubType>
+    </Xml>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

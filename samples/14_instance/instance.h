@@ -8,6 +8,9 @@
 
 using namespace gleam;
 
+constexpr uint32_t GRID_SIZE = 16;
+constexpr uint32_t MAX_OBJECT = GRID_SIZE * GRID_SIZE * GRID_SIZE;
+
 class InstanceAPP : public Framework3D
 {
 public:
@@ -17,14 +20,17 @@ public:
 	uint32_t DoUpdate(uint32_t render_index) override;
 
 private:
+	void Init();
+
+private:
 	TrackballCameraController controller_;
+
+	std::vector<glm::vec3> positions_, rotations_;
+	std::vector<SceneObjectPtr> scene_objs_;
 
 	RenderEffectPtr boxes_effect_;
 	RenderTechnique *single_tech_;
 	RenderTechnique *instanced_tech_;
-
-	SceneObjectPtr grass_so_;
-	TexturePtr grass_diff_;
 };
 
 #endif // !SAMPLE_INSTANCE_H_

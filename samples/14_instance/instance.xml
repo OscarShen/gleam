@@ -1,0 +1,71 @@
+<?xml version='1.0'?>
+
+<effect>
+  <shader type="vertex_shader" name="GrassVS">
+    <attrib name="pos" usage="position"/>
+    <attrib name="uv" usage="texture_coord" index="0"/>
+    <attrib name="instance_offsets" usage="texture_coord" index="1"/>
+    <attrib name="instance_rotations" usage="texture_coord" index="2"/>
+    
+    <uniform type="mat4" name="proj"/>
+    <uniform type="mat4" name="view"/>
+    <uniform type="vec3" array_size="6" name="instance_color"/>
+    <code>
+      <![CDATA[
+in vec3 pos;
+in vec2 uv;
+in vec3 instance_offsets;
+in vec3 instance_rotations;
+
+uniform mat4 proj;
+uniform mat4 view;
+uniform vec3 instance_color[6];
+
+out vec2 UV;
+out vec3 Color;
+
+void main()
+{
+  vec3 world_pos = vec3( dot(pos.xz, instance_rotations.xy),
+                             pos.y,
+                             dot(pos.xz, vec2(instance_rotations.y, -instance_rotations.x)));
+  vec4 eye_pos = view * ( vec4(0.05 * world_pos + instance_offsets, 1.0f ));
+  
+  gl_Position = proj * eye_pos;
+  
+  UV = uv;
+  Color = instance_color[int(instance_rotations.z)];
+}
+      ]]>
+    </code>
+  </shader>
+
+  <shader type="fragment_shader" name="GrassFS">
+    <uniform type="sampler" name="tex"/>
+    <code>
+      <![CDATA[
+      
+in vec2 UV;
+in vec3 Color;
+
+uniform sampler2D tex;
+
+out vec4 FragColor;
+
+void main()
+{
+  vec4 color = texture(tex, UV);
+  if(color.w < 0.1)
+    discard;
+    
+  FragColor = vec4(Color, 1.0f) * color;
+}
+      ]]>
+    </code>
+  </shader>
+
+  <technique name="GrassInstanceTech">
+    <state name="vertex_shader" value="GrassVS"/>
+    <state name="fragment_shader" value="GrassFS"/>
+  </technique>
+</effect>

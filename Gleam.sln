@@ -43,6 +43,9 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "line", "build\vc14\line.vcxproj", "{D80A8D72-3DE3-45DF-8189-CFB1E91C32E5}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "instance", "build\vc14\instance.vcxproj", "{9D4B7880-3ABE-4551-8431-4864F4DC6AD9}"
+	ProjectSection(ProjectDependencies) = postProject
+		{27018355-C13F-4E12-9C23-6BF865228C1B} = {27018355-C13F-4E12-9C23-6BF865228C1B}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
