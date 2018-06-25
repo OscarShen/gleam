@@ -8,6 +8,7 @@
 namespace gleam {
 	SceneObject::SceneObject(uint32_t attrib)
 		: attrib_(attrib), parent_(nullptr), model_matrix_dirty_(true),
+		instance_data_dirty_(true),
 			model_(glm::mat4()), abs_model_(glm::mat4())
 	{
 	}

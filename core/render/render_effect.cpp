@@ -323,7 +323,7 @@ namespace gleam
 				const char * attrib_index_c = attrib_node->Attribute("index");
 				if (attrib_index_c)
 				{
-					usage_index = boost::lexical_cast<uint8_t>(attrib_index_c);
+					usage_index = boost::lexical_cast<uint32_t>(attrib_index_c);
 				}
 				
 				AttribPtr attrib = re.MakeAttrib();
@@ -371,7 +371,7 @@ namespace gleam
 			else if (type == "max_anisotropy")
 			{
 				std::string value = state_node->Attribute("value");
-				desc.max_anisotropy = boost::lexical_cast<uint8_t>(value);
+				desc.max_anisotropy = static_cast<uint8_t>(boost::lexical_cast<uint32_t>(value));
 			}
 			else if (type == "min_lod")
 			{
@@ -594,7 +594,7 @@ namespace gleam
 				const char * index_str = state_node->Attribute("index");
 				int index = index_str ? boost::lexical_cast<int>(index_str) : 0;
 				std::string value = state_node->Attribute("value");
-				blend_state.color_write_mask[index] = boost::lexical_cast<uint8_t>(state_node->Attribute("value"));
+				blend_state.color_write_mask[index] = static_cast<uint8_t>(boost::lexical_cast<uint32_t>(state_node->Attribute("value")));
 			}
 			else if ("blend_factor" == state_name)
 			{

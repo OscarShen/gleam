@@ -115,10 +115,10 @@ namespace gleam
 		// instance stream
 		const GraphicsBufferPtr &InstanceStream() const { return instance_stream_.stream; }
 		void InstanceStream(const GraphicsBufferPtr &buffer);
-		const std::vector<VertexElement> InstanceStreamFormat() const { return instance_stream_.format; }
+		const std::vector<VertexElement> &InstanceStreamFormat() const { return instance_stream_.format; }
 		uint32_t InstanceSize() const { return instance_stream_.vertex_size; }
 		void NumInstances(uint32_t n);
-		uint32_t Numinstances() const;
+		uint32_t NumInstances() const;
 
 
 

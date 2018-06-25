@@ -859,8 +859,7 @@ namespace gleam {
 	}
 	void OGLRenderEngine::DoRender(const RenderEffect & effect, const RenderTechnique & tech, const RenderLayout & layout)
 	{
-		// TODO : add instance rendering
-		const uint32_t num_instances = 1;
+		const uint32_t num_instances = layout.NumInstances();
 		assert(num_instances != 0);
 		OGLShaderObjectPtr current_shader = checked_pointer_cast<OGLShaderObject>(tech.GetShaderObject(effect));
 		checked_cast<const OGLRenderLayout *>(&layout)->Active(current_shader);

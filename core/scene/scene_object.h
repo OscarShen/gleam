@@ -50,7 +50,9 @@ namespace gleam
 		virtual void DelFromSceneManager();
 
 		const std::vector<VertexElement> &InstanceFormat() const;
-		const void *InstanceData() const { return nullptr; }
+		virtual const void *InstanceData() const { return nullptr; }
+		bool InstanceDirty() const { return instance_data_dirty_; }
+		void InstanceDirty(bool dirty) { this->instance_data_dirty_ = dirty; }
 
 		void BindUpdateFunc(const std::function<void(SceneObject&, float, float)> &func);
 		virtual void Update(float app_time, float elapsed_time);
@@ -70,6 +72,7 @@ namespace gleam
 		std::function<void(SceneObject&, float, float)> update_func_;
 
 		bool model_matrix_dirty_;
+		bool instance_data_dirty_;
 	};
 
 	class SceneObjectHelper : public SceneObject

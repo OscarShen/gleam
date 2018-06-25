@@ -53,6 +53,7 @@ namespace gleam
 
 	protected:
 		void LoadUniforms();
+		virtual void UpdateInstanceStream();
 
 	protected:
 		std::vector<SceneObject *> repeat_instances_;

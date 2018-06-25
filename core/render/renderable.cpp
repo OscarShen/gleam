@@ -94,28 +94,39 @@ namespace gleam {
 		const RenderTechnique &tech = *this->GetRenderTechnique();
 		const RenderEffect &effect = *this->GetRenderEffect();
 
-		// TODO : Add instance stream rendering
-		//
-		///////////////////////////////////////
+		this->UpdateInstanceStream();
+		const GraphicsBufferPtr &inst_stream = layout.InstanceStream();
 
-		this->OnRenderBegin();
-		// renderable not in render queue would be 0
-		if (repeat_instances_.size() <= 1)
+		if (inst_stream)
 		{
-			this->LoadUniforms();
-			re.Render(effect, tech, layout);
+			if (layout.NumInstances() > 0)
+			{
+				this->OnRenderBegin();
+				this->LoadUniforms();
+				re.Render(effect, tech, layout);
+				this->OnRenderEnd();
+			}
 		}
 		else
 		{
-			for (uint32_t i = 0; i < repeat_instances_.size(); ++i)
+			this->OnRenderBegin();
+			if (repeat_instances_.size() <= 1)
 			{
-				this->OnRepeatRenderBegin(i);
 				this->LoadUniforms();
 				re.Render(effect, tech, layout);
-				this->OnRepeatRenderEnd(i);
 			}
+			else
+			{
+				for (uint32_t i = 0; i < repeat_instances_.size(); ++i)
+				{
+					this->OnRepeatRenderBegin(i);
+					this->LoadUniforms();
+					re.Render(effect, tech, layout);
+					this->OnRepeatRenderEnd(i);
+				}
+			}
+			this->OnRenderEnd();
 		}
-		this->OnRenderEnd();
 	}
 	void Renderable::AddRepeatInstance(SceneObject * object)
 	{
@@ -137,6 +148,61 @@ namespace gleam {
 	{
 		const ShaderObjectPtr &shader = this->GetRenderTechnique()->GetShaderObject(*this->GetRenderEffect());
 		shader->LoadUniforms();
+	}
+	void Renderable::UpdateInstanceStream()
+	{
+		if (!repeat_instances_.empty() && !repeat_instances_[0]->InstanceFormat().empty())
+		{
+			const std::vector<VertexElement> &vet = repeat_instances_[0]->InstanceFormat();
+			uint32_t size = 0;
+			for (size_t i = 0; i < vet.size(); ++i)
+			{
+				size += vet[i].NumFormatBytes();
+			}
+
+			const uint32_t inst_size = static_cast<uint32_t>(size * repeat_instances_.size());
+
+			RenderLayout &rl = this->GetRenderLayout();
+
+			RenderEngine &re = Context::Instance().RenderEngineInstance();
+
+			GraphicsBufferPtr inst_stream = rl.InstanceStream();
+			if (inst_stream && (inst_stream->Size() >= inst_size))
+			{
+				for (size_t i = 0; i < repeat_instances_.size(); ++i)
+				{
+					//assert(rl.InstanceStreamFormat() == repeat_instances_[i]->InstanceFormat());
+				}
+			}
+			else
+			{
+				inst_stream = re.MakeVertexBuffer(BU_Dynamic, EAH_CPU_Write | EAH_GPU_Read, inst_size, nullptr);
+				rl.BindVertexStream(inst_stream, vet, ST_Instance, 1);
+				rl.InstanceStream(inst_stream);
+			}
+
+			{
+				std::unique_ptr<GraphicsBuffer::Mapper> mapper;
+				for (size_t i = 0; i < repeat_instances_.size(); ++i)
+				{
+					if (repeat_instances_[i]->InstanceDirty())
+					{
+						if (mapper == nullptr)
+						{
+							mapper = std::make_unique<GraphicsBuffer::Mapper>(*inst_stream, BA_Write_Only);
+						}
+						const uint8_t *src = static_cast<const uint8_t *>(repeat_instances_[i]->InstanceData());
+						std::copy(src, src + size, mapper->Pointer<uint8_t>() + i * size);
+						repeat_instances_[i]->InstanceDirty(false);
+					}
+				}
+			}
+
+			for (uint32_t i = 0; i < rl.NumVertexStreams(); ++i)
+			{
+				rl.VertexStreamFrequencyDivider(i, ST_Geometry, static_cast<uint32_t>(repeat_instances_.size()));
+			}
+		}
 	}
 	RenderableHelper::RenderableHelper()
 	{

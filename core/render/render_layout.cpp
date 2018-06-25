@@ -118,7 +118,7 @@ namespace gleam {
 		force_num_instances_ = n;
 		streams_dirty_ = true;
 	}
-	uint32_t RenderLayout::Numinstances() const
+	uint32_t RenderLayout::NumInstances() const
 	{
 		uint32_t n;
 		if (0xFFFFFFFF == force_num_instances_)
@@ -294,7 +294,7 @@ namespace gleam {
 				*(checked_pointer_cast<OGLGraphicsBuffer>(this->InstanceStream()));
 
 			const uint32_t instance_size = this->InstanceSize();
-			assert(this->NumIndices() * instance_size <= stream.Size());
+			assert(this->NumInstances() * instance_size <= stream.Size());
 			
 			glVertexArrayVertexBuffer(vao, this->NumVertexStreams(), stream.GLvbo(),
 				this->StartInstanceLocation() * instance_size, instance_size);
@@ -304,7 +304,7 @@ namespace gleam {
 			uint32_t elem_offset = 0;
 			for (size_t i = 0; i < inst_format_size; ++i)
 			{
-				const VertexElement &vs_elem = this->InstanceStreamFormat()[i];
+				VertexElement vs_elem = this->InstanceStreamFormat()[i];
 				GLint attr = gl_shader->GetAttribLocation(vs_elem.usage, vs_elem.usage_index);
 				if (attr != -1)
 				{
@@ -323,6 +323,7 @@ namespace gleam {
 
 					used_streams[attr] = 1;
 				}
+				elem_offset += vs_elem.NumFormatBytes();
 			}
 		}
 
