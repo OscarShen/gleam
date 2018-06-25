@@ -49,6 +49,10 @@ namespace gleam
 		void Create();
 		void Destroy();
 
+		uint32_t RegisterAfterFrameFunc(const std::function<int(float, float)> &func);
+		void	 UnregisterAfterFrameFunc(uint32_t index);
+		void	 RunAfterFrame();
+
 	protected:
 		uint32_t Update(uint32_t render_index);
 		void LookAt(const glm::vec3 &eye, const glm::vec3 &lookat);
@@ -73,6 +77,7 @@ namespace gleam
 		float frame_time_;
 
 		RenderSettings settings;
+		std::vector<std::function<int(float, float)>> run_after_frame_;
 	};
 }
 

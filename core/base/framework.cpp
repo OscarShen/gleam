@@ -30,6 +30,9 @@ namespace gleam {
 			// should use another thread to handle input
 			InputEngine &ie = Context::Instance().InputEngineInstance();
 			ie.Update();
+
+			Framework3D &app = Context::Instance().FrameworkInstance();
+			app.RunAfterFrame();
 		}
 	}
 	const Camera & Framework3D::ActiveCamera() const
@@ -95,5 +98,33 @@ namespace gleam {
 		FrameBuffer &buffer = *re.CurrentFrameBuffer();
 		this->ActiveCamera().ProjParams(re.DefaultFOV(), static_cast<float>(buffer.Width()) / buffer.Height(),
 			nearPlane, farPlane);
+	}
+	uint32_t Framework3D::RegisterAfterFrameFunc(const std::function<int(float, float)>& func)
+	{
+		assert(func != nullptr);
+		for (size_t i = 0; i < run_after_frame_.size(); ++i)
+		{
+			if (run_after_frame_[i] == nullptr)
+			{
+				run_after_frame_[i] = func;
+				return static_cast<uint32_t>(run_after_frame_.size() - 1);
+			}
+		}
+		// else
+		run_after_frame_.push_back(func);
+		return static_cast<uint32_t>(run_after_frame_.size() - 1);
+	}
+	void Framework3D::UnregisterAfterFrameFunc(uint32_t index)
+	{
+		run_after_frame_[index] = nullptr;
+	}
+	void Framework3D::RunAfterFrame()
+	{
+		static float elapsed_time = 0;
+		for (auto &func : run_after_frame_)
+		{
+			func(this->AppTime(), elapsed_time);
+		}
+		elapsed_time = this->AppTime();
 	}
 }
