@@ -15,12 +15,12 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\samples\6_refract\refract.cpp">
+    <ClCompile Include="..\..\samples\refract\refract.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <Xml Include="..\..\samples\6_refract\refract.xml">
+    <Xml Include="..\..\samples\refract\refract.xml">
       <Filter>资源文件</Filter>
     </Xml>
   </ItemGroup>

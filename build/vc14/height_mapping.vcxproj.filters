@@ -15,12 +15,12 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\samples\5_height_mapping\height_mapping.cpp">
+    <ClCompile Include="..\..\samples\height_mapping\height_mapping.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <Xml Include="..\..\samples\5_height_mapping\HeightMapping.xml">
+    <Xml Include="..\..\samples\height_mapping\HeightMapping.xml">
       <Filter>资源文件</Filter>
     </Xml>
   </ItemGroup>

@@ -15,12 +15,12 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\samples\4_basic_lighting\basic_lighting.cpp">
+    <ClCompile Include="..\..\samples\tutorials\basic_pbr\basic_pbr.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <Xml Include="..\..\samples\4_basic_lighting\basic_light.xml">
+    <Xml Include="..\..\samples\tutorials\basic_pbr\basic_pbr.xml">
       <Filter>资源文件</Filter>
     </Xml>
   </ItemGroup>

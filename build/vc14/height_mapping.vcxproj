@@ -18,6 +18,12 @@
       <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\samples\height_mapping\height_mapping.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <Xml Include="..\..\samples\height_mapping\HeightMapping.xml" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{AAA1E779-C234-4EDB-8E6A-8B67566F949C}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
@@ -151,12 +157,6 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
   </ItemDefinitionGroup>
-  <ItemGroup>
-    <ClCompile Include="..\..\samples\5_height_mapping\height_mapping.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <Xml Include="..\..\samples\5_height_mapping\HeightMapping.xml" />
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

@@ -75,7 +75,7 @@ public:
 	Refract()
 		: Framework3D("Refract")
 	{
-		ResLoader::Instance().AddPath("../../samples/6_refract");
+		ResLoader::Instance().AddPath("../../samples/refract");
 		ResLoader::Instance().AddPath("../../resource/common/skybox/church");
 		ResLoader::Instance().AddPath("../../resource/common/teapot");
 	}

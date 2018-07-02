@@ -16,7 +16,7 @@ class LampUpdateObject
 {
 public:
 	LampUpdateObject()
-		: pos_(glm::vec3(0,1.5f,0))
+		: pos_(glm::vec3(0, 1.5f, 0))
 	{
 	}
 
@@ -37,7 +37,7 @@ public:
 	RenderBox(const std::string &name, const ModelPtr &model)
 		: Mesh(name, model)
 	{
-		RenderEffectPtr effect = LoadRenderEffect("basic_light.xml");
+		RenderEffectPtr effect = LoadRenderEffect("basic_pbr.xml");
 		RenderTechnique *technique = effect->GetTechniqueByName("BasicLight");
 		this->BindRenderTechnique(effect, technique);
 		ShaderObject &shader = *technique->GetShaderObject(*effect);
@@ -61,7 +61,7 @@ public:
 		const glm::mat4 &proj_view = camera.ProjViewMatrix();
 		*proj_view_ = proj_view;
 		*model_ = model_matrix_;
-		*eye_pos_ =  camera.EyePos();
+		*eye_pos_ = camera.EyePos();
 	}
 
 	UniformPtr light_pos_;
@@ -74,7 +74,7 @@ public:
 	RenderLamp(const std::string &name, const ModelPtr &model)
 		: Mesh(name, model)
 	{
-		RenderEffectPtr effect = LoadRenderEffect("basic_light.xml");
+		RenderEffectPtr effect = LoadRenderEffect("basic_pbr.xml");
 		RenderTechnique *technique = effect->GetTechniqueByName("Lamp");
 		this->BindRenderTechnique(effect, technique);
 
@@ -97,9 +97,9 @@ class BasicLightingFramework : public Framework3D
 {
 public:
 	BasicLightingFramework()
-		: Framework3D("Line")
+		: Framework3D("Basic PBR")
 	{
-		ResLoader::Instance().AddPath("../../samples/4_basic_lighting");
+		ResLoader::Instance().AddPath("../../samples/tutorials/basic_pbr");
 	}
 protected:
 	void OnCreate() override
@@ -154,7 +154,7 @@ protected:
 			vertices.emplace_back(v[i * 6], v[i * 6 + 1], v[i * 6 + 2]);
 			normals.emplace_back(v[i * 6 + 3], v[i * 6 + 4], v[i * 6 + 5]);
 		}
-		
+
 		ModelPtr box = std::make_shared<Model>("Model");
 		std::vector<MeshPtr> box_mesh(1);
 		box_mesh[0] = std::make_shared<RenderBox>("box", box);
@@ -199,7 +199,7 @@ protected:
 		so_lamp_->BindUpdateFunc(LampUpdateObject());
 		so_lamp_->AddToSceneManager();
 
-		this->LookAt(glm::vec3(0.0f, 0.0f, 5.0f), glm::vec3());
+		this->LookAt(glm::vec3(2.0f, 2.0f, -5.0f), glm::vec3());
 		this->Proj(0.1f, 100.0f);
 
 		controller.AttachCamera(this->ActiveCamera());

@@ -14,21 +14,6 @@
 #include <base/framework.h>
 namespace gleam
 {
-	class RenderTriangle : public RenderableHelper
-	{
-	public:
-		RenderTriangle();
-	};
-
-	class TriangleObject : public SceneObjectHelper
-	{
-	public:
-		TriangleObject()
-			: SceneObjectHelper(std::make_shared<RenderTriangle>(), SOA_Cullable)
-		{
-		}
-	};
-
 	class TriangleApp : public Framework3D
 	{
 	public:

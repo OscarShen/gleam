@@ -18,6 +18,15 @@
       <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\samples\tutorial\triangle\triangle.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\samples\tutorial\triangle\triangle.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Xml Include="..\..\samples\tutorial\triangle\triangle.xml" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{054C8D6B-BAA7-4A5A-98F0-57DF18F9B962}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
@@ -151,17 +160,6 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
   </ItemDefinitionGroup>
-  <ItemGroup>
-    <ClCompile Include="..\..\samples\1_triangle\triangle.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="..\..\samples\1_triangle\triangle.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <Xml Include="..\..\samples\1_triangle\triangle.xml">
-      <SubType>Designer</SubType>
-    </Xml>
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

@@ -15,18 +15,18 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\samples\1_triangle\triangle.cpp">
+    <ClInclude Include="..\..\samples\tutorial\triangle\triangle.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\samples\tutorial\triangle\triangle.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <Xml Include="..\..\samples\1_triangle\triangle.xml">
+    <Xml Include="..\..\samples\tutorial\triangle\triangle.xml">
       <Filter>资源文件</Filter>
     </Xml>
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="..\..\samples\1_triangle\triangle.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
   </ItemGroup>
 </Project>

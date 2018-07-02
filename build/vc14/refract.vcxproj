@@ -18,6 +18,12 @@
       <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\samples\refract\refract.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <Xml Include="..\..\samples\refract\refract.xml" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{1089F82B-5716-4A68-9801-B1257AA5146F}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
@@ -151,12 +157,6 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
   </ItemDefinitionGroup>
-  <ItemGroup>
-    <ClCompile Include="..\..\samples\6_refract\refract.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <Xml Include="..\..\samples\6_refract\refract.xml" />
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

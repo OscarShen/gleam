@@ -18,11 +18,18 @@
       <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\samples\tutorials\basic_pbr\basic_pbr.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <Xml Include="..\..\samples\tutorials\basic_pbr\basic_pbr.xml" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{A81BA754-9365-471A-844D-FDC87727995C}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>basic_lighting</RootNamespace>
     <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
+    <ProjectName>basic_pbr</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -75,8 +82,8 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
     <OutDir>../../bin/vc14_x64/</OutDir>
-    <IntDir>../../bin/intermediate/basic_lighting/</IntDir>
-    <TargetName>basic-lighting-sample-d</TargetName>
+    <IntDir>../../bin/intermediate/basic_pbr/</IntDir>
+    <TargetName>basic-pbr-sample-d</TargetName>
     <LibraryPath>../../bin/vc14_x64;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -151,12 +158,6 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
   </ItemDefinitionGroup>
-  <ItemGroup>
-    <Xml Include="..\..\samples\4_basic_lighting\basic_light.xml" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="..\..\samples\4_basic_lighting\basic_lighting.cpp" />
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

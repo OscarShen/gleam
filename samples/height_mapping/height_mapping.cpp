@@ -158,7 +158,7 @@ public:
 	HeightMapping()
 		: Framework3D("HeightMapping")
 	{
-		ResLoader::Instance().AddPath("../../samples/5_height_mapping");
+		ResLoader::Instance().AddPath("../../samples/height_mapping");
 		ResLoader::Instance().AddPath("../../resource/common/stonewall");
 	}
 
@@ -169,7 +169,7 @@ private:
 		this->Proj(0.1f, 100.0f);
 
 		controller_.AttachCamera(this->ActiveCamera());
-		controller_.SetScalers(0.05f, 0.1f);
+		controller_.SetScalers(0.01f, 0.1f);
 
 		light_ = std::make_shared<PointLight>();
 		light_->Attrib(0);
