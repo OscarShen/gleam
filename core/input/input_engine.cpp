@@ -4,18 +4,27 @@
 #include <base/context.h>
 #include <input/input_record.h>
 namespace gleam {
+	void InputEngine::RunDaemon()
+	{
+		thread_ = std::thread([&]
+		{
+			for (;;)
+			{
+				this->Update();
+				std::this_thread::sleep_for(
+					std::chrono::milliseconds(5)
+				);
+			}
+		});
+		thread_.detach();
+	}
 	void InputEngine::Update()
 	{
-		elapsed_time_ = static_cast<float>(timer_.Elapsed());
-
-		if (elapsed_time_ > 0.01f) {
-
-			Context::Instance().RenderEngineInstance().GetWindow()->Update();
-			for (size_t i = 0; i < input_handlers_.size(); ++i) {
-				input_handlers_[i]();
-			}
-			timer_.Restart();
+		for (size_t i = 0; i < input_handlers_.size(); ++i) {
+			input_handlers_[i]();
 		}
+		elapsed_time_ = timer_.Elapsed();
+		timer_.Restart();
 	}
 	void InputEngine::Register(const std::function<void()>& action_handler)
 	{

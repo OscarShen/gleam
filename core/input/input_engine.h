@@ -18,15 +18,17 @@ namespace gleam
 		InputEngine() {}
 		virtual ~InputEngine() {}
 
+		void RunDaemon();
 		void Update();
 		float ElapsedTime() const { return elapsed_time_; }
-
+		
 		void Register(const std::function<void()> &action_handler);
 
 	private:
 		Timer timer_;
 		float elapsed_time_;
 		std::vector<std::function<void()>> input_handlers_;
+		std::thread thread_;
 	};
 }
 

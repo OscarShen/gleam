@@ -8,6 +8,7 @@
 #include <render/ogl_util.h>
 #include <GLFW/glfw3.h>
 #include <input/input_engine.h>
+#include <base/window.h>
 namespace gleam {
 	Framework3D::Framework3D(const std::string & name)
 		:name_(name), total_num_frames_(0), fps_(0), accumulate_time_(0),
@@ -28,8 +29,9 @@ namespace gleam {
 			re.SwapBuffer();
 
 			// should use another thread to handle input
-			InputEngine &ie = Context::Instance().InputEngineInstance();
-			ie.Update();
+			//InputEngine &ie = Context::Instance().InputEngineInstance();
+			//ie.Update();
+			re.GetWindow()->Update();
 
 			Framework3D &app = Context::Instance().FrameworkInstance();
 			app.RunAfterFrame();
@@ -56,6 +58,9 @@ namespace gleam {
 		// Init render state
 		re.CurrentRenderStateObject()->ActiveDefault();
 		this->OnCreate();
+
+		Context::Instance().RenderEngineInstance().RunDaemon();
+		Context::Instance().InputEngineInstance().RunDaemon();
 	}
 	void Framework3D::Destroy()
 	{

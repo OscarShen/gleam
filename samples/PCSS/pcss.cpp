@@ -100,7 +100,7 @@ void PCSS::OnCreate()
 	this->LookAt(glm::vec3(-0.644995f, 0.614183f, 0.660632f) * 1.5f, glm::vec3());
 	this->Proj(0.1f, 100.0f);
 	controller_.AttachCamera(this->ActiveCamera());
-	controller_.SetScalers(0.05f, 0.1f);
+	controller_.SetScalers(0.01f, 0.01f);
 	render_camera_ = default_fb->GetViewport()->camera;
 
 	ModelPtr knoght_model = LoadModel("knight.obj", EAH_Immutable, CreateModelFunc<Model>(), CreateMeshFunc<PCSSMesh>());

@@ -110,6 +110,8 @@ namespace gleam
 
 		bool Quit();
 
+		void RunDaemon() { }
+
 		void SwapBuffer();
 
 	protected:
