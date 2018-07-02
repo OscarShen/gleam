@@ -148,38 +148,6 @@ namespace gleam
 	protected:
 		AABBox pos_aabb_;
 	};
-
-	class RenderableHeightToNormal : public RenderablePlane
-	{
-	public:
-		RenderableHeightToNormal(const TexturePtr &height_tex, float level, float strength);
-
-		void Render() override;
-
-		void OnRenderBegin() override;
-
-		TexturePtr GetNormalTexture() const { return normal_tex_; }
-
-	private:
-		TexturePtr normal_tex_;
-
-		FrameBufferPtr fbo_;
-	};
-
-	class RenderableTerrain : public RenderablePlane
-	{
-	public:
-		RenderableTerrain(const TexturePtr &height_tex, float width, float height, float level, float strength, float tile_size);
-
-		void OnRenderBegin() override;
-
-	private:
-		void InitNormalTex(float level, float Strength);
-
-	private:
-		TexturePtr normal_tex_;
-		TexturePtr height_tex_;
-	};
 }
 
 #endif // !GLEAM_RENDER_RENDERABLE_H_
