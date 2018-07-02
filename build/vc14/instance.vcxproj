@@ -18,6 +18,15 @@
       <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\samples\instance\instance.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\samples\instance\instance.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Xml Include="..\..\samples\instance\instance.xml" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{9D4B7880-3ABE-4551-8431-4864F4DC6AD9}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
@@ -113,7 +122,9 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>Gleam-core-d.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>Gleam-core-d.lib;glew32.lib;glfw3.lib;opengl32.lib;assimp-vc140-mt.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>../../external/lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalOptions>/ignore:4098 %(AdditionalOptions)</AdditionalOptions>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -152,17 +163,6 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
   </ItemDefinitionGroup>
-  <ItemGroup>
-    <ClCompile Include="..\..\samples\14_instance\instance.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="..\..\samples\14_instance\instance.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <Xml Include="..\..\samples\14_instance\instance.xml">
-      <SubType>Designer</SubType>
-    </Xml>
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

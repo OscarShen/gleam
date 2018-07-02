@@ -84,8 +84,8 @@ uint32_t SimpleRenderLayer::ScenePass()
 Bloom::Bloom()
 	: Framework3D("bloom")
 {
-	ResLoader::Instance().AddPath("../../samples/11_bloom");
-	ResLoader::Instance().AddPath("../../resource/common");
+	ResLoader::Instance().AddPath("../../samples/bloom");
+	ResLoader::Instance().AddPath("../../resource/common/gate");
 }
 
 void Bloom::OnCreate()

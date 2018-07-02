@@ -19,13 +19,13 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\samples\12_FXAA\FXAA.cpp" />
+    <ClCompile Include="..\..\samples\FXAA\FXAA.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\samples\12_FXAA\FXAA.h" />
+    <ClInclude Include="..\..\samples\FXAA\FXAA.h" />
   </ItemGroup>
   <ItemGroup>
-    <Xml Include="..\..\samples\13_PCSS\pcss.xml" />
+    <Xml Include="..\..\samples\FXAA\FXAA.xml" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{F3BCD1AF-0E87-4BC3-AFC8-292016534301}</ProjectGuid>
@@ -124,7 +124,7 @@
       <IgnoreAllDefaultLibraries>
       </IgnoreAllDefaultLibraries>
       <AdditionalDependencies>Gleam-core-d.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalOptions>/NODEFAULTLIB:MSVCRT %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/ignore:4098 %(AdditionalOptions)</AdditionalOptions>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">

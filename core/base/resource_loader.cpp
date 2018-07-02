@@ -28,7 +28,6 @@ namespace gleam
 		this->AddPath("..");
 		this->AddPath("../../resource/render");
 		this->AddPath("../../resource/common");
-		this->AddPath("../../resource/common/texture");
 	}
 
 	std::unique_ptr<ResLoader> ResLoader::res_loader_instance_;

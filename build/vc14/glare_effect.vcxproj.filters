@@ -15,17 +15,12 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\samples\10_glare_effect\glare_effect.cpp">
+    <ClCompile Include="..\..\samples\glare_effect\glare_effect.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <Image Include="..\..\samples\10_glare_effect\mask.jpg">
-      <Filter>资源文件</Filter>
-    </Image>
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="..\..\samples\10_glare_effect\glare_effect.h">
+    <ClInclude Include="..\..\samples\glare_effect\glare_effect.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

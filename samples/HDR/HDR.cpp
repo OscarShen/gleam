@@ -58,9 +58,9 @@ void HdrSceneObject::Cubemap(const TexturePtr & cubemap)
 HDR::HDR()
 	:Framework3D("HDR")
 {
-	ResLoader::Instance().AddPath("../../samples/9_HDR");
+	ResLoader::Instance().AddPath("../../samples/HDR");
 	ResLoader::Instance().AddPath("../../resource/common/skybox");
-	ResLoader::Instance().AddPath("../../resource/common");
+	ResLoader::Instance().AddPath("../../resource/common/HDR");
 }
 
 void HDR::OnCreate()

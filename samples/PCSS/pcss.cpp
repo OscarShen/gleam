@@ -84,24 +84,11 @@ private:
 	FrameBufferPtr shadow_fb_;
 };
 
-class PCSSGround : public RenderablePlane
-{
-public:
-	PCSSGround(float width, float height, const TexturePtr &diffuse_tex, const TexturePtr &normal_tex)
-		: RenderablePlane(width, height, 1, 1, true),
-		diffuse_tex_(diffuse_tex), normal_tex_(normal_tex)
-	{
-	}
-
-private:
-	UniformPtr normal_tex_u_, diffuse_tex_u_;
-	TexturePtr normal_tex_, diffuse_tex_;
-};
-
 PCSS::PCSS()
 	: Framework3D("PCSS Sample.")
 {
-	ResLoader::Instance().AddPath("../../samples/13_pcss");
+	ResLoader::Instance().AddPath("../../samples/pcss");
+	ResLoader::Instance().AddPath("../../resource/common/pcss");
 }
 
 void PCSS::OnCreate()

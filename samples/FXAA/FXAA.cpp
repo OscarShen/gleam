@@ -118,7 +118,8 @@ void LineSphere::GenLineSphere(uint32_t num_slice, float scale)
 FXAA::FXAA()
 	: Framework3D("FXAA Sample. open(close) FXAA -- space key")
 {
-	ResLoader::Instance().AddPath("../../samples/12_FXAA");
+	ResLoader::Instance().AddPath("../../samples/FXAA");
+	ResLoader::Instance().AddPath("../../resource/common/fxaa");
 }
 
 void FXAA::OnCreate()

@@ -21,10 +21,10 @@ using namespace gleam;
 HDRAdvance::HDRAdvance()
 	:Framework3D("glare effect sample")
 {
-	ResLoader::Instance().AddPath("../../samples/9_HDR");
-	ResLoader::Instance().AddPath("../../samples/10_glare_effect");
+	ResLoader::Instance().AddPath("../../samples/HDR");
+	ResLoader::Instance().AddPath("../../samples/glare_effect");
 	ResLoader::Instance().AddPath("../../resource/common/skybox");
-	ResLoader::Instance().AddPath("../../resource/common");
+	ResLoader::Instance().AddPath("../../resource/common/HDR");
 }
 
 void HDRAdvance::OnCreate()

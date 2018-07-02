@@ -15,27 +15,21 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\samples\9_HDR\HDR.cpp">
+    <ClCompile Include="..\..\samples\HDR\HDR.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <Xml Include="..\..\samples\9_HDR\HDR.xml">
-      <Filter>资源文件</Filter>
-    </Xml>
-    <Xml Include="..\..\resource\render\HDR_pp.xml">
-      <Filter>资源文件</Filter>
-    </Xml>
-    <Xml Include="..\..\resource\render\HDR_util.xml">
+    <ClInclude Include="..\..\samples\HDR\HDR.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Xml Include="..\..\samples\HDR\HDR.xml">
       <Filter>资源文件</Filter>
     </Xml>
     <Xml Include="..\..\resource\render\tonemapping.xml">
       <Filter>资源文件</Filter>
     </Xml>
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="..\..\samples\9_HDR\HDR.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
   </ItemGroup>
 </Project>

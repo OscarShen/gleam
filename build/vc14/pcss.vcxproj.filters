@@ -12,17 +12,17 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\samples\13_PCSS\pcss.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="..\..\samples\13_PCSS\pcss.cpp">
+    <ClCompile Include="..\..\samples\PCSS\pcss.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <Xml Include="..\..\samples\13_PCSS\pcss.xml">
+    <ClInclude Include="..\..\samples\PCSS\pcss.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Xml Include="..\..\samples\PCSS\pcss.xml">
       <Filter>资源文件</Filter>
     </Xml>
     <Xml Include="..\..\resource\render\shadow.xml">

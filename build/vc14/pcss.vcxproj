@@ -18,6 +18,16 @@
       <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\samples\PCSS\pcss.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\samples\PCSS\pcss.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Xml Include="..\..\resource\render\shadow.xml" />
+    <Xml Include="..\..\samples\PCSS\pcss.xml" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{58E919C9-E8E0-43E7-B3BA-66A8CF6CBD13}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
@@ -113,6 +123,7 @@
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>Gleam-core-d.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalOptions>/ignore:4098 %(AdditionalOptions)</AdditionalOptions>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -151,18 +162,6 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
   </ItemDefinitionGroup>
-  <ItemGroup>
-    <ClInclude Include="..\..\samples\13_PCSS\pcss.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="..\..\samples\13_PCSS\pcss.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <Xml Include="..\..\resource\render\shadow.xml" />
-    <Xml Include="..\..\samples\13_PCSS\pcss.xml">
-      <SubType>Designer</SubType>
-    </Xml>
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

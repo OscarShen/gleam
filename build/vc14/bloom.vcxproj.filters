@@ -15,21 +15,21 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\samples\11_bloom\bloom.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <Xml Include="..\..\samples\11_bloom\bloom_pp.xml">
-      <Filter>资源文件</Filter>
-    </Xml>
-    <Xml Include="..\..\samples\11_bloom\bloom.xml">
-      <Filter>资源文件</Filter>
-    </Xml>
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="..\..\samples\11_bloom\bloom.cpp">
+    <ClCompile Include="..\..\samples\bloom\bloom.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Xml Include="..\..\samples\bloom\bloom.xml">
+      <Filter>资源文件</Filter>
+    </Xml>
+    <Xml Include="..\..\samples\bloom\bloom_pp.xml">
+      <Filter>资源文件</Filter>
+    </Xml>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\samples\bloom\bloom.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

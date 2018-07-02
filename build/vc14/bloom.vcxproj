@@ -19,14 +19,14 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\samples\11_bloom\bloom.cpp" />
+    <ClCompile Include="..\..\samples\bloom\bloom.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\samples\11_bloom\bloom.h" />
+    <ClInclude Include="..\..\samples\bloom\bloom.h" />
   </ItemGroup>
   <ItemGroup>
-    <Xml Include="..\..\samples\11_bloom\bloom.xml" />
-    <Xml Include="..\..\samples\11_bloom\bloom_pp.xml" />
+    <Xml Include="..\..\samples\bloom\bloom.xml" />
+    <Xml Include="..\..\samples\bloom\bloom_pp.xml" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{EF9C16FB-6E9F-47CC-A195-AF3F52038D94}</ProjectGuid>
@@ -123,6 +123,7 @@
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>Gleam-core-d.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalOptions>/ignore:4098 %(AdditionalOptions)</AdditionalOptions>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">

@@ -18,6 +18,16 @@
       <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\samples\HDR\HDR.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\samples\HDR\HDR.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Xml Include="..\..\resource\render\tonemapping.xml" />
+    <Xml Include="..\..\samples\HDR\HDR.xml" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{0725EAAD-201D-476B-8CE9-AAE0D4559131}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
@@ -113,6 +123,7 @@
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>Gleam-core-d.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalOptions>/ignore:4098 %(AdditionalOptions)</AdditionalOptions>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -151,18 +162,6 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
   </ItemDefinitionGroup>
-  <ItemGroup>
-    <ClCompile Include="..\..\samples\9_HDR\HDR.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="..\..\samples\9_HDR\HDR.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <Xml Include="..\..\resource\render\HDR_pp.xml" />
-    <Xml Include="..\..\resource\render\HDR_util.xml" />
-    <Xml Include="..\..\resource\render\tonemapping.xml" />
-    <Xml Include="..\..\samples\9_HDR\HDR.xml" />
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
