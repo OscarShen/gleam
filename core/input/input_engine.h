@@ -28,7 +28,6 @@ namespace gleam
 		Timer timer_;
 		float elapsed_time_;
 		std::vector<std::function<void()>> input_handlers_;
-		std::thread thread_;
 	};
 }
 

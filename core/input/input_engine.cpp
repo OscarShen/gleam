@@ -6,7 +6,7 @@
 namespace gleam {
 	void InputEngine::RunDaemon()
 	{
-		thread_ = std::thread([&]
+		std::thread(std::thread([&]
 		{
 			for (;;)
 			{
@@ -15,8 +15,7 @@ namespace gleam {
 					std::chrono::milliseconds(5)
 				);
 			}
-		});
-		thread_.detach();
+		})).detach();
 	}
 	void InputEngine::Update()
 	{
