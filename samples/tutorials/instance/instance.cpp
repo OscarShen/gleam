@@ -86,7 +86,7 @@ TexturePtr GrassInstanceMesh::diff_;
 InstanceAPP::InstanceAPP()
 	: Framework3D("Instance-sample")
 {
-	ResLoader::Instance().AddPath("../../samples/instance");
+	ResLoader::Instance().AddPath("../../samples/tutorials/instance");
 	ResLoader::Instance().AddPath("../../resource/common/grass");
 }
 

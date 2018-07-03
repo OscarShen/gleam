@@ -19,13 +19,13 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\samples\instance\instance.cpp" />
+    <ClCompile Include="..\..\samples\tutorials\instance\instance.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\samples\instance\instance.h" />
+    <ClInclude Include="..\..\samples\tutorials\instance\instance.h" />
   </ItemGroup>
   <ItemGroup>
-    <Xml Include="..\..\samples\instance\instance.xml" />
+    <Xml Include="..\..\samples\tutorials\instance\instance.xml" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{9D4B7880-3ABE-4551-8431-4864F4DC6AD9}</ProjectGuid>
