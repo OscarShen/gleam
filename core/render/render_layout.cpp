@@ -42,6 +42,20 @@ namespace gleam {
 		}
 		return n;
 	}
+	const GraphicsBufferPtr & RenderLayout::GetVertexStream(ArrayRef<VertexElement> vet)
+	{
+		uint32_t n = NumVertexStreams();
+		std::vector<VertexElement> v = vet.ToVector();
+		uint32_t ret = 0xffffffff;
+		for (uint32_t i = 0; i < n; ++i)
+		{
+			if (v == VertexStreamFormat(i))
+				ret = i;
+		}
+		CHECK_INFO(ret != 0xffffffff, "Vertex Element unmatch!");
+
+		return GetVertexStream(ret);
+	}
 	void RenderLayout::SetVertexStream(uint32_t index, const GraphicsBufferPtr & gbuffer)
 	{
 		vertex_streams_[index].stream = gbuffer;

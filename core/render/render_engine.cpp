@@ -805,6 +805,11 @@ namespace gleam {
 		return std::make_shared<OGLTexture2D>(width, height, num_mip_maps, format, sample_count, access_hint);
 	}
 
+	TexturePtr OGLRenderEngine::MakeTextureHandler2DArray(uint32_t array_size, uint32_t width, uint32_t height, uint32_t num_mip_maps, ElementFormat format, uint32_t sample_count, uint32_t access_hint)
+	{
+		return std::make_shared<OGLTexture2DArray>(array_size, width, height, num_mip_maps, format, sample_count, access_hint);
+	}
+
 	TexturePtr OGLRenderEngine::MakeTextureHandlerCube(uint32_t width, uint32_t num_mip_maps, ElementFormat format, uint32_t sample_count, uint32_t access_hint)
 	{
 		return std::make_shared<OGLTextureCube>(width, num_mip_maps, format, sample_count, access_hint);
@@ -1128,6 +1133,12 @@ namespace gleam {
 	TexturePtr RenderEngine::MakeTexture2D(uint32_t width, uint32_t height, uint32_t num_mip_maps, ElementFormat format, uint32_t sample_count, uint32_t access_hint, ArrayRef<ElementInitData> init_data)
 	{
 		TexturePtr texture = this->MakeTextureHandler2D(width, height, num_mip_maps, format, sample_count, access_hint);
+		texture->CreateResource(init_data);
+		return texture;
+	}
+	TexturePtr RenderEngine::MakeTexture2DArray(uint32_t array_size, uint32_t width, uint32_t height, uint32_t num_mip_maps, ElementFormat format, uint32_t sample_count, uint32_t access_hint, ArrayRef<ElementInitData> init_data)
+	{
+		TexturePtr texture = this->MakeTextureHandler2DArray(array_size, width, height, num_mip_maps, format, sample_count, access_hint);
 		texture->CreateResource(init_data);
 		return texture;
 	}

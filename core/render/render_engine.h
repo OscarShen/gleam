@@ -66,6 +66,9 @@ namespace gleam
 		TexturePtr MakeTexture2D(uint32_t width, uint32_t height, uint32_t num_mip_maps,
 			ElementFormat format, uint32_t sample_count, uint32_t access_hint,
 			ArrayRef<ElementInitData> init_data = {});
+		TexturePtr MakeTexture2DArray(uint32_t array_size, uint32_t width, uint32_t height, uint32_t num_mip_maps,
+			ElementFormat format, uint32_t sample_count, uint32_t access_hint,
+			ArrayRef<ElementInitData> init_data = {});
 		TexturePtr MakeTextureCube(uint32_t width, uint32_t num_mip_maps,
 			ElementFormat format, uint32_t sample_count, uint32_t access_hint,
 			ArrayRef<ElementInitData> init_data = {});
@@ -73,6 +76,8 @@ namespace gleam
 		virtual TexturePtr MakeTextureHandler1D(uint32_t width, uint32_t num_mip_maps,
 			ElementFormat format, uint32_t sample_count, uint32_t access_hint) = 0;
 		virtual TexturePtr MakeTextureHandler2D(uint32_t width, uint32_t height, uint32_t num_mip_maps, 
+			ElementFormat format, uint32_t sample_count, uint32_t access_hint) = 0;
+		virtual TexturePtr MakeTextureHandler2DArray(uint32_t array_size, uint32_t width, uint32_t height, uint32_t num_mip_maps,
 			ElementFormat format, uint32_t sample_count, uint32_t access_hint) = 0;
 		virtual TexturePtr MakeTextureHandlerCube(uint32_t width, uint32_t num_mip_maps,
 			ElementFormat format, uint32_t sample_count, uint32_t access_hint) = 0;
@@ -217,6 +222,8 @@ namespace gleam
 		GraphicsBufferPtr MakeConstantBufferHandler(BufferUsage usage, uint32_t access_hint, uint32_t size_in_byte, ElementFormat format = EF_Unknown) override;
 		TexturePtr MakeTextureHandler1D(uint32_t width, uint32_t num_mip_maps, ElementFormat format, uint32_t sample_count, uint32_t access_hint) override;
 		TexturePtr MakeTextureHandler2D(uint32_t width, uint32_t height, uint32_t num_mip_maps, ElementFormat format, uint32_t sample_count, uint32_t access_hint) override;
+		TexturePtr MakeTextureHandler2DArray(uint32_t array_size, uint32_t width, uint32_t height, uint32_t num_mip_maps,
+			ElementFormat format, uint32_t sample_count, uint32_t access_hint) override;
 		TexturePtr MakeTextureHandlerCube(uint32_t width, uint32_t num_mip_maps, ElementFormat format, uint32_t sample_count, uint32_t access_hint) override;
 
 		void MemoryBarrier(uint32_t barrier_op) override;

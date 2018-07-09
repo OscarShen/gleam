@@ -87,6 +87,7 @@ namespace gleam
 
 		uint32_t NumVertexStreams() const { return static_cast<uint32_t>(vertex_streams_.size()); }
 
+		const GraphicsBufferPtr &GetVertexStream(ArrayRef<VertexElement> vet);
 		const GraphicsBufferPtr &GetVertexStream(uint32_t index) const { return vertex_streams_[index].stream; }
 		void SetVertexStream(uint32_t index, const GraphicsBufferPtr &gbuffer);
 
