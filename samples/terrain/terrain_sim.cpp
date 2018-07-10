@@ -4,7 +4,7 @@
 TerrainSim::TerrainSim(int32_t width, int32_t height, const glm::vec2 & trans)
 	: width_(width), height_(height),
 	recip_w_(1.0f / (width_ - 1)), recip_h_(1.0f / (height_ - 1)),
-	translation_(trans), dirty_(false),
+	translation_(trans), dirty_(true),
 	normals_(width_ * height)
 {
 	u_.Init(width, height);
@@ -18,8 +18,12 @@ void TerrainSim::Simulate()
 		dirty_ = false;
 
 		for (int32_t j = 0; j < height_; ++j)
+		{
 			for (int32_t i = 0; i < width_; ++i)
+			{
 				u_.Get(i, j) = ComputeHeight(i, j);
+			}
+		}
 	}
 
 	CalcNormals();
@@ -45,7 +49,7 @@ float TerrainSim::GetUnbounded(int32_t x, int32_t y) const
 float TerrainSim::ComputeHeight(int32_t x, int32_t y) const
 {
 	glm::vec2 uv(x * recip_w_, y * recip_h_);
-	uv -= (translation_ + glm::vec2(params_.uvOffset));
+	uv += (translation_ + glm::vec2(params_.uvOffset));
 
 	const float h = (1 + params_.ridgeOffset) * HybridTerrain(Noise_Gen, uv, params_.octaves, params_.ridgeOffset);
 	return params_.heightScale * h + params_.heightOffset;

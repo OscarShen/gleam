@@ -4,6 +4,7 @@
 std::atomic<int32_t> TerrainSimThread::Threads_Counter = 0;
 std::atomic<int32_t> TerrainSimThread::Threads_Running = 0;
 std::atomic<int32_t> TerrainSimThread::Threads_Living = 0;
+std::mutex TerrainSimThread::Terrain_Sim_Mutex;
 gleam::Timer TerrainSimThread::Threads_Timer;
 
 std::condition_variable TerrainSimThread::Terrain_Sim_Cond_Global;
@@ -24,9 +25,9 @@ void TerrainSimThread::Run()
 
 	while (!quit_signal_)
 	{
+		++Threads_Running;
 		std::cout << "TerrainSimThread::Run() " << thread_id_ << " entry" << std::endl;
 
-		++Threads_Running;
 		start_time_ = Threads_Timer.Elapsed();
 
 		terrain_sim_->Simulate();
@@ -42,7 +43,7 @@ void TerrainSimThread::Run()
 
 		if (!quit_signal_)
 		{
-			std::unique_lock<std::mutex> ul;
+			std::unique_lock<std::mutex> ul(terrain_sim_mutex_);
 			terrain_sim_cond_local_.wait(ul);
 			terrain_sim_cond_local_.notify_all();
 		}
@@ -59,7 +60,7 @@ void TerrainSimThread::RunSimulation()
 
 void TerrainSimThread::Start()
 {
-	std::async(ThreadTrunk, this);
+	std::thread(ThreadTrunk, this).detach();
 }
 
 void TerrainSimThread::Stop()

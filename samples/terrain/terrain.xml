@@ -1,0 +1,122 @@
+<?xml version='1.0'?>
+
+<effect>
+
+  <shader type="vertex_shader" name="TerrainVS">
+    <attrib name="pos" usage="position"/>
+    <attrib name="n_h" usage="texture_coord"/>
+    <uniform name="view" type="mat4"/>
+    <uniform name="proj" type="mat4"/>
+    <code>
+      <![CDATA[
+in vec2 pos;
+in vec4 n_h;
+
+uniform mat4 view;
+uniform mat4 proj;
+
+out vec4 UV;
+out vec3 Normal;
+      
+void main()
+{
+  Normal = n_h.xyz;
+  float height = n_h.w;
+  
+  gl_Position = proj * view * vec4(pos.x, height, pos.y, 1.0f);
+
+  float u = pos.x / 8.0;
+  float v = pos.y / 8.0;
+  float slice = height / 1.5;
+  float cliff = smoothstep(0.1, 0.8, 1.0 - n_h.y);
+  
+  float snow_slice = 2.0;
+  if(slice > snow_slice)
+  {
+    float snow_amount = slice - snow_slice;
+    float snow_amount_clamped = clamp(snow_amount, 0.0, 1.0);
+    
+    float snow_transition_rate = 0.333;
+    if(slice < snow_slice + 1.0)
+    {
+      slice = snow_slice + (1.0 - snow_transition_rate)
+        + snow_transition_rate * snow_amount_clamped;
+    }
+    
+    if(snow_amount > 2.0)
+    {
+      cliff = clamp(cliff - 0.2 * (snow_amount - 2.0), 0.0, 1.0);
+    }
+  }
+  
+  UV = vec4(u, v, slice, cliff);
+}
+      ]]>
+    </code>
+  </shader>
+
+  <shader type="fragment_shader" name="TerrainFS">
+    <uniform name="terrain_tex" type="sampler">
+      <state name="filtering" value="min_mag_mip_linear"/>
+      <state name="address_u" value="wrap"/>
+      <state name="address_v" value="wrap"/>
+    </uniform>
+    <uniform name="interp_offset" type="float"/>
+    <code>
+      <![CDATA[
+      
+#extension GL_EXT_texture_array : enable
+#extension GL_EXT_gpu_shader4 : enable
+      
+in vec4 UV;
+in vec3 Normal;
+
+uniform sampler2DArray terrain_tex;
+uniform float interp_offset;
+      
+out vec4 FragColor;
+
+vec4 Lerp(vec4 v1, vec4 v2, float i)
+{
+  return v1 + i * (v2 - v1);
+}
+
+vec3 Lerp(vec3 v1, vec3 v2, float i)
+{
+  return v1 + i * (v2 - v1);
+}
+
+vec3 CliffTex(float grey_bright)
+{
+  float cliff_darken = 0.6;
+  float cliff_grey = cliff_darken * grey_bright + 0.07;
+  vec3 cliff = vec3(cliff_grey, cliff_grey, cliff_grey);
+  return cliff;
+}
+
+void main()
+{
+  vec4 slice1 = texture2DArray(terrain_tex, UV.xyz);
+  vec4 slice2 = texture2DArray(terrain_tex, UV.xyz + vec3(0,0,1));
+  float interp = fract(UV.z - interp_offset);
+  vec3 base_color = Lerp(slice1.xyz, slice2.xyz, interp);
+  
+  vec3 cliff = CliffTex(slice1.a);
+  
+  vec3 with_cliff = Lerp(base_color, cliff, smoothstep(0.0, 1.0, UV.w));
+  
+  float diff = 0.5 + 0.5 * dot(vec3(0.707, 0.707, 0.0), Normal);
+  
+  FragColor = vec4(diff * with_cliff, 1.0f);
+}
+		]]>
+    </code>
+  </shader>
+
+  <technique name="TerrainTech">
+    <state name="cull_mode" value="none"/>
+    <state name="vertex_shader" value="TerrainVS"/>
+    <state name="fragment_shader" value="TerrainFS"/>
+  </technique>
+</effect>
+

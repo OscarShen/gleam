@@ -7,6 +7,7 @@
 
 class TerrainSim
 {
+public:
 	struct Params
 	{
 		int32_t octaves;
@@ -15,7 +16,7 @@ class TerrainSim
 
 		Params() : 
 			octaves(8), heightScale(1), heightOffset(0),
-			ridgeOffset(1), uvOffset(0) {}
+			ridgeOffset(1), uvOffset(-0.5f) {}
 	};
 
 public:
@@ -33,8 +34,8 @@ public:
 	const float * HeightField() const { return u_.data; }
 	const glm::vec3 * Normals() const { return normals_.data(); }
 
-	size_t NumHeightFildFloat() const { return width_ * height_; }
-	size_t NumNormalsVec3() const { return width_ * height_; }
+	int32_t NumHeightFildFloat() const { return width_ * height_; }
+	int32_t NumNormalsVec3() const { return width_ * height_; }
 
 private:
 	float GetUnbounded(int32_t x, int32_t y) const;
