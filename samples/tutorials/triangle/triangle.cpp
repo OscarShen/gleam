@@ -32,7 +32,7 @@ namespace gleam {
 	TriangleApp::TriangleApp()
 		: Framework3D("Triangle")
 	{
-		ResLoader::Instance().AddPath("../../samples/tutorial/triangle");
+		ResLoader::Instance().AddPath("../../samples/tutorials/triangle");
 	}
 	void TriangleApp::OnCreate()
 	{

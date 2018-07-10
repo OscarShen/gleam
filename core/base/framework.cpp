@@ -125,11 +125,11 @@ namespace gleam {
 	}
 	void Framework3D::RunAfterFrame()
 	{
-		static float elapsed_time = 0;
+		static Timer raf_timer;
 		for (auto &func : run_after_frame_)
 		{
-			func(this->AppTime(), elapsed_time);
+			func(this->AppTime(), raf_timer.Elapsed());
 		}
-		elapsed_time = this->AppTime();
+		raf_timer.Restart();
 	}
 }
