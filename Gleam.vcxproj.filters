@@ -144,12 +144,18 @@
     <ClInclude Include="core\render\post_process.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="core\util\array_2d.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="core\util\improved_noise.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="build\vc14\ridged_multi_fractal.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="core\base\window.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="core\util\timer.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="core\input\input_engine.cpp">

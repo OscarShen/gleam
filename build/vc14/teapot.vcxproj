@@ -19,7 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\samples\tutorial\teapot\teapot.cpp" />
+    <ClCompile Include="..\..\samples\tutorials\teapot\teapot.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{7F70F17D-D3F2-4312-966D-E24B5FF6E17A}</ProjectGuid>

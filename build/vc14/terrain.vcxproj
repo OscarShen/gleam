@@ -19,7 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{79CCC972-82F8-4883-9565-07D9F9CF13C3}</ProjectGuid>
+    <ProjectGuid>{DE185C0C-1F1A-4E73-83FC-125B2D1BAE89}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>terrain</RootNamespace>
     <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
@@ -74,10 +74,10 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <LibraryPath>../../bin/vc14_x64;$(LibraryPath)</LibraryPath>
     <OutDir>../../bin/vc14_x64/</OutDir>
     <IntDir>../../bin/intermediate/terrain/</IntDir>
     <TargetName>terrain-sample-d</TargetName>
+    <LibraryPath>../../bin/vc14_x64;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
@@ -113,6 +113,7 @@
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>Gleam-core-d.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalOptions>/ignore:4098 %(AdditionalOptions)</AdditionalOptions>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -152,10 +153,19 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\samples\7_terrain\terrain.cpp" />
+    <ClInclude Include="..\..\samples\terrain\ridged_multi_fractal.h" />
+    <ClInclude Include="..\..\samples\terrain\terrain_gen.h" />
+    <ClInclude Include="..\..\samples\terrain\terrain_sim.h" />
+    <ClInclude Include="..\..\samples\terrain\terrain_sim_thread.h" />
   </ItemGroup>
   <ItemGroup>
-    <Xml Include="..\..\samples\7_terrain\terrain.xml" />
+    <ClCompile Include="..\..\samples\terrain\terrain.cpp" />
+    <ClCompile Include="..\..\samples\terrain\terrain_gen.cpp" />
+    <ClCompile Include="..\..\samples\terrain\terrain_sim.cpp" />
+    <ClCompile Include="..\..\samples\terrain\terrain_sim_thread.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <Xml Include="..\..\samples\terrain\terrain.xml" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

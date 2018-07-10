@@ -124,6 +124,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="build\vc14\ridged_multi_fractal.h" />
     <ClInclude Include="core\base\bbox.h" />
     <ClInclude Include="core\base\color.hpp" />
     <ClInclude Include="core\base\context.h" />
@@ -160,8 +161,10 @@
     <ClInclude Include="core\render\uniform.h" />
     <ClInclude Include="core\render\view_port.h" />
     <ClInclude Include="core\scene\vector_scene.h" />
+    <ClInclude Include="core\util\array_2d.h" />
     <ClInclude Include="core\util\array_ref.hpp" />
     <ClInclude Include="core\util\hash.h" />
+    <ClInclude Include="core\util\improved_noise.h" />
     <ClInclude Include="core\util\noncopyable.hpp" />
     <ClInclude Include="core\util\timer.h" />
     <ClInclude Include="external\include\stb_image\stb_image.h" />
@@ -202,7 +205,6 @@
     <ClCompile Include="core\render\uniform.cpp" />
     <ClCompile Include="core\render\view_port.cpp" />
     <ClCompile Include="core\scene\vector_scene.cpp" />
-    <ClCompile Include="core\util\timer.cpp" />
     <ClCompile Include="external\include\tinyXML\tinystr.cpp" />
     <ClCompile Include="external\include\tinyXML\tinyxml.cpp" />
     <ClCompile Include="external\include\tinyXML\tinyxmlerror.cpp" />

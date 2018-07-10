@@ -19,13 +19,13 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\samples\tutorial\triangle\triangle.cpp" />
+    <ClCompile Include="..\..\samples\tutorials\triangle\triangle.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\samples\tutorial\triangle\triangle.h" />
+    <ClInclude Include="..\..\samples\tutorials\triangle\triangle.h" />
   </ItemGroup>
   <ItemGroup>
-    <Xml Include="..\..\samples\tutorial\triangle\triangle.xml" />
+    <Xml Include="..\..\samples\tutorials\triangle\triangle.xml" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{054C8D6B-BAA7-4A5A-98F0-57DF18F9B962}</ProjectGuid>

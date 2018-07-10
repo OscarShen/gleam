@@ -15,12 +15,35 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\samples\7_terrain\terrain.cpp">
+    <ClCompile Include="..\..\samples\terrain\terrain.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\samples\terrain\terrain_sim.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\samples\terrain\terrain_sim_thread.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\samples\terrain\terrain_gen.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <Xml Include="..\..\samples\7_terrain\terrain.xml">
+    <ClInclude Include="..\..\samples\terrain\ridged_multi_fractal.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\samples\terrain\terrain_sim.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\samples\terrain\terrain_gen.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\samples\terrain\terrain_sim_thread.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Xml Include="..\..\samples\terrain\terrain.xml">
       <Filter>资源文件</Filter>
     </Xml>
   </ItemGroup>
