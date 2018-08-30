@@ -29,8 +29,8 @@ Git clone the sources, then use Visual Studio 2015 open the file Gleam.sln in ro
 ![HDR-dark](http://gleam-1255489689.cosbj.myqcloud.com/wp-content/uploads/2018/08/hdr-dark.png)
 
 ### FXAA
-![FXAA-aa](http://gleam-1255489689.cosbj.myqcloud.com/wp-content/uploads/2018/08/fxaa-aa.png)
-![FXAA-noaa](http://gleam-1255489689.cosbj.myqcloud.com/wp-content/uploads/2018/08/fxaa-noaa.png)
+![FXAA-aa](http://gleam-1255489689.cosbj.myqcloud.com/wp-content/uploads/2018/08/fxaa-aa-bit.png)
+![FXAA-noaa](http://gleam-1255489689.cosbj.myqcloud.com/wp-content/uploads/2018/08/fxaa-aa-big.png)
 
 ### PCSS
 ![PCSS](http://gleam-1255489689.cosbj.myqcloud.com/wp-content/uploads/2018/08/pcss.png)
