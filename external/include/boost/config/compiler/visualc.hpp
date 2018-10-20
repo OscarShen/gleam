@@ -317,10 +317,10 @@
 
 //
 // last known and checked version is 19.10.25017 (VC++ 2017):
-#if (_MSC_VER > 1910)
-#  if defined(BOOST_ASSERT_CONFIG)
-#     error "Unknown compiler version - please run the configure tests and report the results"
-#  else
-#     pragma message("Unknown compiler version - please run the configure tests and report the results")
-#  endif
-#endif
+//#if (_MSC_VER > 1910)
+//#  if defined(BOOST_ASSERT_CONFIG)
+//#     error "Unknown compiler version - please run the configure tests and report the results"
+//#  else
+//#     pragma message("Unknown compiler version - please run the configure tests and report the results")
+//#  endif
+//#endif
