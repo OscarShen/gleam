@@ -70,7 +70,9 @@ namespace gleam
 	{
 		assert(shader_type < ST_NumShaderTypes);
 		const auto &shader_type_uniforms = shader_uniforms_[shader_type];
-		const std::vector<UniformPtr> &uniforms = shader_type_uniforms.find(shader_name)->second;
+		auto iter = shader_type_uniforms.find(shader_name);
+		if (iter == shader_type_uniforms.end()) return std::vector<UniformPtr>();
+		const std::vector<UniformPtr> &uniforms = iter->second;
 		std::vector<UniformPtr> ret(uniforms.size());
 		for (size_t i = 0; i < uniforms.size(); ++i)
 		{
@@ -89,7 +91,9 @@ namespace gleam
 	{
 		assert(shader_type < ST_NumShaderTypes);
 		const auto &shader_type_uniform_buffers = shader_uniform_buffer_[shader_type];
-		const std::vector<UniformBufferPtr> &uniform_buffers = shader_type_uniform_buffers.find(shader_name)->second;
+		auto iter = shader_type_uniform_buffers.find(shader_name);
+		if (iter == shader_type_uniform_buffers.end()) return std::vector<UniformBufferPtr>();
+		const std::vector<UniformBufferPtr> &uniform_buffers = iter->second;
 		std::vector<UniformBufferPtr> ret(uniform_buffers.size());
 		for (size_t i = 0; i < uniform_buffers.size(); ++i)
 		{
@@ -108,7 +112,9 @@ namespace gleam
 	{
 		assert(shader_type < ST_NumShaderTypes);
 		const auto &shader_type_samplers = shader_samplers[shader_type];
-		const std::vector<UniformPtr> &uniform_samplers = shader_type_samplers.find(shader_name)->second;
+		auto iter = shader_type_samplers.find(shader_name);
+		if (iter == shader_type_samplers.end()) return std::vector<UniformPtr>();
+		const std::vector<UniformPtr> &uniform_samplers = iter->second;
 		std::vector<UniformPtr> ret(uniform_samplers.size());
 		for (size_t i = 0; i < uniform_samplers.size(); ++i)
 		{
@@ -127,7 +133,9 @@ namespace gleam
 	{
 		assert(shader_type < ST_NumShaderTypes);
 		const auto &shader_type_images = shader_images_[shader_type];
-		const std::vector<UniformPtr> &uniform_images = shader_type_images.find(shader_name)->second;
+		auto iter = shader_type_images.find(shader_name);
+		if (iter == shader_type_images.end()) return std::vector<UniformPtr>();
+		const std::vector<UniformPtr> &uniform_images = iter->second;
 		std::vector<UniformPtr> ret(uniform_images.size());
 		for (size_t i = 0; i < uniform_images.size(); ++i)
 		{
