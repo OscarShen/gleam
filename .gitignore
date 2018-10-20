@@ -4,7 +4,8 @@
 
 /x64/Debug
 /x64/Release
-/.vs/Gleam/v14
+/.vs
 /Gleam.VC.VC.opendb
 /Gleam.VC.db
 /bin
+*.vcxproj.user
