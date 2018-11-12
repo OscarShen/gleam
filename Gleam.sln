@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.25420.1
+# Visual Studio 15
+VisualStudioVersion = 15.0.28010.2050
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Gleam", "Gleam.vcxproj", "{27018355-C13F-4E12-9C23-6BF865228C1B}"
 EndProject
@@ -71,6 +71,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "terrain", "build\vc15\terra
 	ProjectSection(ProjectDependencies) = postProject
 		{27018355-C13F-4E12-9C23-6BF865228C1B} = {27018355-C13F-4E12-9C23-6BF865228C1B}
 	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "oit", "build\vc15\oit.vcxproj", "{0BF5D2A9-524F-487B-90F1-89D95D811088}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -308,6 +310,22 @@ Global
 		{DE185C0C-1F1A-4E73-83FC-125B2D1BAE89}.RelWithDebInfo|x64.Build.0 = Release|x64
 		{DE185C0C-1F1A-4E73-83FC-125B2D1BAE89}.RelWithDebInfo|x86.ActiveCfg = Release|Win32
 		{DE185C0C-1F1A-4E73-83FC-125B2D1BAE89}.RelWithDebInfo|x86.Build.0 = Release|Win32
+		{0BF5D2A9-524F-487B-90F1-89D95D811088}.Debug|x64.ActiveCfg = Debug|x64
+		{0BF5D2A9-524F-487B-90F1-89D95D811088}.Debug|x64.Build.0 = Debug|x64
+		{0BF5D2A9-524F-487B-90F1-89D95D811088}.Debug|x86.ActiveCfg = Debug|Win32
+		{0BF5D2A9-524F-487B-90F1-89D95D811088}.Debug|x86.Build.0 = Debug|Win32
+		{0BF5D2A9-524F-487B-90F1-89D95D811088}.MinSizeRel|x64.ActiveCfg = Release|x64
+		{0BF5D2A9-524F-487B-90F1-89D95D811088}.MinSizeRel|x64.Build.0 = Release|x64
+		{0BF5D2A9-524F-487B-90F1-89D95D811088}.MinSizeRel|x86.ActiveCfg = Release|Win32
+		{0BF5D2A9-524F-487B-90F1-89D95D811088}.MinSizeRel|x86.Build.0 = Release|Win32
+		{0BF5D2A9-524F-487B-90F1-89D95D811088}.Release|x64.ActiveCfg = Release|x64
+		{0BF5D2A9-524F-487B-90F1-89D95D811088}.Release|x64.Build.0 = Release|x64
+		{0BF5D2A9-524F-487B-90F1-89D95D811088}.Release|x86.ActiveCfg = Release|Win32
+		{0BF5D2A9-524F-487B-90F1-89D95D811088}.Release|x86.Build.0 = Release|Win32
+		{0BF5D2A9-524F-487B-90F1-89D95D811088}.RelWithDebInfo|x64.ActiveCfg = Release|x64
+		{0BF5D2A9-524F-487B-90F1-89D95D811088}.RelWithDebInfo|x64.Build.0 = Release|x64
+		{0BF5D2A9-524F-487B-90F1-89D95D811088}.RelWithDebInfo|x86.ActiveCfg = Release|Win32
+		{0BF5D2A9-524F-487B-90F1-89D95D811088}.RelWithDebInfo|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -326,5 +344,9 @@ Global
 		{9D4B7880-3ABE-4551-8431-4864F4DC6AD9} = {052FBEB6-0721-4DE8-94C8-A3E460968947}
 		{A81BA754-9365-471A-844D-FDC87727995C} = {052FBEB6-0721-4DE8-94C8-A3E460968947}
 		{DE185C0C-1F1A-4E73-83FC-125B2D1BAE89} = {052FBEB6-0721-4DE8-94C8-A3E460968947}
+		{0BF5D2A9-524F-487B-90F1-89D95D811088} = {052FBEB6-0721-4DE8-94C8-A3E460968947}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {A20A7552-CF96-4322-877B-F131AB1BD628}
 	EndGlobalSection
 EndGlobal

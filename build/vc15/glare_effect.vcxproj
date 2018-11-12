@@ -80,7 +80,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <LibraryPath>../../bin/vc14_x64;$(LibraryPath)</LibraryPath>
+    <LibraryPath>../../bin/vc15_x64;$(LibraryPath)</LibraryPath>
     <OutDir>../../bin/vc15_x64/</OutDir>
     <IntDir>../../bin/intermediate/glare_effect/</IntDir>
     <TargetName>glare-effect-sample-d</TargetName>

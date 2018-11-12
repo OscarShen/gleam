@@ -80,7 +80,7 @@
     <OutDir>../../bin/vc15_x64/</OutDir>
     <IntDir>../../bin/intermediate/line/</IntDir>
     <TargetName>line-sample-d</TargetName>
-    <LibraryPath>../../bin/vc14_x64;$(LibraryPath)</LibraryPath>
+    <LibraryPath>../../bin/vc15_x64;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
