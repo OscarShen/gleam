@@ -19,15 +19,18 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\samples\refract\refract.cpp" />
+    <ClCompile Include="..\..\samples\tutorials\instance\instance.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <Xml Include="..\..\samples\refract\refract.xml" />
+    <ClInclude Include="..\..\samples\tutorials\instance\instance.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Xml Include="..\..\samples\tutorials\instance\instance.xml" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{1089F82B-5716-4A68-9801-B1257AA5146F}</ProjectGuid>
+    <ProjectGuid>{9D4B7880-3ABE-4551-8431-4864F4DC6AD9}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>refract</RootNamespace>
+    <RootNamespace>instance</RootNamespace>
     <WindowsTargetPlatformVersion>10.0.17134.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -80,10 +83,11 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
+    <ExecutablePath>$(VC_ExecutablePath_x64);$(WindowsSDK_ExecutablePath);$(VS_ExecutablePath);$(MSBuild_ExecutablePath);$(FxCopDir);$(PATH);</ExecutablePath>
+    <OutDir>../../bin/vc15_x64/</OutDir>
+    <IntDir>../../bin/intermediate/instance/</IntDir>
+    <TargetName>instance-sample-d</TargetName>
     <LibraryPath>../../bin/vc14_x64;$(LibraryPath)</LibraryPath>
-    <OutDir>../../bin/vc14_x64/</OutDir>
-    <IntDir>../../bin/intermediate/refract/</IntDir>
-    <TargetName>refract-sample-d</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
@@ -118,7 +122,8 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>Gleam-core-d.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>Gleam-core-d.lib;glew32.lib;glfw3.lib;opengl32.lib;assimp-vc140-mt.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>../../external/lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalOptions>/ignore:4098 %(AdditionalOptions)</AdditionalOptions>
     </Link>
   </ItemDefinitionGroup>

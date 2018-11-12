@@ -19,12 +19,18 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\samples\tutorials\line\line.cpp" />
+    <ClCompile Include="..\..\samples\tutorials\triangle\triangle.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\samples\tutorials\triangle\triangle.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Xml Include="..\..\samples\tutorials\triangle\triangle.xml" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{D80A8D72-3DE3-45DF-8189-CFB1E91C32E5}</ProjectGuid>
+    <ProjectGuid>{054C8D6B-BAA7-4A5A-98F0-57DF18F9B962}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>line</RootNamespace>
+    <RootNamespace>triangle</RootNamespace>
     <WindowsTargetPlatformVersion>10.0.17134.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -77,10 +83,10 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <OutDir>../../bin/vc14_x64/</OutDir>
-    <IntDir>../../bin/intermediate/line/</IntDir>
-    <TargetName>line-sample-d</TargetName>
     <LibraryPath>../../bin/vc14_x64;$(LibraryPath)</LibraryPath>
+    <OutDir>../../bin/vc15_x64/</OutDir>
+    <IntDir>../../bin/intermediate/triangle/</IntDir>
+    <TargetName>triangle-sample-d</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>

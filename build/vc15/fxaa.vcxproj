@@ -19,18 +19,18 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\samples\tutorials\triangle\triangle.cpp" />
+    <ClCompile Include="..\..\samples\FXAA\FXAA.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\samples\tutorials\triangle\triangle.h" />
+    <ClInclude Include="..\..\samples\FXAA\FXAA.h" />
   </ItemGroup>
   <ItemGroup>
-    <Xml Include="..\..\samples\tutorials\triangle\triangle.xml" />
+    <Xml Include="..\..\samples\FXAA\FXAA.xml" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{054C8D6B-BAA7-4A5A-98F0-57DF18F9B962}</ProjectGuid>
+    <ProjectGuid>{F3BCD1AF-0E87-4BC3-AFC8-292016534301}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>triangle</RootNamespace>
+    <RootNamespace>fxaa</RootNamespace>
     <WindowsTargetPlatformVersion>10.0.17134.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -83,10 +83,10 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
+    <OutDir>../../bin/vc15_x64/</OutDir>
+    <IntDir>../../bin/intermediate/fxaa/</IntDir>
+    <TargetName>fxaa-sample-d</TargetName>
     <LibraryPath>../../bin/vc14_x64;$(LibraryPath)</LibraryPath>
-    <OutDir>../../bin/vc14_x64/</OutDir>
-    <IntDir>../../bin/intermediate/triangle/</IntDir>
-    <TargetName>triangle-sample-d</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
@@ -121,6 +121,8 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <IgnoreAllDefaultLibraries>
+      </IgnoreAllDefaultLibraries>
       <AdditionalDependencies>Gleam-core-d.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalOptions>/ignore:4098 %(AdditionalOptions)</AdditionalOptions>
     </Link>

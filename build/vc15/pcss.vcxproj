@@ -19,19 +19,19 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\samples\HDR\HDR.cpp" />
+    <ClCompile Include="..\..\samples\PCSS\pcss.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\samples\HDR\HDR.h" />
+    <ClInclude Include="..\..\samples\PCSS\pcss.h" />
   </ItemGroup>
   <ItemGroup>
-    <Xml Include="..\..\resource\render\tonemapping.xml" />
-    <Xml Include="..\..\samples\HDR\HDR.xml" />
+    <Xml Include="..\..\resource\render\shadow.xml" />
+    <Xml Include="..\..\samples\PCSS\pcss.xml" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{0725EAAD-201D-476B-8CE9-AAE0D4559131}</ProjectGuid>
+    <ProjectGuid>{58E919C9-E8E0-43E7-B3BA-66A8CF6CBD13}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>HDR</RootNamespace>
+    <RootNamespace>pcss</RootNamespace>
     <WindowsTargetPlatformVersion>10.0.17134.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -84,9 +84,9 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <OutDir>../../bin/vc14_x64/</OutDir>
-    <IntDir>../../bin/intermediate/hdr/</IntDir>
-    <TargetName>hdr-sample-d</TargetName>
+    <OutDir>../../bin/vc15_x64/</OutDir>
+    <IntDir>../../bin/intermediate/pcss/</IntDir>
+    <TargetName>pcss-sample-d</TargetName>
     <LibraryPath>../../bin/vc14_x64;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">

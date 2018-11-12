@@ -19,18 +19,15 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\samples\tutorials\instance\instance.cpp" />
+    <ClCompile Include="..\..\samples\glare_effect\glare_effect.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\samples\tutorials\instance\instance.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <Xml Include="..\..\samples\tutorials\instance\instance.xml" />
+    <ClInclude Include="..\..\samples\glare_effect\glare_effect.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{9D4B7880-3ABE-4551-8431-4864F4DC6AD9}</ProjectGuid>
+    <ProjectGuid>{A61FBA2B-807A-4A9B-B488-2EDCD80AA505}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>instance</RootNamespace>
+    <RootNamespace>glare_effect</RootNamespace>
     <WindowsTargetPlatformVersion>10.0.17134.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -83,11 +80,10 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <ExecutablePath>$(VC_ExecutablePath_x64);$(WindowsSDK_ExecutablePath);$(VS_ExecutablePath);$(MSBuild_ExecutablePath);$(FxCopDir);$(PATH);</ExecutablePath>
-    <OutDir>../../bin/vc14_x64/</OutDir>
-    <IntDir>../../bin/intermediate/instance/</IntDir>
-    <TargetName>instance-sample-d</TargetName>
     <LibraryPath>../../bin/vc14_x64;$(LibraryPath)</LibraryPath>
+    <OutDir>../../bin/vc15_x64/</OutDir>
+    <IntDir>../../bin/intermediate/glare_effect/</IntDir>
+    <TargetName>glare-effect-sample-d</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
@@ -122,8 +118,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>Gleam-core-d.lib;glew32.lib;glfw3.lib;opengl32.lib;assimp-vc140-mt.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>../../external/lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>Gleam-core-d.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalOptions>/ignore:4098 %(AdditionalOptions)</AdditionalOptions>
     </Link>
   </ItemDefinitionGroup>

@@ -19,15 +19,19 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\samples\glare_effect\glare_effect.cpp" />
+    <ClCompile Include="..\..\samples\HDR\HDR.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\samples\glare_effect\glare_effect.h" />
+    <ClInclude Include="..\..\samples\HDR\HDR.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Xml Include="..\..\resource\render\tonemapping.xml" />
+    <Xml Include="..\..\samples\HDR\HDR.xml" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{A61FBA2B-807A-4A9B-B488-2EDCD80AA505}</ProjectGuid>
+    <ProjectGuid>{0725EAAD-201D-476B-8CE9-AAE0D4559131}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>glare_effect</RootNamespace>
+    <RootNamespace>HDR</RootNamespace>
     <WindowsTargetPlatformVersion>10.0.17134.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -80,10 +84,10 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
+    <OutDir>../../bin/vc15_x64/</OutDir>
+    <IntDir>../../bin/intermediate/hdr/</IntDir>
+    <TargetName>hdr-sample-d</TargetName>
     <LibraryPath>../../bin/vc14_x64;$(LibraryPath)</LibraryPath>
-    <OutDir>../../bin/vc14_x64/</OutDir>
-    <IntDir>../../bin/intermediate/glare_effect/</IntDir>
-    <TargetName>glare-effect-sample-d</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>

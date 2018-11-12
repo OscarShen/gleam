@@ -7,67 +7,67 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Gleam", "Gleam.vcxproj", "{
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "sample", "sample", "{052FBEB6-0721-4DE8-94C8-A3E460968947}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "fxaa", "build\vc14\fxaa.vcxproj", "{F3BCD1AF-0E87-4BC3-AFC8-292016534301}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "fxaa", "build\vc15\fxaa.vcxproj", "{F3BCD1AF-0E87-4BC3-AFC8-292016534301}"
 	ProjectSection(ProjectDependencies) = postProject
 		{27018355-C13F-4E12-9C23-6BF865228C1B} = {27018355-C13F-4E12-9C23-6BF865228C1B}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pcss", "build\vc14\pcss.vcxproj", "{58E919C9-E8E0-43E7-B3BA-66A8CF6CBD13}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pcss", "build\vc15\pcss.vcxproj", "{58E919C9-E8E0-43E7-B3BA-66A8CF6CBD13}"
 	ProjectSection(ProjectDependencies) = postProject
 		{27018355-C13F-4E12-9C23-6BF865228C1B} = {27018355-C13F-4E12-9C23-6BF865228C1B}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "glare_effect", "build\vc14\glare_effect.vcxproj", "{A61FBA2B-807A-4A9B-B488-2EDCD80AA505}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "glare_effect", "build\vc15\glare_effect.vcxproj", "{A61FBA2B-807A-4A9B-B488-2EDCD80AA505}"
 	ProjectSection(ProjectDependencies) = postProject
 		{27018355-C13F-4E12-9C23-6BF865228C1B} = {27018355-C13F-4E12-9C23-6BF865228C1B}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "bloom", "build\vc14\bloom.vcxproj", "{EF9C16FB-6E9F-47CC-A195-AF3F52038D94}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "bloom", "build\vc15\bloom.vcxproj", "{EF9C16FB-6E9F-47CC-A195-AF3F52038D94}"
 	ProjectSection(ProjectDependencies) = postProject
 		{27018355-C13F-4E12-9C23-6BF865228C1B} = {27018355-C13F-4E12-9C23-6BF865228C1B}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "HDR", "build\vc14\HDR.vcxproj", "{0725EAAD-201D-476B-8CE9-AAE0D4559131}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "HDR", "build\vc15\HDR.vcxproj", "{0725EAAD-201D-476B-8CE9-AAE0D4559131}"
 	ProjectSection(ProjectDependencies) = postProject
 		{27018355-C13F-4E12-9C23-6BF865228C1B} = {27018355-C13F-4E12-9C23-6BF865228C1B}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "refract", "build\vc14\refract.vcxproj", "{1089F82B-5716-4A68-9801-B1257AA5146F}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "refract", "build\vc15\refract.vcxproj", "{1089F82B-5716-4A68-9801-B1257AA5146F}"
 	ProjectSection(ProjectDependencies) = postProject
 		{27018355-C13F-4E12-9C23-6BF865228C1B} = {27018355-C13F-4E12-9C23-6BF865228C1B}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "height_mapping", "build\vc14\height_mapping.vcxproj", "{AAA1E779-C234-4EDB-8E6A-8B67566F949C}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "height_mapping", "build\vc15\height_mapping.vcxproj", "{AAA1E779-C234-4EDB-8E6A-8B67566F949C}"
 	ProjectSection(ProjectDependencies) = postProject
 		{27018355-C13F-4E12-9C23-6BF865228C1B} = {27018355-C13F-4E12-9C23-6BF865228C1B}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "teapot", "build\vc14\teapot.vcxproj", "{7F70F17D-D3F2-4312-966D-E24B5FF6E17A}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "teapot", "build\vc15\teapot.vcxproj", "{7F70F17D-D3F2-4312-966D-E24B5FF6E17A}"
 	ProjectSection(ProjectDependencies) = postProject
 		{27018355-C13F-4E12-9C23-6BF865228C1B} = {27018355-C13F-4E12-9C23-6BF865228C1B}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "triangle", "build\vc14\triangle.vcxproj", "{054C8D6B-BAA7-4A5A-98F0-57DF18F9B962}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "triangle", "build\vc15\triangle.vcxproj", "{054C8D6B-BAA7-4A5A-98F0-57DF18F9B962}"
 	ProjectSection(ProjectDependencies) = postProject
 		{27018355-C13F-4E12-9C23-6BF865228C1B} = {27018355-C13F-4E12-9C23-6BF865228C1B}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "line", "build\vc14\line.vcxproj", "{D80A8D72-3DE3-45DF-8189-CFB1E91C32E5}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "line", "build\vc15\line.vcxproj", "{D80A8D72-3DE3-45DF-8189-CFB1E91C32E5}"
 	ProjectSection(ProjectDependencies) = postProject
 		{27018355-C13F-4E12-9C23-6BF865228C1B} = {27018355-C13F-4E12-9C23-6BF865228C1B}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "instance", "build\vc14\instance.vcxproj", "{9D4B7880-3ABE-4551-8431-4864F4DC6AD9}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "instance", "build\vc15\instance.vcxproj", "{9D4B7880-3ABE-4551-8431-4864F4DC6AD9}"
 	ProjectSection(ProjectDependencies) = postProject
 		{27018355-C13F-4E12-9C23-6BF865228C1B} = {27018355-C13F-4E12-9C23-6BF865228C1B}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "basic_pbr", "build\vc14\basic_pbr.vcxproj", "{A81BA754-9365-471A-844D-FDC87727995C}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "basic_pbr", "build\vc15\basic_pbr.vcxproj", "{A81BA754-9365-471A-844D-FDC87727995C}"
 	ProjectSection(ProjectDependencies) = postProject
 		{27018355-C13F-4E12-9C23-6BF865228C1B} = {27018355-C13F-4E12-9C23-6BF865228C1B}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "terrain", "build\vc14\terrain.vcxproj", "{DE185C0C-1F1A-4E73-83FC-125B2D1BAE89}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "terrain", "build\vc15\terrain.vcxproj", "{DE185C0C-1F1A-4E73-83FC-125B2D1BAE89}"
 	ProjectSection(ProjectDependencies) = postProject
 		{27018355-C13F-4E12-9C23-6BF865228C1B} = {27018355-C13F-4E12-9C23-6BF865228C1B}
 	EndProjectSection
