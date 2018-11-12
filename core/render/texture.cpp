@@ -106,7 +106,7 @@ namespace gleam {
 				texture_desc.texture = re.MakeTexture2D(tex_data.width, tex_data.height, 0, tex_data.format, 1, texture_desc.access_hint, tex_data.init_data);
 				break;
 			case TT_2D_Array:
-				texture_desc.texture = re.MakeTexture2DArray(texture_desc.name.size(),
+				texture_desc.texture = re.MakeTexture2DArray(static_cast<uint32_t>(texture_desc.name.size()),
 					tex_data.width, tex_data.height, 0, tex_data.format, 1, texture_desc.access_hint, tex_data.init_data);
 				break;
 			case TT_Cube:
@@ -510,7 +510,6 @@ namespace gleam {
 	}
 	bool LoadTexture2DArray(const std::vector<std::string>& names, TextureType & type, uint32_t & width, uint32_t & height, ElementFormat & format, std::vector<ElementInitData>& init_data, std::vector<uint8_t>& data)
 	{
-		uint8_t *d;
 		uint32_t array_size = static_cast<uint32_t>(names.size());
 		for (uint32_t index = 0; index < array_size; ++index)
 		{
@@ -592,43 +591,43 @@ namespace gleam {
 
 		// positive X
 		ptr = face;
-		for (int j = 0; j<fHeight; j++) {
+		for (int j = 0; j < fHeight; j++) {
 			memcpy(ptr, &data_f[((height - (fHeight + j + 1))*width + 2 * fWidth) * element_size], fWidth*element_size);
-			ptr += fWidth*element_size;
+			ptr += fWidth * element_size;
 		}
 
 		// negative X
 		face = ptr;
-		for (int j = 0; j<fHeight; j++) {
+		for (int j = 0; j < fHeight; j++) {
 			memcpy(ptr, &data_f[(height - (fHeight + j + 1))*width*element_size], fWidth*element_size);
-			ptr += fWidth*element_size;
+			ptr += fWidth * element_size;
 		}
 
 		// positive Y
 		face = ptr;
-		for (int j = 0; j<fHeight; j++) {
+		for (int j = 0; j < fHeight; j++) {
 			memcpy(ptr, &data_f[((4 * fHeight - j - 1)*width + fWidth)*element_size], fWidth*element_size);
-			ptr += fWidth*element_size;
+			ptr += fWidth * element_size;
 		}
 
 		// negative Y
 		face = ptr;
-		for (int j = 0; j<fHeight; j++) {
+		for (int j = 0; j < fHeight; j++) {
 			memcpy(ptr, &data_f[((2 * fHeight - j - 1)*width + fWidth)*element_size], fWidth*element_size);
-			ptr += fWidth*element_size;
+			ptr += fWidth * element_size;
 		}
 
 		// positive Z
 		face = ptr;
-		for (int j = 0; j<fHeight; j++) {
+		for (int j = 0; j < fHeight; j++) {
 			memcpy(ptr, &data_f[((height - (fHeight + j + 1))*width + fWidth) * element_size], fWidth*element_size);
-			ptr += fWidth*element_size;
+			ptr += fWidth * element_size;
 		}
 
 		// negative Z
 		face = ptr;
-		for (int j = 0; j<fHeight; j++) {
-			for (int i = 0; i<fWidth; i++) {
+		for (int j = 0; j < fHeight; j++) {
+			for (int i = 0; i < fWidth; i++) {
 				memcpy(ptr, &data_f[(j*width + 2 * fWidth - (i + 1))*element_size], element_size);
 				ptr += element_size;
 			}
@@ -799,7 +798,7 @@ namespace gleam {
 
 			if (array_index == 0)
 			{
-				glTexImage3D(target_type_, 0, glinternalformat, 
+				glTexImage3D(target_type_, 0, glinternalformat,
 					width_, height_, array_size_, 0, glformat, gltype, nullptr);
 			}
 			if (!init_data.empty())
