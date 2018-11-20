@@ -148,6 +148,7 @@
     <ClInclude Include="core\render\mesh.h" />
     <ClInclude Include="core\render\ogl_util.h" />
     <ClInclude Include="core\render\post_process.h" />
+    <ClInclude Include="core\render\query.h" />
     <ClInclude Include="core\render\renderable.h" />
     <ClInclude Include="core\render\render_effect.h" />
     <ClInclude Include="core\render\render_engine.h" />
@@ -192,6 +193,7 @@
     <ClCompile Include="core\render\mesh.cpp" />
     <ClCompile Include="core\render\ogl_util.cpp" />
     <ClCompile Include="core\render\post_process.cpp" />
+    <ClCompile Include="core\render\query.cpp" />
     <ClCompile Include="core\render\renderable.cpp" />
     <ClCompile Include="core\render\render_effect.cpp" />
     <ClCompile Include="core\render\render_engine.cpp" />

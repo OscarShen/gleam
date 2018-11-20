@@ -19,4 +19,17 @@
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\samples\oit\oit.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Xml Include="..\..\samples\oit\oit.xml">
+      <Filter>资源文件</Filter>
+    </Xml>
+    <Xml Include="..\..\samples\oit\oit_pp.xml">
+      <Filter>资源文件</Filter>
+    </Xml>
+  </ItemGroup>
 </Project>

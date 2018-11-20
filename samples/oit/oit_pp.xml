@@ -1,0 +1,16 @@
+<?xml version='1.0'?>
+
+<pp>
+  <post_process name="FrontPeelingBlendPP">
+    <input name="tex"/>
+    <output name="dst"/>
+    <shader effect="oit.xml" technique="PeelingBlendTech"/>
+  </post_process>
+
+  <post_process name="PeelingFinalPP">
+    <input name="tex"/>
+    <output name="dst"/>
+    <uniform name="bgColor"/>
+    <shader effect="oit.xml" technique="PeelingFinalTech"/>
+  </post_process>
+</pp>

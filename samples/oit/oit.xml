@@ -1,0 +1,262 @@
+<?xml version='1.0'?>
+
+<effect>
+  <shader type="header" name="ShadeFSFunc">
+    <code>
+      <![CDATA[
+vec4 ShadeFragment(vec3 inUV, float alpha)
+{
+    vec4 color;
+
+    float xWorldPos = inUV.x;
+    float yWorldPos = inUV.y;
+    float diffuse = inUV.z;
+
+    float Freq = 32.0;
+    float i = floor(xWorldPos * Freq);
+    float j = floor(yWorldPos * Freq);
+    color.rgb = (mod(i, 2.0) == 0) ? vec3(1.0f, 0.26, 0.4) : vec3(1.0);
+
+    color.rgb *= diffuse;
+    color.a = alpha;
+    return color;
+}
+      ]]>
+    </code>
+  </shader>
+  
+  <shader type="vertex_shader" name="BaseVS">
+    <attrib  name="pos" usage="position"/>
+    <attrib  name="uv"  usage="texture_coord"/>
+    <code>
+      <![CDATA[
+in vec3 pos;
+in vec2 uv;
+
+out vec2 UV;
+
+void main()
+{
+  gl_Position = vec4(pos, 1.0f);
+  UV = uv;
+}
+      ]]>
+    </code>
+  </shader>
+  
+  <shader type="vertex_shader" name="BaseShadeVS">
+    <attrib  name="pos" usage="position"/>
+    <attrib  name="normal" usage="normal"/>
+    <uniform type="mat4" name="mvp"/>
+    <uniform type="mat4" name="normal_matrix"/>
+    <code>
+      <![CDATA[
+in vec4 pos;
+in vec3 normal;
+
+out vec3 UV;
+
+uniform mat4 mvp;
+uniform mat4 normal_matrix;
+
+vec3 ShadeVertex()
+{
+    float diffuse = abs(normalize(normal_matrix * vec4(normal, 0.0)).z);
+    return vec3(pos.xy, diffuse);
+}
+
+void main(void)
+{
+    gl_Position = mvp * pos;
+	  UV = ShadeVertex();
+}
+      ]]>
+    </code>
+  </shader>
+  
+  <!--Depth Peeling OIT-->
+  
+  <shader type="fragment_shader" name="FrontPeelingInitFS">
+    <header name="ShadeFSFunc"/>
+    <uniform type="float" name="alpha"/>
+    <code>
+<![CDATA[
+in vec3 UV;
+
+uniform float alpha;
+
+vec4 ShadeFragment(vec3 inUV, float alpha);
+
+out vec4 FragColor;
+
+void main(void)
+{
+    vec4 color = ShadeFragment(UV, alpha);
+    FragColor = vec4(color.rgb * color.a, 1.0 - color.a);
+}
+		]]>
+    </code>
+  </shader>
+  
+  <shader type="fragment_shader" name="FrontPeelingPeelFS">
+    <header name="ShadeFSFunc"/>
+    <uniform type="sampler" name="depth_tex">
+      <state name="filtering" value="min_mag_mip_nearest"/>
+      <state name="address_u" value="clamp"/>
+      <state name="address_v" value="clamp"/>
+    </uniform>
+    <uniform type="float" name="alpha"/>
+    <code>
+      <![CDATA[
+      
+in vec3 UV;
+
+uniform float alpha;
+
+uniform sampler2D depth_tex;
+
+vec4 ShadeFragment(vec3 inUV, float alpha);
+
+out vec4 FragColor;
+
+void main(void)
+{
+    // Bit-exact comparison between FP32 z-buffer and fragment depth
+    vec2 frontUV = gl_FragCoord.xy / textureSize(depth_tex, 0);
+    float frontDepth = texture(depth_tex, frontUV).r;
+    if (gl_FragCoord.z <= frontDepth) {
+        discard;
+    }
+    
+    // Shade all the fragments behind the z-buffer
+    vec4 color = ShadeFragment(UV, alpha);
+    FragColor = vec4(color.rgb * color.a, color.a);
+}
+		]]>
+    </code>
+  </shader>
+
+  <shader type="fragment_shader" name="FrontPeelingBlendFS">
+    <uniform type="sampler" name="tex">
+      <state name="filtering" value="min_mag_mip_nearest"/>
+      <state name="address_u" value="clamp"/>
+      <state name="address_v" value="clamp"/>
+    </uniform>
+    <code>
+      <![CDATA[
+in vec2 UV;
+      
+uniform sampler2D tex;
+
+out vec4 FragColor;
+
+void main(void)
+{
+    FragColor = texture(tex, UV);
+}
+		]]>
+    </code>
+  </shader>
+  
+  <shader type="fragment_shader" name="FrontPeelingFinalFS">
+    <uniform type="sampler" name="tex">
+      <state name="filtering" value="min_mag_mip_nearest"/>
+      <state name="address_u" value="clamp"/>
+      <state name="address_v" value="clamp"/>
+    </uniform>
+    <uniform type="vec3" name="bgColor"/>
+    <code>
+      <![CDATA[
+in vec2 UV;
+      
+uniform sampler2D tex;
+uniform vec3 bgColor;
+
+out vec4 outColor;
+
+void main(void)
+{
+    vec4 frontColor = texture(tex, UV);
+    float transmittance = frontColor.a;
+    outColor.rgb = frontColor.rgb + bgColor * transmittance;
+    outColor.a = 1.0f;
+}
+	  ]]>
+    </code>
+  </shader>
+  
+  <technique name="PeelingInitTech">
+    <state name="cull_mode" value="none"/>
+    <state name="depth_enable" value="true"/>
+    <state name="blend_enable" value="false"/>
+    <state name="vertex_shader" value="BaseShadeVS"/>
+    <state name="fragment_shader" value="FrontPeelingInitFS"/>
+  </technique>
+
+  <technique name="PeelingPeelTech">
+    <state name="cull_mode" value="none"/>
+    <state name="blend_enable" value="false"/>
+    <state name="depth_enable" value="true"/>
+    <state name="vertex_shader" value="BaseShadeVS"/>
+    <state name="fragment_shader" value="FrontPeelingPeelFS"/>
+  </technique>
+    
+  <technique name="PeelingBlendTech">
+    <state name="depth_enable" value="false"/>
+    <state name="blend_enable" value="true"/>
+    <state name="blend_op" value="add"/>
+    <state name="blend_op_alpha" value="add"/>
+    <state name="src_blend" value="dst_alpha"/>
+    <state name="dest_blend" value="one"/>
+    <state name="src_blend_alpha" value="zero"/>
+    <state name="dest_blend_alpha" value="inv_src_alpha"/>
+    <state name="vertex_shader" value="BaseVS"/>
+    <state name="fragment_shader" value="FrontPeelingBlendFS"/>
+  </technique>
+
+  <technique name="PeelingFinalTech">
+    <state name="depth_enable" value="false"/>
+    <state name="vertex_shader" value="BaseVS"/>
+    <state name="fragment_shader" value="FrontPeelingFinalFS"/>
+  </technique>
+  
+  
+  <!--Weighted Blended OIT-->
+
+  <shader type="fragment_shader" name="WeightedFinalFS">
+    <uniform type="sampler" name="tex0">
+      <state name="filtering" value="min_mag_mip_nearest"/>
+      <state name="address_u" value="clamp"/>
+      <state name="address_v" value="clamp"/>
+    </uniform>
+    <uniform type="sampler" name="tex1">
+      <state name="filtering" value="min_mag_mip_nearest"/>
+      <state name="address_u" value="clamp"/>
+      <state name="address_v" value="clamp"/>
+    </uniform>
+    <uniform type="vec3" name="bgColor"/>
+    <code>
+      <![CDATA[
+uniform sampler2D tex0;
+uniform sampler2D tex1;
+uniform vec3 bgColor;
+
+out vec4 FragColor;
+
+void main(void)
+{
+    vec2 uv = gl_FragCoord.xy / textureSize(tex0, 0);
+    vec4 sumColor = texture(tex0, uv);
+    float transmittance = texture(tex1, uv).r;
+    vec3 averageColor = sumColor.rgb / max(sumColor.a, 0.00001);
+
+    FragColor.rgb = averageColor * (1 - transmittance) + bgColor * transmittance;
+}
+	  ]]>
+    </code>
+  </shader>
+
+</effect>
+
+
+
