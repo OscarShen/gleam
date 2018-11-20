@@ -4,19 +4,6 @@
 #include <base/context.h>
 #include <input/input_record.h>
 namespace gleam {
-	void InputEngine::RunDaemon()
-	{
-		std::thread(std::thread([&]
-		{
-			for (;;)
-			{
-				this->Update();
-				std::this_thread::sleep_for(
-					std::chrono::milliseconds(1)
-				);
-			}
-		})).detach();
-	}
 	void InputEngine::Update()
 	{
 		for (size_t i = 0; i < input_handlers_.size(); ++i) {

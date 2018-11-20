@@ -85,6 +85,11 @@ namespace gleam {
 	class PostProcess;
 	typedef std::shared_ptr<PostProcess> PostProcessPtr;
 
+	class Query;
+	typedef std::shared_ptr<Query> QueryPtr;
+	class ConditionalRender;
+	typedef std::shared_ptr<ConditionalRender> ConditionalRenderPtr;
+
 	struct SamplerStateDesc;
 
 	template <typename T>

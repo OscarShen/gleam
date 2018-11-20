@@ -11,6 +11,7 @@
 #include "graphics_buffer.h"
 #include <base/context.h>
 #include "render_view.h"
+#include "query.h"
 #include <GLFW/glfw3.h>
 namespace gleam {
 	OGLRenderEngine::OGLRenderEngine()
@@ -691,6 +692,11 @@ namespace gleam {
 		return std::make_shared<OGLDepthStencilRenderView>(width, height, format, sample_count);
 	}
 
+	ConditionalRenderPtr OGLRenderEngine::MakeConditionalRender()
+	{
+		return std::make_shared<OGLConditionalRender>();
+	}
+
 	void OGLRenderEngine::BindFrameBuffer(GLuint fbo, bool force)
 	{
 		if (force || (cur_fbo_ != fbo))
@@ -982,6 +988,20 @@ namespace gleam {
 		current_frame_buffer_.reset();
 		screen_frame_buffer_.reset();
 	}
+	bool RenderEngine::RequireExtension(const std::string & ext, bool exit_on_failure)
+	{
+		if (!this->IsExtensionSupported(ext)) {
+			if (exit_on_failure) {
+				std::string caption = std::string("The current system does not appear to support the extension ")
+					+ std::string(ext) + std::string(", which is required by the sample.  "
+						"This is likely because the system's GPU or driver does not support the extension.  "
+						"Please see the sample's source code for details");
+				CHECK_INFO(false, caption.c_str());
+			}
+			return false;
+		}
+		return true;
+	}
 	void RenderEngine::Render(const RenderEffect & effect, const RenderTechnique & tech, const RenderLayout & layout)
 	{
 		this->DoRender(effect, tech, layout);
@@ -1147,5 +1167,10 @@ namespace gleam {
 		TexturePtr texture = this->MakeTextureHandlerCube(width, num_mip_maps, format, sample_count, access_hint);
 		texture->CreateResource(init_data);
 		return texture;
+	}
+
+	bool OGLRenderEngine::IsExtensionSupported(const std::string & ext)
+	{
+		return glfwExtensionSupported(ext.c_str()) ? true : false;
 	}
 }

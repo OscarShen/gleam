@@ -39,6 +39,8 @@ namespace gleam
 		void SetRenderWindowTitle(const std::string &name);
 		void DestroyRrenderWindow();
 
+		bool RequireExtension(const std::string &ext, bool exit_on_failure = true);
+
 		void Render(const RenderEffect &effect, const RenderTechnique &tech, const RenderLayout &layout);
 		void RenderCompute(const RenderEffect &effect, const RenderTechnique &tech,
 			uint32_t x, uint32_t y, uint32_t z, uint32_t barrier = 0);
@@ -84,6 +86,8 @@ namespace gleam
 
 		virtual RenderLayoutPtr MakeRenderLayout() = 0;
 
+		virtual ConditionalRenderPtr MakeConditionalRender() = 0;
+
 		virtual UniformPtr MakeUniform(uint32_t type) = 0;
 		virtual UniformBufferPtr MakeUniformBuffer() = 0;
 		virtual AttribPtr MakeAttrib() = 0;
@@ -115,14 +119,13 @@ namespace gleam
 
 		bool Quit();
 
-		void RunDaemon() { }
-
 		void SwapBuffer();
 
 	protected:
 		void Destroy();
 
 	private:
+		virtual bool IsExtensionSupported(const std::string & ext) = 0;
 		virtual void DoSetRenderWindowTitle(const std::string &name) = 0;
 		virtual void DoCreateRenderWindow(const std::string & name, const RenderSettings &settings) = 0;
 		virtual SamplerStateObjectPtr DoMakeSamplerStateObjece(const SamplerStateDesc &desc) = 0;
@@ -206,6 +209,8 @@ namespace gleam
 
 		RenderViewPtr Make2DDepthStencilRenderView(uint32_t width, uint32_t height, ElementFormat format, uint32_t sample_count) override;
 
+		ConditionalRenderPtr MakeConditionalRender() override;
+
 		void BindFrameBuffer(GLuint fbo, bool force = false);
 		GLuint BindFrameBuffer() const;
 		void DeleteFrameBuffer(GLsizei n, const GLuint *buffers);
@@ -228,7 +233,9 @@ namespace gleam
 
 		void MemoryBarrier(uint32_t barrier_op) override;
 
+
 	private:
+		bool IsExtensionSupported(const std::string &ext) override;
 		void DoSetRenderWindowTitle(const std::string &name) override;
 		void DoCreateRenderWindow(const std::string & name, const RenderSettings &settings);
 		SamplerStateObjectPtr DoMakeSamplerStateObjece(const SamplerStateDesc &desc) override;

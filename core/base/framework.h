@@ -18,15 +18,8 @@ namespace gleam
 	{
 		UR_NeedFlush = 1UL << 0,
 		UR_Finished = 1UL << 1,
-		UR_Overlay = 1UL << 2,
-		UR_SkipPostProcess = 1UL << 3,
-		UR_OpaqueOnly = 1UL << 4,
-		UR_TransparencyBackOnly = 1UL << 5,
-		UR_TransparencyFrontOnly = 1UL << 6,
-		UR_ReflectionOnly = 1UL << 7,
-		UR_SpecialShadingOnly = 1UL << 8,
-		UR_SimpleForwardOnly = 1UL << 9,
-		UR_VDMOnly = 1UL << 10
+		UR_OpaqueOnly = 1UL << 2,
+		UR_TransparencyOnly = 1UL << 3,
 	};
 
 	class Framework3D : boost::noncopyable

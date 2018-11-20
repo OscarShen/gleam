@@ -18,7 +18,6 @@ namespace gleam
 		InputEngine() {}
 		virtual ~InputEngine() {}
 
-		void RunDaemon();
 		void Update();
 		float ElapsedTime() const { return elapsed_time_; }
 		

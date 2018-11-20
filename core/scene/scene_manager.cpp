@@ -7,6 +7,7 @@
 #include <util/hash.h>
 #include <render/camera.h>
 #include <render/light.h>
+#include <input/input_engine.h>
 namespace gleam {
 	SceneManager::SceneManager()
 		: small_obj_threshold_(0),update_elapsed_(0)
@@ -105,21 +106,37 @@ namespace gleam {
 
 	void SceneManager::AddRenderable(Renderable * renderable)
 	{
-		const RenderTechnique *technique = renderable->GetRenderTechnique();
-		assert(technique);
-		bool found = false;
-		for (auto &items : render_queue_)
+		bool add = true;
+
+		if (update_result_ & UpdateResult::UR_OpaqueOnly)
 		{
-			if (items.first == technique)
-			{
-				items.second.push_back(renderable);
-				found = true;
-				break;
-			}
+			add = !renderable->Transparency();
 		}
-		if (!found)
+		else if (update_result_ & UpdateResult::UR_TransparencyOnly)
 		{
-			render_queue_.emplace_back(technique, std::vector<Renderable*>(1, renderable));
+			add = renderable->Transparency();
+		}
+
+		if (add)
+		{
+
+			const RenderTechnique *technique = renderable->GetRenderTechnique();
+			assert(technique);
+			bool found = false;
+			for (auto &items : render_queue_)
+			{
+				if (items.first == technique)
+				{
+					items.second.push_back(renderable);
+					found = true;
+					break;
+				}
+			}
+
+			if (!found)
+			{
+				render_queue_.emplace_back(technique, std::vector<Renderable*>(1, renderable));
+			}
 		}
 	}
 	void SceneManager::ClearCamera()
@@ -142,6 +159,7 @@ namespace gleam {
 		const float frame_time = app.FrameTime();
 
 		RenderEngine &re = Context::Instance().RenderEngineInstance();
+		InputEngine &ie = Context::Instance().InputEngineInstance();
 		re.BeginFrame();
 
 		this->FlushScene();
@@ -159,8 +177,9 @@ namespace gleam {
 			light->Update(app_time, frame_time);
 		}
 
-
 		re.EndFrame();
+
+		ie.Update();
 	}
 	uint32_t SceneManager::NumSceneObjects() const
 	{
@@ -271,16 +290,15 @@ namespace gleam {
 	{
 		RenderEngine &re = Context::Instance().RenderEngineInstance();
 
-		uint32_t update_result;
 		Framework3D &app = Context::Instance().FrameworkInstance();
 		for (uint32_t render_index = 0;; ++render_index)
 		{
-			update_result = app.Update(render_index);
-			if (update_result & UR_NeedFlush)
+			update_result_ = app.Update(render_index);
+			if (update_result_ & UR_NeedFlush)
 			{
 				this->Flush();
 			}
-			if (update_result & UR_Finished)
+			if (update_result_ & UR_Finished)
 			{
 				break;
 			}

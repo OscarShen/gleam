@@ -19,6 +19,13 @@ namespace gleam
 	class Renderable : boost::noncopyable
 	{
 	public:
+		enum EffectAttrib
+		{
+			EA_Normal = 0UL,
+			EA_Transparency = 1UL << 0,
+		};
+
+	public:
 		virtual void ModelMatrix(const glm::mat4 &model);
 		const glm::mat4 &ModelMatrix() const { return model_matrix_; }
 
@@ -50,6 +57,8 @@ namespace gleam
 		}
 		const RenderablePtr &Subrenderable(uint32_t id) const { return subrenderables_[id]; }
 		uint32_t NumSubrenderables() const { return static_cast<uint32_t>(subrenderables_.size()); }
+
+		bool Transparency() const { return effect_attrib_ & EffectAttrib::EA_Transparency ? true : false; }
 
 	protected:
 		void LoadUniforms();
@@ -84,6 +93,8 @@ namespace gleam
 
 		std::array<TexturePtr, TS_NumTextureSlots> textures_;
 		MaterialPtr mtl_;
+
+		uint32_t effect_attrib_ = 0;
 	};
 
 	class RenderableHelper : public Renderable

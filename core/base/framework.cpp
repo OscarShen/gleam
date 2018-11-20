@@ -22,18 +22,20 @@ namespace gleam {
 	}
 	void Framework3D::Run()
 	{
-		RenderEngine &re = Context::Instance().RenderEngineInstance();
+		Context &context = Context::Instance();
+		RenderEngine &re = context.RenderEngineInstance();
+		SceneManager &sm = context.SceneManagerInstance();
+		Framework3D &app = context.FrameworkInstance();
+		Window &window = *re.GetWindow();
+
 		while (!re.Quit())
 		{
-			Context::Instance().SceneManagerInstance().Update();
+			sm.Update();
+
 			re.SwapBuffer();
 
-			// should use another thread to handle input
-			//InputEngine &ie = Context::Instance().InputEngineInstance();
-			//ie.Update();
-			re.GetWindow()->Update();
+			window.Update();
 
-			Framework3D &app = Context::Instance().FrameworkInstance();
 			app.RunAfterFrame();
 		}
 	}
@@ -58,9 +60,6 @@ namespace gleam {
 		// Init render state
 		re.CurrentRenderStateObject()->ActiveDefault();
 		this->OnCreate();
-
-		Context::Instance().RenderEngineInstance().RunDaemon();
-		Context::Instance().InputEngineInstance().RunDaemon();
 	}
 	void Framework3D::Destroy()
 	{

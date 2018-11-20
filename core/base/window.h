@@ -24,15 +24,15 @@ namespace gleam {
 
 		bool Running() const { return running_; }
 
-		int Width() const { return width_; }
-		int Height() const { return height_; }
+		uint32_t Width() const { return width_; }
+		uint32_t Height() const { return height_; }
 
 		InputRecord &GetInputRecord() const { return *record; }
 
 		virtual void SwapBuffers() = 0;
 
 	protected:
-		int width_, height_;
+		uint32_t width_, height_;
 		std::string title_;
 		bool running_;
 		InputRecord *record;

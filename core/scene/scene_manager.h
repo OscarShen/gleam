@@ -71,6 +71,8 @@ namespace gleam
 		float small_obj_threshold_;
 		float update_elapsed_;
 
+		uint32_t update_result_;
+
 	private:
 		void FlushScene();
 
