@@ -86,15 +86,18 @@ namespace gleam {
 		ogl_back_stencil_func_(OGLMapping::Mapping(depth_stencil_state.back_stencil_func)),
 		ogl_back_stencil_fail_(OGLMapping::Mapping(depth_stencil_state.back_stencil_fail)),
 		ogl_back_stencil_depth_fail_(OGLMapping::Mapping(depth_stencil_state.back_stencil_depth_fail)),
-		ogl_back_stencil_pass_(OGLMapping::Mapping(depth_stencil_state.back_stencil_pass)),
-		ogl_blend_op_(OGLMapping::Mapping(blend_state.blend_op[0])),
-		ogl_blend_op_alpha_(OGLMapping::Mapping(blend_state.blend_op_alpha[0])),
-		ogl_src_blend_(OGLMapping::Mapping(blend_state.src_blend[0])),
-		ogl_dest_blend_(OGLMapping::Mapping(blend_state.dest_blend[0])),
-		ogl_src_blend_alpha_(OGLMapping::Mapping(blend_state.src_blend_alpha[0])),
-		ogl_dest_blend_alpha_(OGLMapping::Mapping(blend_state.dest_blend_alpha[0])),
-		ogl_logic_op_(OGLMapping::Mapping(blend_state.logic_op[0]))
+		ogl_back_stencil_pass_(OGLMapping::Mapping(depth_stencil_state.back_stencil_pass))
 	{
+		for (int32_t i = 0; i < 8; ++i)
+		{
+			ogl_blend_op_[i] = OGLMapping::Mapping(blend_state.blend_op[i]);
+			ogl_blend_op_alpha_[i] = OGLMapping::Mapping(blend_state.blend_op_alpha[i]);
+			ogl_src_blend_[i] = OGLMapping::Mapping(blend_state.src_blend[i]);
+			ogl_dest_blend_[i] = OGLMapping::Mapping(blend_state.dest_blend[i]);
+			ogl_src_blend_alpha_[i] = OGLMapping::Mapping(blend_state.src_blend_alpha[i]);
+			ogl_dest_blend_alpha_[i] = OGLMapping::Mapping(blend_state.dest_blend_alpha[i]);
+			ogl_logic_op_[i] = OGLMapping::Mapping(blend_state.logic_op[i]);
+		}
 	}
 	void OGLRenderStateObject::Active()
 	{
@@ -327,15 +330,15 @@ namespace gleam {
 		{
 			if (cur_blend_state.blend_op[i] != blend_state_.blend_op[i])
 			{
-				glBlendEquationSeparatei(i, ogl_blend_op_, ogl_blend_op_alpha_);
+				glBlendEquationSeparatei(i, ogl_blend_op_[i], ogl_blend_op_alpha_[i]);
 			}
 			if ((cur_blend_state.src_blend[i] != blend_state_.src_blend[i])
 				|| (cur_blend_state.dest_blend[i] != blend_state_.dest_blend[i])
 				|| (cur_blend_state.src_blend_alpha[i] != blend_state_.src_blend_alpha[i])
 				|| (cur_blend_state.dest_blend_alpha[i] != blend_state_.dest_blend_alpha[i]))
 			{
-				glBlendFuncSeparatei(i, ogl_src_blend_, ogl_dest_blend_,
-					ogl_src_blend_alpha_, ogl_dest_blend_alpha_);
+				glBlendFuncSeparatei(i, ogl_src_blend_[i], ogl_dest_blend_[i],
+					ogl_src_blend_alpha_[i], ogl_dest_blend_alpha_[i]);
 			}
 		}
 
@@ -365,7 +368,7 @@ namespace gleam {
 
 		if (cur_blend_state.logic_op[0] != blend_state_.logic_op[0])
 		{
-			glLogicOp(ogl_logic_op_);
+			glLogicOp(ogl_logic_op_[0]);
 		}
 
 		if (cur_blend_state.blend_factor != blend_state_.blend_factor)

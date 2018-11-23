@@ -341,13 +341,13 @@ namespace gleam
 		GLenum		ogl_back_stencil_depth_fail_;
 		GLenum		ogl_back_stencil_pass_;
 
-		GLenum		ogl_blend_op_;
-		GLenum		ogl_blend_op_alpha_;
-		GLenum		ogl_src_blend_;
-		GLenum		ogl_dest_blend_;
-		GLenum		ogl_src_blend_alpha_;
-		GLenum		ogl_dest_blend_alpha_;
-		GLenum		ogl_logic_op_;
+		std::array<GLenum, 8>		ogl_blend_op_;
+		std::array<GLenum, 8>		ogl_blend_op_alpha_;
+		std::array<GLenum, 8>		ogl_src_blend_;
+		std::array<GLenum, 8>		ogl_dest_blend_;
+		std::array<GLenum, 8>		ogl_src_blend_alpha_;
+		std::array<GLenum, 8>		ogl_dest_blend_alpha_;
+		std::array<GLenum, 8>		ogl_logic_op_;
 	};
 
 	class SamplerStateObject : boost::noncopyable
