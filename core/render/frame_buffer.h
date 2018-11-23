@@ -47,6 +47,7 @@ namespace gleam
 		RenderViewPtr Attached(uint32_t att) const;
 
 		virtual void Clear(uint32_t flags, const Color & clr, float depth, int32_t stencil) = 0;
+		virtual void ClearColor(uint32_t att, const Color &clr) = 0;
 		virtual void Discard(uint32_t flags) = 0;
 
 		virtual void OnBind();
@@ -85,6 +86,7 @@ namespace gleam
 		void OnBind() override;
 
 		void Clear(uint32_t flags, const Color & clr, float depth, int32_t stencil) override;
+		void ClearColor(uint32_t att, const Color &clr) override;
 		void Discard(uint32_t flags) override;
 
 	private:

@@ -280,6 +280,45 @@ namespace gleam {
 
 		re.BindFrameBuffer(old_fbo);
 	}
+	void OGLFrameBuffer::ClearColor(uint32_t att, const Color &clr)
+	{
+		OGLRenderEngine &re = *checked_cast<OGLRenderEngine*>(&Context::Instance().RenderEngineInstance());
+		GLuint old_fbo = re.BindFrameBuffer();
+		re.BindFrameBuffer(fbo_);
+		const DepthStencilStateDesc &depth_stencil_state = re.CurrentRenderStateObject()->GetDepthStencilStateDesc();
+		const BlendStateDesc &blend_state = re.CurrentRenderStateObject()->GetBlendStateDesc();
+
+		int32_t att_index = att - ATT_Color0;
+
+		if (blend_state.color_write_mask[att_index] != CMASK_All)
+		{
+			glColorMaski(att_index, GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+		}
+
+		if (fbo_ != 0)
+		{
+			if (color_views_[att_index])
+			{
+				glClearBufferfv(GL_COLOR, static_cast<GLint>(att_index), &clr[0]);
+			}
+		}
+		else
+		{
+			CHECK_INFO(att == ATT_Color0, "Default framebuffer has only one color attachment.");
+			glClearBufferfv(GL_COLOR, 0, &clr[0]);
+		}
+
+		if (blend_state.color_write_mask[att_index] != CMASK_All)
+		{
+			glColorMaski(att_index, (blend_state.color_write_mask[att_index] & CMASK_Red) != 0,
+				(blend_state.color_write_mask[att_index] & CMASK_Green) != 0,
+				(blend_state.color_write_mask[att_index] & CMASK_Blue) != 0,
+				(blend_state.color_write_mask[att_index] & CMASK_Alpha) != 0);
+		}
+
+		re.BindFrameBuffer(old_fbo);
+	}
+
 	void OGLFrameBuffer::Discard(uint32_t flags)
 	{
 		std::vector<GLenum> attachments;
