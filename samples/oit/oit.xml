@@ -222,8 +222,44 @@ void main(void)
   
   
   <!--Weighted Blended OIT-->
+  
+  <shader type="fragment_shader" name="WeightedBlendedBlendFS">
+    <header name="ShadeFSFunc"/>
+    <uniform type="float" name="depth_scale"/>
+    <uniform type="float" name="alpha"/>
+    <code>
+      <![CDATA[
+vec4 ShadeFragment(vec3 inUV, float alpha);
 
-  <shader type="fragment_shader" name="WeightedFinalFS">
+in vec3 UV;
+
+uniform float depth_scale;
+uniform float alpha;
+
+layout(location=0) out vec4 SumColor;
+layout(location=1) out vec4 SumWeight;
+
+void main(void)
+{
+    vec4 color = ShadeFragment(UV, alpha);
+
+    // Assuming that the projection matrix is a perspective projection
+    // gl_FragCoord.w returns the inverse of the oPos.w register from the vertex shader
+    float viewDepth = abs(1.0 / gl_FragCoord.w);
+
+    // Tuned to work well with FP16 accumulation buffers and 0.001 < linearDepth < 2.5
+    // See Equation (9) from http://jcgt.org/published/0002/02/09/
+    float linearDepth = viewDepth * depth_scale;
+    float weight = clamp(0.03 / (1e-5 + pow(linearDepth, 4.0)), 1e-2, 3e3);
+
+    SumColor = vec4(color.rgb * color.a, color.a) * weight;
+    SumWeight = vec4(color.a);
+}
+	  ]]>
+    </code>
+  </shader>
+
+  <shader type="fragment_shader" name="WeightedBlendedFinalFS">
     <uniform type="sampler" name="tex0">
       <state name="filtering" value="min_mag_mip_nearest"/>
       <state name="address_u" value="clamp"/>
@@ -237,6 +273,9 @@ void main(void)
     <uniform type="vec3" name="bgColor"/>
     <code>
       <![CDATA[
+
+in vec2 UV;
+
 uniform sampler2D tex0;
 uniform sampler2D tex1;
 uniform vec3 bgColor;
@@ -245,9 +284,8 @@ out vec4 FragColor;
 
 void main(void)
 {
-    vec2 uv = gl_FragCoord.xy / textureSize(tex0, 0);
-    vec4 sumColor = texture(tex0, uv);
-    float transmittance = texture(tex1, uv).r;
+    vec4 sumColor = texture(tex0, UV);
+    float transmittance = texture(tex1, UV).r;
     vec3 averageColor = sumColor.rgb / max(sumColor.a, 0.00001);
 
     FragColor.rgb = averageColor * (1 - transmittance) + bgColor * transmittance;
@@ -256,6 +294,34 @@ void main(void)
     </code>
   </shader>
 
+  <technique name="WeightedBlendedBlendTech">
+    <state name="cull_mode" value="none"/>
+    <state name="depth_enable" value="false"/>
+    <state name="blend_enable" value="true"/>
+    
+    <state name="blend_op" index="0" value="add"/>
+    <state name="blend_op_alpha" index="0" value="add"/>
+    <state name="src_blend" index="0" value="one"/>
+    <state name="dest_blend" index="0" value="one"/>
+    <state name="src_blend_alpha" index="0" value="one"/>
+    <state name="dest_blend_alpha" index="0" value="one"/>
+    
+    <state name="blend_op" index="1" value="add"/>
+    <state name="blend_op_alpha" index="1" value="add"/>
+    <state name="src_blend" index="1" value="zero"/>
+    <state name="dest_blend" index="1" value="inv_src_alpha"/>
+    <state name="src_blend_alpha" index="1" value="zero"/>
+    <state name="dest_blend_alpha" index="1" value="inv_src_alpha"/>
+    
+    <state name="vertex_shader" value="BaseShadeVS"/>
+    <state name="fragment_shader" value="WeightedBlendedBlendFS"/>
+  </technique>
+
+  <technique name="WeightedBlendedFinalTech">
+    <state name="depth_enable" value="false"/>
+    <state name="vertex_shader" value="BaseVS"/>
+    <state name="fragment_shader" value="WeightedBlendedFinalFS"/>
+  </technique>
 </effect>
 
 

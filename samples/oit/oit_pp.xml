@@ -13,4 +13,13 @@
     <uniform name="bgColor"/>
     <shader effect="oit.xml" technique="PeelingFinalTech"/>
   </post_process>
+
+  <post_process name="WeightedBlendedFinalPP">
+    <input name="tex0"/>
+    <input name="tex1"/>
+    <uniform name="bgColor"/>
+    <output name="dst"/>
+    <shader effect="oit.xml" technique="WeightedBlendedFinalTech"/>
+  </post_process>
+  
 </pp>
