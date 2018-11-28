@@ -54,6 +54,12 @@ namespace gleam
 		virtual void SetParam(uint32_t index, const std::vector<glm::vec3> &value);
 		virtual void SetParam(uint32_t index, const std::vector<glm::vec4> &value);
 
+		template <typename T>
+		void SetParam(const std::string &name, const T &value)
+		{
+			SetParam(ParamByName(name), value);
+		}
+
 		virtual uint32_t NumParams() const { return static_cast<uint32_t>(uniforms_.size()); }
 
 		virtual uint32_t NumInput() const { return static_cast<uint32_t>(input_.size()); }
@@ -124,6 +130,12 @@ namespace gleam
 		virtual void SetParam(uint32_t index, const std::vector<glm::vec2> &value) { pp_chain_.front()->SetParam(index, value); }
 		virtual void SetParam(uint32_t index, const std::vector<glm::vec3> &value) { pp_chain_.front()->SetParam(index, value); }
 		virtual void SetParam(uint32_t index, const std::vector<glm::vec4> &value) { pp_chain_.front()->SetParam(index, value); }
+
+		template <typename T>
+		void SetParam(std::string &name, const T &value)
+		{
+			SetParam(ParamByName(name), value);
+		}
 
 		virtual uint32_t NumParams() const { return pp_chain_.front()->NumParams(); }
 		virtual const std::string & GetParamName(uint32_t index) const { return pp_chain_.front()->GetParamName(index); }

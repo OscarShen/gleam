@@ -63,8 +63,6 @@ public:
 
 		switch (status_)
 		{
-		case RenderPolygon::PeelingInit:
-			break;
 		case RenderPolygon::PeelingPeel:
 			*(shader->GetSamplerByName("depth_tex")) = depth_tex_;
 			break;
@@ -167,41 +165,37 @@ void OIT::OnCreate()
 	InputEngine &ie = Context::Instance().InputEngineInstance();
 	ie.Register([this]() {
 		static Timer timer;
-		static Timer timer2;
 		RenderEngine &re = Context::Instance().RenderEngineInstance();
 		WindowPtr window = re.GetWindow();
 		InputRecord &record = window->GetInputRecord();
+		float elapsed = timer.Elapsed();
+
+		if (elapsed < 0.1f) return;
 
 		if (record.keys[GLFW_KEY_SPACE])
 		{
-			if (timer.Elapsed() > 0.2f)
-			{
-				ALPHA_VALUE += 0.1f;
-				if (ALPHA_VALUE > 1.01f)
-					ALPHA_VALUE = 0.1f;
-				timer.Restart();
-			}
+			ALPHA_VALUE += 0.1f;
+			if (ALPHA_VALUE > 1.01f)
+				ALPHA_VALUE = 0.1f;
 		}
 
 		if (record.keys[GLFW_KEY_E])
 		{
-			if (timer2.Elapsed() > 0.2f)
+
+			switch (mod_)
 			{
-				switch (mod_)
-				{
-				case OIT::DepthPeeling:
-					mod_ = WeightedBlended;
-					break;
-				case OIT::WeightedBlended:
-					mod_ = DepthPeeling;
-					break;
-				default:
-					CHECK_INFO(false, "Wrong path!");
-					break;
-				}
-				timer2.Restart();
+			case OIT::DepthPeeling:
+				mod_ = WeightedBlended;
+				break;
+			case OIT::WeightedBlended:
+				mod_ = DepthPeeling;
+				break;
+			default:
+				CHECK_INFO(false, "Wrong path!");
+				break;
 			}
 		}
+		timer.Restart();
 	});
 }
 
@@ -289,7 +283,7 @@ uint32_t OIT::DoUpdateDepthPeeling(uint32_t render_index)
 		front_blender_fbo_->Clear(CBM_Color | CBM_Depth, Color(0.0f, 0.0f, 0.0f, 1.0f), 1.0f, 0);
 		for (int32_t i = 0; i < 2; ++i)
 		{
-			front_fbo_[i]->Clear(CBM_Color | CBM_Depth, Color(0.0f), 1.0f, 0);
+			front_fbo_[i]->Clear(CBM_Color | CBM_Depth, Color(0.0f, 0.0f, 0.0f, 0.0f), 1.0f, 0);
 		}
 		return UR_OpaqueOnly | UR_NeedFlush;
 	}
@@ -323,7 +317,7 @@ uint32_t OIT::DoUpdateDepthPeeling(uint32_t render_index)
 			{
 				peel_final_pp_->InputTexture(0, front_color_blender_);
 				peel_final_pp_->OutputTexture(0, TexturePtr());
-				peel_final_pp_->SetParam(0, glm::vec3(0.2f, 0.4f, 0.6f));
+				peel_final_pp_->SetParam("bgColor", glm::vec3(0.2f, 0.4f, 0.6f));
 				peel_final_pp_->Render();
 				return UR_Finished;
 			}
@@ -381,7 +375,7 @@ uint32_t OIT::DoUpdateWeightedBlended(uint32_t render_index)
 		re.BindFrameBuffer(FrameBufferPtr());
 		weighted_blended_final_pp_->InputTexture(0, accum_tex_[0]);
 		weighted_blended_final_pp_->InputTexture(1, accum_tex_[1]);
-		weighted_blended_final_pp_->SetParam(0, glm::vec3(0.2f, 0.4f, 0.6f));
+		weighted_blended_final_pp_->SetParam("bgColor", glm::vec3(0.2f, 0.4f, 0.6f));
 		weighted_blended_final_pp_->Render();
 		return UR_Finished;
 	}
