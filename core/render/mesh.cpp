@@ -17,7 +17,7 @@ namespace gleam {
 
 	class ModelLoadingDesc : public ResLoadingDesc
 	{
-	private:
+	public:
 		struct ModelDesc
 		{
 			struct ModelData
@@ -40,15 +40,15 @@ namespace gleam {
 			std::string res_name;
 			uint32_t access_hint;
 			std::shared_ptr<ModelData> model_data;
-			std::shared_ptr<Model> model;
-			std::function<ModelPtr(const std::string &)> CreateModelFunc;
-			std::function<MeshPtr(const std::string &, const ModelPtr &)> CreateMeshFunc;
+			RenderModelPtr model;
+			std::function<RenderModelPtr(const std::string &)> CreateModelFunc;
+			std::function<MeshPtr(const std::string &, const RenderModelPtr &)> CreateMeshFunc;
 		};
 
 	public:
 		ModelLoadingDesc(const std::string &res_name, uint32_t access_hint,
-			std::function<ModelPtr(const std::string &)> create_model_func,
-			std::function<MeshPtr(const std::string &, const ModelPtr &)> create_mesh_func)
+			std::function<RenderModelPtr(const std::string &)> create_model_func,
+			std::function<MeshPtr(const std::string &, const RenderModelPtr &)> create_mesh_func)
 		{
 			model_desc_.res_name = res_name;
 			model_desc_.access_hint = access_hint;
@@ -59,7 +59,7 @@ namespace gleam {
 
 		std::shared_ptr<void> CreateResource()
 		{
-			ModelPtr model = model_desc_.CreateModelFunc("Model");
+			RenderModelPtr model = model_desc_.CreateModelFunc("Model");
 			model_desc_.model = model;
 			return model;
 		}
@@ -72,7 +72,7 @@ namespace gleam {
 
 		void Load() override
 		{
-			const ModelPtr &model = model_desc_.model;
+			const RenderModelPtr &model = model_desc_.model;
 
 			CHECK_INFO(LoadModel(
 				model_desc_.res_name,
@@ -100,10 +100,9 @@ namespace gleam {
 
 			model->LoadModelInfo();
 
-			for (uint32_t i = 0; i < model->NumSubrenderables(); ++i)
-			{
-				checked_pointer_cast<Mesh>(model->Subrenderable(i))->LoadMeshInfo();
-			}
+			model->ForEachMeshes([](const MeshPtr &mesh) {
+				mesh->LoadMeshInfo();
+			});
 
 			// release resources in Host
 			model_desc_.model_data.reset();
@@ -129,7 +128,7 @@ namespace gleam {
 		void AssignModelInfo()
 		{
 			RenderEngine &re = Context::Instance().RenderEngineInstance();
-			const ModelPtr &model = model_desc_.model;
+			const RenderModelPtr &model = model_desc_.model;
 
 			// materials
 			model->NumMaterials(model_desc_.model_data->mtls.size());
@@ -171,7 +170,7 @@ namespace gleam {
 
 			}
 
-			model->AssignSubrenderable(meshes.begin(), meshes.end());
+			model->AssignMeshes(meshes.begin(), meshes.end());
 		}
 
 		void AddSubPath()
@@ -192,7 +191,7 @@ namespace gleam {
 		ModelDesc model_desc_;
 	};
 
-	Mesh::Mesh(const std::string & name, const ModelPtr & model)
+	Mesh::Mesh(const std::string & name, const RenderModelPtr & model)
 		:model_ptr_(model), name_(name), mtl_id_(-1)
 	{
 		layout_ = Context::Instance().RenderEngineInstance().MakeRenderLayout();
@@ -229,7 +228,7 @@ namespace gleam {
 	void Mesh::DoLoadMeshInfo()
 	{
 		if (this->MaterialID() >= 0) {
-			ModelPtr model = model_ptr_.lock();
+			RenderModelPtr model = model_ptr_.lock();
 			mtl_ = model->GetMaterial(this->MaterialID());
 
 			for (size_t i = 0; i < TS_NumTextureSlots; ++i)
@@ -239,53 +238,6 @@ namespace gleam {
 					textures_[i] = LoadTexture2D(mtl_->tex_names[i], EAH_GPU_Read | EAH_Immutable);
 				}
 			}
-		}
-	}
-
-	Model::Model(const std::string & name)
-		: name_(name)
-	{
-	}
-
-	void Model::LoadModelInfo()
-	{
-		this->DoLoadModelInfo();
-	}
-
-	void Model::OnRenderBegin()
-	{
-		for (const auto &mesh : subrenderables_)
-		{
-			mesh->OnRenderBegin();
-		}
-	}
-
-	void Model::OnRenderEnd()
-	{
-		for (const auto &mesh : subrenderables_)
-		{
-			mesh->OnRenderEnd();
-		}
-	}
-
-	void Model::ModelMatrix(const glm::mat4 & model)
-	{
-		this->model_matrix_ = model;
-	}
-
-	void Model::AddToRenderQueue()
-	{
-		for (const auto &mesh : subrenderables_)
-		{
-			mesh->AddToRenderQueue();
-		}
-	}
-
-	void Model::BindRenderTechnique(const RenderEffectPtr & effect, RenderTechnique * tech)
-	{
-		for (const auto &mesh : subrenderables_)
-		{
-			mesh->BindRenderTechnique(effect, tech);
 		}
 	}
 
@@ -652,10 +604,11 @@ namespace gleam {
 
 		return true;
 	}
-	ModelPtr LoadModel(const std::string & name, uint32_t access_hint, std::function<ModelPtr(const std::string &)> create_model_func, std::function<MeshPtr(const std::string &, const ModelPtr &)> create_mesh_func)
+	RenderModelPtr LoadModel(const std::string & name, uint32_t access_hint, std::function<RenderModelPtr(const std::string &)> create_model_func, std::function<MeshPtr(const std::string &, const RenderModelPtr &)> create_mesh_func)
 	{
-		return ResLoader::Instance().QueryT<Model>(std::make_shared<ModelLoadingDesc>(name, access_hint, create_model_func, create_mesh_func));
+		return ResLoader::Instance().QueryT<RenderModel>(std::make_shared<ModelLoadingDesc>(name, access_hint, create_model_func, create_mesh_func));
 	}
+
 	RenderableLightPolygon::RenderableLightPolygon()
 	{
 		RenderEngine &re = Context::Instance().RenderEngineInstance();
@@ -706,7 +659,7 @@ namespace gleam {
 		glm::mat4 mvp = framework.ActiveCamera().ProjViewMatrix() * model_matrix_;
 		*mvp_ = mvp;
 	}
-	BasicPolygon::BasicPolygon(const std::string & name, const ModelPtr & model)
+	BasicPolygon::BasicPolygon(const std::string & name, const RenderModelPtr & model)
 		: Mesh(name, model)
 	{
 		RenderEffectPtr effect = LoadRenderEffect("renderable.xml");
@@ -736,5 +689,24 @@ namespace gleam {
 
 		glm::mat4 mvp = framework.ActiveCamera().ProjViewMatrix() * model_matrix_;
 		*(shader.GetUniformByName("mvp")) = mvp;
+	}
+	RenderModel::RenderModel(const std::string & name)
+		: name_(name)
+	{
+	}
+	void RenderModel::LoadModelInfo()
+	{
+		this->DoLoadModelInfo();
+	}
+	void RenderModel::ModelMatrix(const glm::mat4 & model)
+	{
+		model_matrix_ = model;
+	}
+	void RenderModel::ForEachMeshes(const std::function<void(const MeshPtr&)> func)
+	{
+		for (const MeshPtr &mesh : meshes_)
+		{
+			func(mesh);
+		}
 	}
 }

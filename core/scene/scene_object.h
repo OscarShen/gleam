@@ -80,32 +80,36 @@ namespace gleam
 	public:
 		explicit SceneObjectHelper(uint32_t attrib);
 		SceneObjectHelper(const RenderablePtr &renderable, uint32_t attrib);
+		SceneObjectHelper(const RenderModelPtr &model, uint32_t attrib);
 
 		virtual void OnAttachRenderable(bool add_to_scene) override;
-	};
-
-	class SceneObjectLightPolygon : public SceneObjectHelper
-	{
-	public:
-		explicit SceneObjectLightPolygon(const LightPtr & light);
-
-		void Scale(const glm::vec3 &scale);
-
-		void Update(float, float) override;
 
 	private:
-		LightPtr light_;
-
-		glm::mat4 scale_matrix_;
+		RenderModelPtr model_;
 	};
 
-	class SceneObjectSkybox : public SceneObjectHelper
-	{
-	public:
-		explicit SceneObjectSkybox(uint32_t attrib = 0);
+	//class SceneObjectLightPolygon : public SceneObjectHelper
+	//{
+	//public:
+	//	explicit SceneObjectLightPolygon(const LightPtr & light);
 
-		void CubeMap(const TexturePtr &cubemap);
-	};
+	//	void Scale(const glm::vec3 &scale);
+
+	//	void Update(float, float) override;
+
+	//private:
+	//	LightPtr light_;
+
+	//	glm::mat4 scale_matrix_;
+	//};
+
+	//class SceneObjectSkybox : public SceneObjectHelper
+	//{
+	//public:
+	//	explicit SceneObjectSkybox(uint32_t attrib = 0);
+
+	//	void CubeMap(const TexturePtr &cubemap);
+	//};
 }
 
 #endif // !GLEAM_SCENE_OBJECT_H_

@@ -15,7 +15,7 @@ namespace gleam
 	class Mesh : public Renderable
 	{
 	public:
-		Mesh(const std::string &name, const ModelPtr &model);
+		Mesh(const std::string &name, const RenderModelPtr &model);
 
 		void LoadMeshInfo();
 
@@ -52,33 +52,33 @@ namespace gleam
 
 		int32_t mtl_id_;
 
-		std::weak_ptr<Model> model_ptr_;
+		std::weak_ptr<RenderModel> model_ptr_;
 	};
 
-	class Model : public Renderable
+	class RenderModel
 	{
 	public:
-		Model(const std::string &name);
+		RenderModel(const std::string &name);
 
 		void LoadModelInfo();
-
-		RenderLayout &GetRenderLayout() const override { return *layout_; }
-
-		void OnRenderBegin() override;
-		void OnRenderEnd() override;
 
 		void NumMaterials(size_t i) { materials_.resize(i); }
 		size_t NumMaterials() const { return materials_.size(); }
 		MaterialPtr &GetMaterial(int32_t index) { return materials_[index]; }
 		const MaterialPtr &GetMaterial(int32_t index) const { return materials_[index]; }
 
-		void ModelMatrix(const glm::mat4 &model) override;
+		void ModelMatrix(const glm::mat4 &model);
 
-		void AddToRenderQueue() override;
+		void ForEachMeshes(const std::function<void(const MeshPtr &)> func);
 
-		// Model does not need render technique, but Mesh needs.
-		// This is not a very effecient method in forward rendering.
-		void BindRenderTechnique(const RenderEffectPtr &effect, RenderTechnique *tech) override;
+		template <typename ForwardIterator>
+		void AssignMeshes(ForwardIterator first, ForwardIterator last)
+		{
+			meshes_.assign(first, last);
+		}
+
+		int32_t NumMeshes() const { return meshes_.size(); }
+		MeshPtr &GetMesh(int32_t index) { return meshes_[index]; }
 
 	protected:
 		virtual void DoLoadModelInfo() { }
@@ -86,9 +86,10 @@ namespace gleam
 	protected:
 		std::string name_;
 
-		RenderLayoutPtr layout_;
-
+		std::vector<MeshPtr> meshes_;
 		std::vector<MaterialPtr> materials_;
+
+		glm::mat4 model_matrix_;
 	};
 
 	class RenderableLightPolygon : public RenderableHelper
@@ -112,7 +113,7 @@ namespace gleam
 	class BasicPolygon : public Mesh
 	{
 	public:
-		BasicPolygon(const std::string &name, const ModelPtr &model);
+		BasicPolygon(const std::string &name, const RenderModelPtr &model);
 		void SetColor(const glm::vec4 &color);
 		void OnRenderBegin() override;
 		void OnRepeatRenderBegin(uint32_t i) override;
@@ -121,7 +122,7 @@ namespace gleam
 	template <typename T>
 	struct CreateMeshFunc
 	{
-		MeshPtr operator()(const std::string & name, const ModelPtr & model)
+		MeshPtr operator()(const std::string & name, const RenderModelPtr & model)
 		{
 			return std::make_shared<T>(name, model);
 		}
@@ -130,7 +131,7 @@ namespace gleam
 	template <typename T>
 	struct CreateModelFunc
 	{
-		ModelPtr operator()(const std::string & name)
+		RenderModelPtr operator()(const std::string & name)
 		{
 			return std::make_shared<T>(name);
 		}
@@ -143,9 +144,9 @@ namespace gleam
 		std::vector<uint32_t>& mesh_num_vertices, std::vector<uint32_t> &mesh_start_vertices,
 		std::vector<uint32_t>& mesh_num_indices, std::vector<uint32_t> &mesh_start_indices
 		);
-	ModelPtr LoadModel(const std::string &name, uint32_t access_hint,
-		std::function<ModelPtr(const std::string &)> create_model_func,
-		std::function<MeshPtr(const std::string &, const ModelPtr &)> create_mesh_func);
+	RenderModelPtr LoadModel(const std::string &name, uint32_t access_hint,
+		std::function<RenderModelPtr(const std::string &)> create_model_func,
+		std::function<MeshPtr(const std::string &, const RenderModelPtr &)> create_mesh_func);
 }
 
 #endif // !GLEAM_CORE_RENDER_MESH_H_

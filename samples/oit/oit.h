@@ -31,7 +31,7 @@ private:
 private:
 	TrackballCameraController controller_;
 
-	ModelPtr dragon_;
+	RenderModelPtr dragon_;
 
 	OITMod mod_ = WeightedBlended;
 

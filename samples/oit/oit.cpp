@@ -34,7 +34,7 @@ public:
 	};
 
 public:
-	RenderPolygon(const std::string &name, const ModelPtr &model)
+	RenderPolygon(const std::string &name, const RenderModelPtr &model)
 		: Mesh(name, model)
 	{
 		oit_effect_ = LoadRenderEffect("oit.xml");
@@ -135,7 +135,7 @@ void OIT::OnCreate()
 	controller_.AttachCamera(this->ActiveCamera());
 	controller_.SetScalers(0.005f, 0.01f);
 
-	dragon_ = LoadModel("dragon.obj", EAH_Immutable, CreateModelFunc<Model>(), CreateMeshFunc<RenderPolygon>());
+	dragon_ = LoadModel("dragon.obj", EAH_Immutable, CreateModelFunc<RenderModel>(), CreateMeshFunc<RenderPolygon>());
 
 	InitDepthPeeling();
 	InitWeightedBlended();
@@ -290,11 +290,10 @@ uint32_t OIT::DoUpdateDepthPeeling(uint32_t render_index)
 	else if (render_index == 1)
 	{
 		re.BindFrameBuffer(front_blender_fbo_);
-		for (uint32_t i = 0; i < dragon_->NumSubrenderables(); ++i)
-		{
-			checked_pointer_cast<RenderPolygon>(dragon_->Subrenderable(i))
+		dragon_->ForEachMeshes([](const MeshPtr &mesh) {
+			checked_pointer_cast<RenderPolygon>(mesh)
 				->SetOitStatus(RenderPolygon::OITStatus::PeelingInit);
-		}
+		});
 		return UR_TransparencyOnly | UR_NeedFlush;
 	}
 	else
@@ -326,12 +325,11 @@ uint32_t OIT::DoUpdateDepthPeeling(uint32_t render_index)
 			re.CurrentFrameBuffer()->Clear(CBM_Color | CBM_Depth, black_color, 1.0f, 0);
 			queries_[currId]->Begin();
 
-			for (uint32_t i = 0; i < dragon_->NumSubrenderables(); ++i)
-			{
-				auto polygon = checked_pointer_cast<RenderPolygon>(dragon_->Subrenderable(i));
+			dragon_->ForEachMeshes([this, prevId](const MeshPtr &mesh) {
+				auto polygon = checked_pointer_cast<RenderPolygon>(mesh);
 				polygon->SetOitStatus(RenderPolygon::OITStatus::PeelingPeel);
 				polygon->SetDepthTex(front_depth_tex_[prevId]);
-			}
+			});
 
 			return UR_TransparencyOnly | UR_NeedFlush;
 		}
@@ -363,11 +361,10 @@ uint32_t OIT::DoUpdateWeightedBlended(uint32_t render_index)
 	case 1:
 	{
 		re.BindFrameBuffer(accum_fbo_);
-		for (uint32_t i = 0; i < dragon_->NumSubrenderables(); ++i)
-		{
-			auto polygon = checked_pointer_cast<RenderPolygon>(dragon_->Subrenderable(i));
-			polygon->SetOitStatus(RenderPolygon::OITStatus::WeightedBlendedBlend);
-		}
+		dragon_->ForEachMeshes([](const MeshPtr &mesh) {
+			checked_pointer_cast<RenderPolygon>(mesh)->SetOitStatus(RenderPolygon::OITStatus::WeightedBlendedBlend);
+		});
+
 		return UR_TransparencyOnly | UR_NeedFlush;
 	}
 	case 2:

@@ -78,8 +78,8 @@ namespace gleam {
 	class Framework3D;
 	class Mesh;
 	typedef std::shared_ptr<Mesh> MeshPtr;
-	class Model;
-	typedef std::shared_ptr<Model> ModelPtr;
+	class RenderModel;
+	typedef std::shared_ptr<RenderModel> RenderModelPtr;
 	struct Material;
 	typedef std::shared_ptr<Material> MaterialPtr;
 	class PostProcess;
