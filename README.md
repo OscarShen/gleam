@@ -2,7 +2,7 @@
 
 Gleam will be an a cutting-edge realtime render technique platform.
 
-This is a difficult and protracted task. In addition, there are some relevant technical analysis on the blog [gleam](www.selfgleam.com).
+This is a difficult and protracted task. In addition, there are some relevant technical analysis on the blog [www.selfgleam.com](www.selfgleam.com).
 
 ## How to build
 Git clone the sources, then use Visual Studio 2015 open the file Gleam.sln in root directory.
